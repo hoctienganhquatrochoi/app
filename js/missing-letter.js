@@ -59,15 +59,6 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
     var wrap = document.createElement("div");
     wrap.className = "ml-wrap";
 
-    var crumb = document.createElement("div");
-    crumb.className = "breadcrumb";
-    crumb.textContent = breadcrumbText;
-    wrap.appendChild(crumb);
-
-    var title = document.createElement("h2");
-    title.textContent = "Khuyết chữ cái";
-    wrap.appendChild(title);
-
     var header = document.createElement("div");
     header.className = "quiz-header";
 
@@ -194,11 +185,6 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
 
     var wrap = document.createElement("div");
     wrap.className = "ml-wrap quiz-result";
-
-    var crumb = document.createElement("div");
-    crumb.className = "breadcrumb";
-    crumb.textContent = breadcrumbText;
-    wrap.appendChild(crumb);
 
     var title = document.createElement("h2");
     title.textContent = "Kết quả";

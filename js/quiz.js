@@ -48,15 +48,6 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     var wrap = document.createElement("div");
     wrap.className = "quiz-wrap";
 
-    var crumb = document.createElement("div");
-    crumb.className = "breadcrumb";
-    crumb.textContent = breadcrumbText;
-    wrap.appendChild(crumb);
-
-    var title = document.createElement("h2");
-    title.textContent = "Quiz";
-    wrap.appendChild(title);
-
     var header = document.createElement("div");
     header.className = "quiz-header";
 
@@ -74,7 +65,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     var config = QUIZ_FORMAT_CONFIG[q.format];
 
     var body = document.createElement("div");
-    body.className = "quiz-body" + (config.showImage && config.answerType !== "image" ? " quiz-body-row" : "");
+    body.className = "quiz-body";
 
     body.appendChild(buildPrompt(q, config));
 
@@ -197,11 +188,6 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
 
     var wrap = document.createElement("div");
     wrap.className = "quiz-wrap quiz-result";
-
-    var crumb = document.createElement("div");
-    crumb.className = "breadcrumb";
-    crumb.textContent = breadcrumbText;
-    wrap.appendChild(crumb);
 
     var title = document.createElement("h2");
     title.textContent = "Kết quả";

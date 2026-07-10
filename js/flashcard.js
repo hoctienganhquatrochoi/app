@@ -7,15 +7,6 @@ function renderFlashcard(container, breadcrumbText, items) {
     var wrap = document.createElement("div");
     wrap.className = "fc-wrap";
 
-    var crumb = document.createElement("div");
-    crumb.className = "breadcrumb";
-    crumb.textContent = breadcrumbText;
-    wrap.appendChild(crumb);
-
-    var title = document.createElement("h2");
-    title.textContent = "Thẻ đọc";
-    wrap.appendChild(title);
-
     var progress = document.createElement("div");
     progress.className = "fc-progress";
     progress.textContent = "Thẻ " + (index + 1) + " / " + items.length;
