@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English for Kids – Học qua Trò Chơi</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="banner">
+  <div class="banner-left">
+    <div class="logo-circle">EK</div>
+    <div class="brand-text">
+      <div class="brand-name">English for Kids – Học qua Trò Chơi</div>
+      <div class="brand-slogan">Học tiếng Anh nhớ siêu nhanh</div>
+    </div>
+  </div>
+  <div class="banner-right">
+    <a class="social-icon" href="https://www.facebook.com/hoctienganhquatrochoi" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9.1 23.7v-8H6.6v-3.7h2.5V9.4c0-2.6 1.6-4.9 5.3-4.9 1.5 0 2.6.1 2.6.1v3.4h-1.6c-1.6 0-1.9.8-1.9 1.9v2.4h3.7l-.5 3.7h-3.2v8"/></svg>
+    </a>
+    <a class="social-icon" href="https://www.tiktok.com/@hocquatrochoi" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16.6 5.8c-.9-.9-1.4-2.1-1.4-3.4h-3.2v14.4c0 1.6-1.3 2.9-2.9 2.9s-2.9-1.3-2.9-2.9 1.3-2.9 2.9-2.9c.3 0 .6 0 .9.1v-3.3c-.3 0-.6-.1-.9-.1-3.4 0-6.1 2.7-6.1 6.1s2.7 6.1 6.1 6.1 6.1-2.7 6.1-6.1V9.3c1.3.9 2.8 1.5 4.5 1.5V7.6c-1 0-2-.3-2.9-.9-.1-.1-.1-.1-.2-.1z"/></svg>
+    </a>
+    <a class="social-icon" href="https://zalo.me/0339666883" target="_blank" rel="noopener noreferrer" aria-label="Zalo">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C6.5 2 2 5.9 2 10.7c0 2.8 1.6 5.3 4 6.9-.1.9-.5 2.2-1.4 3.4-.2.2 0 .5.3.5 1.7-.2 3.4-1 4.6-1.9 .8.2 1.6.3 2.5.3 5.5 0 10-3.9 10-8.7S17.5 2 12 2zm-4.8 10.2h-.9V8.4h2.9v.8H8.1v1.1h1.9v.8H8.1v1.1h2v.8H7.2zm5.6 0h-3.1v-.7l2-3.3h-1.9v-.8h3v.7l-2 3.3h2z"/></svg>
+    </a>
+    <div id="authArea"></div>
+  </div>
+</header>
+
+<div class="app-body">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content" id="mainContent">
+    <div class="placeholder">Chọn một dạng bài ở menu bên trái để bắt đầu học</div>
+  </main>
+</div>
+
+<div class="login-modal-overlay" id="loginModalOverlay" style="display:none">
+  <div class="login-modal">
+    <h3>Đăng nhập học sinh</h3>
+    <div class="admin-field">
+      <label>Tài khoản</label>
+      <input type="text" id="loginUsername">
+    </div>
+    <div class="admin-field">
+      <label>Mã PIN</label>
+      <input type="password" id="loginPin">
+    </div>
+    <div class="login-modal-status" id="loginStatus"></div>
+    <div class="login-modal-actions">
+      <button class="login-modal-btn login-modal-btn-cancel" id="loginCancelBtn" type="button">Hủy</button>
+      <button class="login-modal-btn login-modal-btn-submit" id="loginSubmitBtn" type="button">Đăng nhập</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/data.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/vocab-data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/results.js"></script>
+<script src="js/flashcard.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/missing-letter.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

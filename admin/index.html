@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản trị – English for Kids</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<header class="banner">
+  <div class="banner-left">
+    <div class="logo-circle">EK</div>
+    <div class="brand-text">
+      <div class="brand-name">English for Kids – Trang quản trị</div>
+      <div class="brand-slogan">Học tiếng Anh nhớ siêu nhanh</div>
+    </div>
+  </div>
+  <div class="banner-right">
+    <a class="login-btn" href="../index.html">← Về trang học</a>
+  </div>
+</header>
+
+<div class="admin-body">
+  <nav class="admin-tabs">
+    <button class="admin-tab active" type="button" data-tab="content">Nội dung bài học</button>
+    <button class="admin-tab" type="button" data-tab="students">Học sinh</button>
+    <button class="admin-tab" type="button" data-tab="results">Kết quả</button>
+  </nav>
+
+  <section class="admin-panel" id="contentPanel">
+    <h2>Nội dung bài học</h2>
+
+    <label class="admin-label" for="unitSelect">Chọn Unit</label>
+    <select class="admin-select" id="unitSelect"></select>
+
+    <form class="admin-form" id="addVocabForm">
+      <h3>Thêm từ vựng mới</h3>
+      <div class="admin-form-row">
+        <div class="admin-field admin-field-small">
+          <label>Emoji</label>
+          <input type="text" id="newEmoji" placeholder="🍎" maxlength="4">
+        </div>
+        <div class="admin-field">
+          <label>Từ tiếng Anh</label>
+          <input type="text" id="newWordEn" placeholder="Apple">
+        </div>
+        <div class="admin-field">
+          <label>Phiên âm</label>
+          <input type="text" id="newPhonetic" placeholder="/ˈæp.əl/">
+        </div>
+        <div class="admin-field">
+          <label>Nghĩa tiếng Việt</label>
+          <input type="text" id="newMeaningVi" placeholder="Quả táo">
+        </div>
+        <div class="admin-field admin-field-btn">
+          <button type="submit" class="admin-btn-primary">Thêm từ + tạo âm thanh</button>
+        </div>
+      </div>
+      <div class="admin-status" id="addStatus"></div>
+    </form>
+
+    <form class="admin-form" id="bulkAddForm">
+      <h3>Nhập hàng loạt</h3>
+      <p class="admin-hint">
+        Mỗi dòng 1 từ, theo định dạng: <code>từ tiếng Anh | phiên âm | nghĩa tiếng Việt | emoji</code>.
+        Có thể bỏ trống phiên âm/emoji (để trống giữa 2 dấu <code>|</code>) — hệ thống sẽ tự tra phiên âm
+        (qua từ điển công khai) và tự gán emoji cho các từ thông dụng đã có sẵn trong kho, còn lại để trống cho bạn điền tay.
+      </p>
+      <textarea class="admin-textarea" id="bulkTextarea" rows="8" placeholder="Apple | /ˈæp.əl/ | Quả táo | 🍎
+Banana || Quả chuối |
+Watermelon | | Quả dưa hấu |"></textarea>
+      <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả + tạo âm thanh</button>
+      <div class="admin-status" id="bulkStatus"></div>
+    </form>
+
+    <div id="vocabTableWrap"></div>
+  </section>
+
+  <section class="admin-panel" id="studentsPanel" style="display:none">
+    <h2>Học sinh</h2>
+
+    <form class="admin-form" id="addStudentForm">
+      <h3>Tạo tài khoản học sinh mới</h3>
+      <div class="admin-form-row">
+        <div class="admin-field">
+          <label>Họ tên</label>
+          <input type="text" id="newStudentName" placeholder="Nguyễn Văn A">
+        </div>
+        <div class="admin-field">
+          <label>Lớp</label>
+          <select id="studentClassSelect"></select>
+        </div>
+        <div class="admin-field">
+          <label>Tài khoản đăng nhập</label>
+          <input type="text" id="newStudentUsername" placeholder="vana01">
+        </div>
+        <div class="admin-field admin-field-small">
+          <label>Mã PIN</label>
+          <input type="text" id="newStudentPin" placeholder="1234" maxlength="6">
+        </div>
+        <div class="admin-field admin-field-btn">
+          <button type="submit" class="admin-btn-primary">Tạo tài khoản (hạn 1 năm)</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="studentsTableWrap"></div>
+  </section>
+
+  <section class="admin-panel" id="resultsPanel" style="display:none">
+    <h2>Kết quả</h2>
+
+    <div class="admin-form-row" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="resultsUnitSelect">Chọn Unit</label>
+        <select class="admin-select" id="resultsUnitSelect" style="margin-bottom: 0;"></select>
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="resultsActivitySelect">Dạng bài</label>
+        <select class="admin-select" id="resultsActivitySelect" style="margin-bottom: 0;">
+          <option value="quiz">Quiz</option>
+          <option value="missing-letter">Khuyết chữ cái</option>
+        </select>
+      </div>
+    </div>
+
+    <h3>Theo học sinh</h3>
+    <div id="resultsByStudentWrap"></div>
+
+    <h3 style="margin-top: 28px;">Theo câu hỏi</h3>
+    <div id="resultsByQuestionWrap"></div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/data.js"></script>
+<script src="../js/supabase-config.js"></script>
+<script src="js/content-admin.js"></script>
+<script src="js/students-admin.js"></script>
+<script src="js/results-admin.js"></script>
+<script src="js/admin-app.js"></script>
+</body>
+</html>
