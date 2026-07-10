@@ -438,12 +438,12 @@ html, body {
 }
 
 .fc-emoji {
-  font-size: 88px;
+  font-size: 140px;
   margin-bottom: 10px;
 }
 
 .fc-word {
-  font-size: 30px;
+  font-size: 38px;
   font-weight: bold;
   color: #1B4332;
 }
@@ -455,7 +455,7 @@ html, body {
 }
 
 .fc-meaning {
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 600;
   color: #1B4332;
   margin-top: 6px;
@@ -580,10 +580,13 @@ html, body {
 .quiz-body-row .quiz-prompt {
   flex: 0 0 260px;
   margin-bottom: 0;
+  min-width: 0;
 }
 
 .quiz-body-row .quiz-options {
   flex: 1;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .quiz-prompt {
@@ -592,12 +595,12 @@ html, body {
 }
 
 .quiz-emoji {
-  font-size: 72px;
+  font-size: 130px;
 }
 
 .vocab-image {
-  width: 140px;
-  height: 140px;
+  width: 200px;
+  height: 200px;
   object-fit: cover;
   border-radius: 16px;
   display: block;
@@ -606,12 +609,12 @@ html, body {
 
 .quiz-body-row .vocab-image {
   width: 100%;
-  height: 220px;
+  height: 300px;
   margin: 0;
 }
 
 .quiz-question-word {
-  font-size: 26px;
+  font-size: 34px;
   font-weight: bold;
   color: #1B4332;
   margin-top: 8px;
@@ -624,7 +627,7 @@ html, body {
 }
 
 .quiz-question-text {
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 600;
   margin-top: 8px;
   color: #1B4332;
@@ -636,25 +639,27 @@ html, body {
 
 .quiz-options {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 14px;
 }
 
 .quiz-options-image {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .quiz-body-row .quiz-options-image {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .quiz-option {
   position: relative;
+  min-width: 0;
+  overflow-wrap: break-word;
   padding: 16px;
   border-radius: 14px;
   border: 2px solid #E5E0D5;
   background: #FFFFFF;
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 600;
   color: #1B4332;
   text-transform: lowercase;
@@ -667,11 +672,11 @@ html, body {
 
 .quiz-option-visual {
   width: 100%;
-  height: 90px;
+  height: 170px;
 }
 
 .quiz-option-image .vocab-emoji {
-  font-size: 48px;
+  font-size: 80px;
 }
 
 .option-icon {
@@ -815,7 +820,7 @@ html, body {
   cursor: default;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
   .quiz-body-row {
     flex-direction: column;
   }
@@ -823,8 +828,8 @@ html, body {
     flex: none;
   }
   .quiz-body-row .vocab-image {
-    width: 140px;
-    height: 140px;
+    width: 200px;
+    height: 200px;
     margin: 0 auto;
   }
   .quiz-body-row .quiz-options-image {

@@ -8,31 +8,39 @@ var QUIZ_FORMAT_CONFIG = {
 
 var QUIZ_FORMAT_KEYS = Object.keys(QUIZ_FORMAT_CONFIG);
 
-function buildQuizQuestion(item, pool) {
-  var format = QUIZ_FORMAT_KEYS[Math.floor(Math.random() * QUIZ_FORMAT_KEYS.length)];
+function buildQuizQuestion(item, pool, fixedFormat) {
+  var format = fixedFormat || QUIZ_FORMAT_KEYS[Math.floor(Math.random() * QUIZ_FORMAT_KEYS.length)];
   var distractors = pickRandomDistractors(pool, item, 3);
   var options = shuffleArray([item].concat(distractors));
   return { item: item, format: format, options: options };
 }
 
-function buildQuizQuestions(items, maxQuestions) {
+function buildQuizQuestions(items, maxQuestions, fixedFormat) {
   var pool = pickQuestionPool(items, maxQuestions);
   var questions = [];
   var i;
   for (i = 0; i < pool.length; i++) {
-    questions.push(buildQuizQuestion(pool[i], items));
+    questions.push(buildQuizQuestion(pool[i], items, fixedFormat));
   }
   return questions;
 }
 
-function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions) {
-  var questions = buildQuizQuestions(items, maxQuestions);
+var QUIZ_ADVANCE_DELAY_MS = 1200;
+
+function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, format) {
+  var questions = buildQuizQuestions(items, maxQuestions, format);
   var qIndex = 0;
   var score = 0;
   var answered = false;
   var selectedWrongId = null;
   var answersLog = [];
   var startedAt = new Date();
+
+  function showQuestion() {
+    draw();
+    var q = questions[qIndex];
+    playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.en, "en-US");
+  }
 
   function draw() {
     container.innerHTML = "";
@@ -80,29 +88,6 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions) {
     body.appendChild(optionsEl);
 
     wrap.appendChild(body);
-
-    if (answered) {
-      var continueWrap = document.createElement("div");
-      continueWrap.className = "quiz-continue-wrap";
-
-      var continueBtn = document.createElement("button");
-      continueBtn.className = "quiz-continue-btn";
-      continueBtn.type = "button";
-      continueBtn.textContent = qIndex === questions.length - 1 ? "Xem kết quả" : "Câu tiếp theo →";
-      continueBtn.addEventListener("click", function () {
-        if (qIndex < questions.length - 1) {
-          qIndex++;
-          answered = false;
-          selectedWrongId = null;
-          draw();
-        } else {
-          showResult();
-        }
-      });
-      continueWrap.appendChild(continueBtn);
-      wrap.appendChild(continueWrap);
-    }
-
     container.appendChild(wrap);
   }
 
@@ -189,6 +174,17 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions) {
       });
       playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.en, "en-US");
       draw();
+
+      setTimeout(function () {
+        if (qIndex < questions.length - 1) {
+          qIndex++;
+          answered = false;
+          selectedWrongId = null;
+          showQuestion();
+        } else {
+          showResult();
+        }
+      }, QUIZ_ADVANCE_DELAY_MS);
     });
 
     return btn;
@@ -225,19 +221,19 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions) {
     retryBtn.type = "button";
     retryBtn.textContent = "Làm lại";
     retryBtn.addEventListener("click", function () {
-      questions = buildQuizQuestions(items, maxQuestions);
+      questions = buildQuizQuestions(items, maxQuestions, format);
       qIndex = 0;
       score = 0;
       answered = false;
       selectedWrongId = null;
       answersLog = [];
       startedAt = new Date();
-      draw();
+      showQuestion();
     });
     wrap.appendChild(retryBtn);
 
     container.appendChild(wrap);
   }
 
-  draw();
+  showQuestion();
 }

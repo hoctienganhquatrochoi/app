@@ -79,6 +79,8 @@ function renderFlashcard(container, breadcrumbText, items) {
 
     wrap.appendChild(nav);
     container.appendChild(wrap);
+
+    playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US");
   }
 
   function goNext() {
