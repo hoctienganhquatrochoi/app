@@ -1,18 +1,46 @@
-function normalizeTypedAnswer(text) {
-  return text.trim().toLowerCase();
+function shuffleWordLetters(word) {
+  var letters = word.toLowerCase().split("");
+  if (letters.length <= 1) {
+    return letters;
+  }
+  var shuffled = shuffleArray(letters);
+  var tries = 0;
+  while (shuffled.join("") === letters.join("") && tries < 5) {
+    shuffled = shuffleArray(letters);
+    tries++;
+  }
+  return shuffled;
 }
 
 function renderTyping(container, items, unitId, maxQuestions, mode) {
   var pool = pickQuestionPool(items, maxQuestions);
   var qIndex = 0;
   var score = 0;
-  var answered = false;
   var answersLog = [];
   var startedAt = new Date();
+  var blanks = [];
+  var tiles = [];
+  var firstAttemptDone = false;
+  var firstAttemptCorrect = false;
   var activityType = mode === "hint" ? "typing-hint" : "typing-blank";
+  var keyInputEl = null;
+
+  function setupQuestion() {
+    var item = pool[qIndex];
+    var letters = item.en.toLowerCase().split("");
+    blanks = letters.map(function () {
+      return null;
+    });
+    var shuffled = shuffleWordLetters(item.en);
+    tiles = shuffled.map(function (ch, i) {
+      return { id: i, char: ch, used: false };
+    });
+    firstAttemptDone = false;
+    firstAttemptCorrect = false;
+  }
 
   function showQuestion() {
-    answered = false;
+    setupQuestion();
     draw();
     var item = pool[qIndex];
     playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US");
@@ -60,74 +88,192 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
     });
     wrap.appendChild(audioBtn);
 
-    var input = document.createElement("input");
-    input.type = "text";
-    input.className = "ty-input";
-    input.placeholder = "Gõ từ tiếng Anh...";
-    input.disabled = answered;
-    input.autocapitalize = "off";
-    input.autocomplete = "off";
-    input.spellcheck = false;
-    wrap.appendChild(input);
-
-    if (answered) {
-      var feedback = document.createElement("div");
-      feedback.className = "ty-feedback";
-      feedback.textContent = "Đáp án đúng: " + item.en;
-      wrap.appendChild(feedback);
-    } else {
-      var checkBtn = document.createElement("button");
-      checkBtn.className = "quiz-continue-btn";
-      checkBtn.type = "button";
-      checkBtn.textContent = "Kiểm tra";
-      checkBtn.addEventListener("click", function () {
-        checkAnswer(input.value);
-      });
-      wrap.appendChild(checkBtn);
-
-      input.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-          checkAnswer(input.value);
-        }
-      });
+    var blanksEl = document.createElement("div");
+    blanksEl.className = "ty-blanks";
+    var i;
+    for (i = 0; i < blanks.length; i++) {
+      blanksEl.appendChild(buildBlankSlot(i));
     }
+    wrap.appendChild(blanksEl);
+
+    var tilesEl = document.createElement("div");
+    tilesEl.className = "ty-tiles";
+    for (i = 0; i < tiles.length; i++) {
+      tilesEl.appendChild(buildTile(tiles[i]));
+    }
+    wrap.appendChild(tilesEl);
+
+    var hint = document.createElement("div");
+    hint.className = "ty-hint";
+    hint.textContent = "Bấm vào ô chữ ở trên, hoặc gõ bàn phím trực tiếp";
+    wrap.appendChild(hint);
+
+    keyInputEl = document.createElement("input");
+    keyInputEl.type = "text";
+    keyInputEl.className = "ty-key-input";
+    keyInputEl.autocapitalize = "off";
+    keyInputEl.autocomplete = "off";
+    keyInputEl.spellcheck = false;
+    keyInputEl.addEventListener("input", function () {
+      var ch = keyInputEl.value.slice(-1).toLowerCase();
+      keyInputEl.value = "";
+      if (ch) {
+        tryFillLetter(ch);
+      }
+    });
+    keyInputEl.addEventListener("keydown", function (e) {
+      if (e.key === "Backspace") {
+        removeLastFilledBlank();
+      }
+    });
+    wrap.appendChild(keyInputEl);
 
     container.appendChild(wrap);
+    keyInputEl.focus();
+  }
 
-    if (!answered) {
-      input.focus();
+  function firstEmptyBlankIndex() {
+    var i;
+    for (i = 0; i < blanks.length; i++) {
+      if (!blanks[i]) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  function allBlanksFilled() {
+    return firstEmptyBlankIndex() === -1;
+  }
+
+  function fillBlankWithTile(tile) {
+    var emptyIndex = firstEmptyBlankIndex();
+    if (emptyIndex === -1) {
+      return;
+    }
+    blanks[emptyIndex] = tile;
+    tile.used = true;
+
+    if (allBlanksFilled()) {
+      checkAnswer();
+    } else {
+      draw();
     }
   }
 
-  function checkAnswer(rawValue) {
-    if (answered) {
-      return;
+  function tryFillLetter(ch) {
+    var i;
+    for (i = 0; i < tiles.length; i++) {
+      if (!tiles[i].used && tiles[i].char === ch) {
+        fillBlankWithTile(tiles[i]);
+        return;
+      }
     }
-    answered = true;
+  }
 
+  function removeLastFilledBlank() {
+    var i;
+    for (i = blanks.length - 1; i >= 0; i--) {
+      if (blanks[i]) {
+        var tileId = blanks[i].id;
+        var t;
+        for (t = 0; t < tiles.length; t++) {
+          if (tiles[t].id === tileId) {
+            tiles[t].used = false;
+          }
+        }
+        blanks[i] = null;
+        draw();
+        return;
+      }
+    }
+  }
+
+  function buildBlankSlot(index) {
+    var slot = document.createElement("button");
+    slot.className = "ty-blank" + (blanks[index] ? " filled" : "");
+    slot.type = "button";
+    slot.textContent = blanks[index] ? blanks[index].char : "";
+    if (blanks[index]) {
+      slot.addEventListener("click", function () {
+        var filledTileId = blanks[index].id;
+        var i;
+        for (i = 0; i < tiles.length; i++) {
+          if (tiles[i].id === filledTileId) {
+            tiles[i].used = false;
+          }
+        }
+        blanks[index] = null;
+        draw();
+      });
+    }
+    return slot;
+  }
+
+  function buildTile(tile) {
+    var btn = document.createElement("button");
+    btn.className = "ty-tile" + (tile.used ? " used" : "");
+    btn.type = "button";
+    btn.textContent = tile.char;
+    btn.disabled = tile.used;
+    btn.addEventListener("click", function () {
+      fillBlankWithTile(tile);
+    });
+    return btn;
+  }
+
+  function checkAnswer() {
     var item = pool[qIndex];
-    var isCorrect = normalizeTypedAnswer(rawValue) === normalizeTypedAnswer(item.en);
+    var attempt = blanks.map(function (b) {
+      return b.char;
+    }).join("");
+    var target = item.en.toLowerCase();
+    var isCorrect = attempt === target;
+
+    if (!firstAttemptDone) {
+      firstAttemptDone = true;
+      firstAttemptCorrect = isCorrect;
+    }
 
     if (isCorrect) {
       score++;
+      answersLog.push({
+        vocab_id: item.id,
+        word_en: item.en,
+        selected_label: attempt,
+        is_correct: firstAttemptCorrect
+      });
+      flashBlanks("correct");
+      setTimeout(function () {
+        if (qIndex < pool.length - 1) {
+          qIndex++;
+          showQuestion();
+        } else {
+          showResult();
+        }
+      }, 1200);
+    } else {
+      flashBlanks("wrong");
+      setTimeout(function () {
+        var i;
+        for (i = 0; i < tiles.length; i++) {
+          tiles[i].used = false;
+        }
+        for (i = 0; i < blanks.length; i++) {
+          blanks[i] = null;
+        }
+        draw();
+      }, 900);
     }
-    answersLog.push({
-      vocab_id: item.id,
-      word_en: item.en,
-      selected_label: rawValue,
-      is_correct: isCorrect
-    });
+  }
 
+  function flashBlanks(cls) {
     draw();
-
-    setTimeout(function () {
-      if (qIndex < pool.length - 1) {
-        qIndex++;
-        showQuestion();
-      } else {
-        showResult();
-      }
-    }, 1500);
+    var blanksEls = container.querySelectorAll(".ty-blank");
+    var i;
+    for (i = 0; i < blanksEls.length; i++) {
+      blanksEls[i].className += " " + cls;
+    }
   }
 
   function showResult() {
@@ -147,7 +293,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
     wrap.appendChild(scoreBig);
 
     var p = document.createElement("p");
-    p.textContent = score === pool.length ? "Xuất sắc! Bé trả lời đúng hết!" : "Cố lên, làm lại để nhớ thêm nhé!";
+    p.textContent = "Bé đã ghép đúng hết " + pool.length + " từ!";
     wrap.appendChild(p);
 
     var retryBtn = document.createElement("button");
