@@ -38,16 +38,38 @@ function makeAudioTd(url) {
   return td;
 }
 
-function setupImagePicker(pickerEl, fileInputEl, onFile) {
-  pickerEl.addEventListener("click", function () {
-    fileInputEl.click();
+function buildImagePicker(imageUrl, onFile) {
+  var wrap = document.createElement("div");
+  wrap.className = "admin-image-picker";
+  wrap.tabIndex = 0;
+  wrap.title = "Bấm vào đây rồi Ctrl+V để dán ảnh";
+
+  var preview = document.createElement("div");
+  preview.className = "admin-image-picker-preview";
+  wrap.appendChild(preview);
+
+  var fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "image/*";
+  fileInput.style.display = "none";
+
+  var browseBtn = document.createElement("button");
+  browseBtn.type = "button";
+  browseBtn.className = "admin-image-browse-btn";
+  browseBtn.title = "Chọn ảnh có sẵn trong máy";
+  browseBtn.textContent = "📁";
+  browseBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    fileInput.click();
   });
-  fileInputEl.addEventListener("change", function () {
-    if (fileInputEl.files && fileInputEl.files[0]) {
-      onFile(fileInputEl.files[0]);
+
+  fileInput.addEventListener("change", function () {
+    if (fileInput.files && fileInput.files[0]) {
+      onFile(fileInput.files[0]);
     }
   });
-  pickerEl.addEventListener("paste", function (e) {
+
+  wrap.addEventListener("paste", function (e) {
     var items = (e.clipboardData && e.clipboardData.items) || [];
     var i;
     for (i = 0; i < items.length; i++) {
@@ -61,21 +83,34 @@ function setupImagePicker(pickerEl, fileInputEl, onFile) {
       }
     }
   });
+
+  wrap.appendChild(browseBtn);
+  wrap.appendChild(fileInput);
+
+  var picker = { wrap: wrap, preview: preview };
+  setImagePickerImage(picker, imageUrl);
+  return picker;
 }
 
-function showImagePreview(pickerEl, file) {
-  pickerEl.innerHTML = "";
+function setImagePickerImage(picker, imageUrl) {
+  picker.preview.innerHTML = "";
+  if (imageUrl) {
+    var img = document.createElement("img");
+    img.src = imageUrl;
+    picker.preview.appendChild(img);
+  } else {
+    var hint = document.createElement("span");
+    hint.className = "admin-image-picker-hint";
+    hint.textContent = "Dán ảnh";
+    picker.preview.appendChild(hint);
+  }
+}
+
+function showImagePreview(picker, file) {
+  picker.preview.innerHTML = "";
   var img = document.createElement("img");
   img.src = URL.createObjectURL(file);
-  pickerEl.appendChild(img);
-}
-
-function resetImagePicker(pickerEl) {
-  pickerEl.innerHTML = "";
-  var hint = document.createElement("span");
-  hint.className = "admin-image-picker-hint";
-  hint.textContent = "Bấm / dán ảnh";
-  pickerEl.appendChild(hint);
+  picker.preview.appendChild(img);
 }
 
 function fileExtension(file) {
@@ -120,35 +155,12 @@ function makeImageTd(row) {
   var td = document.createElement("td");
   td.className = "admin-image-cell";
 
-  var picker = document.createElement("div");
-  picker.className = "admin-image-picker";
-  picker.tabIndex = 0;
-  picker.title = "Bấm để chọn file, hoặc bấm rồi Ctrl+V để dán ảnh";
-
-  if (row.image_url) {
-    var img = document.createElement("img");
-    img.src = row.image_url;
-    picker.appendChild(img);
-  } else {
-    var hint = document.createElement("span");
-    hint.className = "admin-image-picker-hint";
-    hint.textContent = "Bấm / dán ảnh";
-    picker.appendChild(hint);
-  }
-
-  var fileInput = document.createElement("input");
-  fileInput.type = "file";
-  fileInput.accept = "image/*";
-  fileInput.style.display = "none";
-
-  setupImagePicker(picker, fileInput, function (file) {
+  var picker = buildImagePicker(row.image_url, function (file) {
     showImagePreview(picker, file);
     uploadAndSetVocabImage(row.id, row.unit_id, file);
   });
 
-  td.appendChild(picker);
-  td.appendChild(fileInput);
-
+  td.appendChild(picker.wrap);
   return td;
 }
 
@@ -157,15 +169,23 @@ function setAddStatus(text) {
 }
 
 var pendingImageFile = null;
+var newImagePicker = null;
+
+function initNewImagePicker() {
+  newImagePicker = buildImagePicker(null, function (file) {
+    pendingImageFile = file;
+    showImagePreview(newImagePicker, file);
+  });
+  document.getElementById("newImagePickerContainer").appendChild(newImagePicker.wrap);
+}
 
 function clearAddForm() {
   document.getElementById("newEmoji").value = "";
   document.getElementById("newWordEn").value = "";
   document.getElementById("newPhonetic").value = "";
   document.getElementById("newMeaningVi").value = "";
-  document.getElementById("newImageFile").value = "";
   pendingImageFile = null;
-  resetImagePicker(document.getElementById("newImagePicker"));
+  setImagePickerImage(newImagePicker, null);
 }
 
 async function loadVocabTable() {
@@ -189,6 +209,50 @@ async function loadVocabTable() {
 
 var currentVocabRows = [];
 var editingVocabId = null;
+var bulkEditMode = false;
+var bulkEditRefs = [];
+
+function buildVocabToolbar() {
+  var toolbar = document.createElement("div");
+  toolbar.className = "admin-table-toolbar";
+
+  if (bulkEditMode) {
+    var saveAllBtn = document.createElement("button");
+    saveAllBtn.className = "admin-btn-primary";
+    saveAllBtn.type = "button";
+    saveAllBtn.id = "saveAllBtn";
+    saveAllBtn.textContent = "Lưu tất cả";
+    saveAllBtn.addEventListener("click", handleSaveAll);
+    toolbar.appendChild(saveAllBtn);
+
+    var cancelAllBtn = document.createElement("button");
+    cancelAllBtn.className = "admin-btn-secondary";
+    cancelAllBtn.type = "button";
+    cancelAllBtn.textContent = "Hủy";
+    cancelAllBtn.addEventListener("click", function () {
+      bulkEditMode = false;
+      renderVocabTable(currentVocabRows);
+    });
+    toolbar.appendChild(cancelAllBtn);
+
+    var status = document.createElement("span");
+    status.className = "admin-status";
+    status.id = "saveAllStatus";
+    toolbar.appendChild(status);
+  } else {
+    var editAllBtn = document.createElement("button");
+    editAllBtn.className = "admin-btn-secondary";
+    editAllBtn.type = "button";
+    editAllBtn.textContent = "Sửa tất cả";
+    editAllBtn.addEventListener("click", function () {
+      bulkEditMode = true;
+      renderVocabTable(currentVocabRows);
+    });
+    toolbar.appendChild(editAllBtn);
+  }
+
+  return toolbar;
+}
 
 function renderVocabTable(rows) {
   currentVocabRows = rows;
@@ -202,6 +266,8 @@ function renderVocabTable(rows) {
     wrap.appendChild(empty);
     return;
   }
+
+  wrap.appendChild(buildVocabToolbar());
 
   var table = document.createElement("table");
   table.className = "admin-table";
@@ -219,12 +285,94 @@ function renderVocabTable(rows) {
   table.appendChild(thead);
 
   var tbody = document.createElement("tbody");
+  bulkEditRefs = [];
   for (i = 0; i < rows.length; i++) {
-    tbody.appendChild(buildVocabRow(rows[i]));
+    tbody.appendChild(bulkEditMode ? buildVocabBulkEditRow(rows[i]) : buildVocabRow(rows[i]));
   }
   table.appendChild(tbody);
 
   wrap.appendChild(table);
+}
+
+function buildVocabBulkEditRow(row) {
+  var tr = document.createElement("tr");
+  tr.className = "editing-row";
+
+  var emojiTd = makeInputTd(row.emoji, "admin-inline-input-small");
+  var wordTd = makeInputTd(row.word_en);
+  var phoneticTd = makeInputTd(row.phonetic);
+  var meaningTd = makeInputTd(row.meaning_vi);
+
+  tr.appendChild(emojiTd);
+  tr.appendChild(makeImageTd(row));
+  tr.appendChild(wordTd);
+  tr.appendChild(phoneticTd);
+  tr.appendChild(meaningTd);
+  tr.appendChild(makeAudioTd(row.audio_en_url));
+  tr.appendChild(makeAudioTd(row.audio_vi_url));
+
+  var actionsTd = document.createElement("td");
+  var delBtn = document.createElement("button");
+  delBtn.className = "admin-btn-danger";
+  delBtn.type = "button";
+  delBtn.textContent = "Xóa";
+  delBtn.addEventListener("click", function () {
+    deleteVocab(row.id);
+  });
+  actionsTd.appendChild(delBtn);
+  tr.appendChild(actionsTd);
+
+  bulkEditRefs.push({ row: row, emojiTd: emojiTd, wordTd: wordTd, phoneticTd: phoneticTd, meaningTd: meaningTd });
+
+  return tr;
+}
+
+async function handleSaveAll() {
+  var saveBtn = document.getElementById("saveAllBtn");
+  var status = document.getElementById("saveAllStatus");
+  saveBtn.disabled = true;
+
+  var i;
+  var savedCount = 0;
+  for (i = 0; i < bulkEditRefs.length; i++) {
+    var ref = bulkEditRefs[i];
+    var newEmoji = ref.emojiTd.inputEl.value.trim();
+    var newWordEn = ref.wordTd.inputEl.value.trim();
+    var newPhonetic = ref.phoneticTd.inputEl.value.trim();
+    var newMeaningVi = ref.meaningTd.inputEl.value.trim();
+
+    if (!newWordEn || !newMeaningVi) {
+      continue;
+    }
+
+    var textChanged = newWordEn !== ref.row.word_en || newMeaningVi !== ref.row.meaning_vi;
+    var otherChanged = newEmoji !== (ref.row.emoji || "") || newPhonetic !== (ref.row.phonetic || "");
+    if (!textChanged && !otherChanged) {
+      continue;
+    }
+
+    status.textContent = "Đang lưu " + (savedCount + 1) + "/" + bulkEditRefs.length + ": " + newWordEn + "...";
+
+    var updatePayload = {
+      emoji: newEmoji,
+      word_en: newWordEn,
+      phonetic: newPhonetic,
+      meaning_vi: newMeaningVi
+    };
+
+    if (textChanged) {
+      var noop = function () {};
+      updatePayload.audio_en_url = await generateAudio(newWordEn, "en-US", ref.row.unit_id + "/" + ref.row.id + "_en.mp3", noop);
+      updatePayload.audio_vi_url = await generateAudio(newMeaningVi, "vi", ref.row.unit_id + "/" + ref.row.id + "_vi.mp3", noop);
+    }
+
+    await supabaseClient.from("game_vocab").update(updatePayload).eq("id", ref.row.id);
+    savedCount++;
+  }
+
+  status.textContent = "Đã lưu " + savedCount + " từ thay đổi.";
+  bulkEditMode = false;
+  loadVocabTable();
 }
 
 function buildVocabRow(row) {
