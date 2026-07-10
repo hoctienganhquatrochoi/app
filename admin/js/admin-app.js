@@ -23,8 +23,10 @@ document.addEventListener("DOMContentLoaded", function () {
   populateResultsUnitSelect();
   loadVocabTable();
   loadStudents();
+  loadActivityToggles();
 
   document.getElementById("unitSelect").addEventListener("change", loadVocabTable);
+  document.getElementById("unitSelect").addEventListener("change", loadActivityToggles);
   document.getElementById("addVocabForm").addEventListener("submit", handleAddVocab);
   document.getElementById("bulkAddForm").addEventListener("submit", handleBulkAdd);
   document.getElementById("addStudentForm").addEventListener("submit", handleAddStudent);

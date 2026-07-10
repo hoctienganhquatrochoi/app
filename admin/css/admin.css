@@ -69,6 +69,22 @@
   line-height: 1.5;
 }
 
+.admin-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 14px;
+  color: #1B4332;
+  cursor: pointer;
+}
+
+.admin-toggle-item input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 .admin-hint code {
   background: #F1F5F2;
   padding: 1px 5px;

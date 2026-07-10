@@ -90,6 +90,19 @@ function buildSubjectItem(subject) {
   return wrap;
 }
 
+var unitDisabledActivities = {};
+
+async function loadUnitDisabledActivities(unitId) {
+  var result = await supabaseClient
+    .from("game_unit_settings")
+    .select("disabled_activity_ids")
+    .eq("unit_id", unitId)
+    .maybeSingle();
+
+  unitDisabledActivities[unitId] = (result.data && result.data.disabled_activity_ids) || [];
+  renderSidebar();
+}
+
 function buildUnitItem(unit) {
   var wrap = document.createElement("div");
   wrap.className = "unit-item";
@@ -110,7 +123,11 @@ function buildUnitItem(unit) {
   header.appendChild(progress);
 
   header.addEventListener("click", function () {
-    state.openUnitId = isOpen ? null : unit.id;
+    var willOpen = !isOpen;
+    state.openUnitId = willOpen ? unit.id : null;
+    if (willOpen && unitDisabledActivities[unit.id] === undefined) {
+      loadUnitDisabledActivities(unit.id);
+    }
     renderSidebar();
   });
 
@@ -119,8 +136,12 @@ function buildUnitItem(unit) {
   if (isOpen) {
     var list = document.createElement("div");
     list.className = "activity-list";
+    var disabledIds = unitDisabledActivities[unit.id] || [];
     var i;
     for (i = 0; i < unit.activities.length; i++) {
+      if (disabledIds.indexOf(unit.activities[i].id) !== -1) {
+        continue;
+      }
       list.appendChild(buildActivityItem(unit, unit.activities[i]));
     }
     wrap.appendChild(list);
