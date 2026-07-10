@@ -16,12 +16,12 @@ var DATA = {
             progress: "0/10",
             activities: [
               { id: "a1", name: "Thẻ đọc", type: "flashcard", locked: false },
-              { id: "a2", name: "Quiz", type: "quiz", locked: false },
+              { id: "a2", name: "Quiz", type: "quiz", locked: false, maxQuestions: 30 },
               { id: "a3", name: "Đánh máy có gợi ý", type: "typing-hint", locked: true },
               { id: "a4", name: "Đánh máy không gợi ý", type: "typing-blank", locked: true },
               { id: "a5", name: "Nghe chọn chữ/ảnh đúng", type: "listen-choose", locked: true },
               { id: "a6", name: "Sắp xếp câu song ngữ", type: "sentence-order", locked: true },
-              { id: "a12", name: "Khuyết chữ cái", type: "missing-letter", locked: false }
+              { id: "a12", name: "Khuyết chữ cái", type: "missing-letter", locked: false, maxQuestions: 30 }
             ]
           }
         ]

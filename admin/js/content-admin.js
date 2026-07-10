@@ -38,15 +38,134 @@ function makeAudioTd(url) {
   return td;
 }
 
+function setupImagePicker(pickerEl, fileInputEl, onFile) {
+  pickerEl.addEventListener("click", function () {
+    fileInputEl.click();
+  });
+  fileInputEl.addEventListener("change", function () {
+    if (fileInputEl.files && fileInputEl.files[0]) {
+      onFile(fileInputEl.files[0]);
+    }
+  });
+  pickerEl.addEventListener("paste", function (e) {
+    var items = (e.clipboardData && e.clipboardData.items) || [];
+    var i;
+    for (i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        var file = items[i].getAsFile();
+        if (file) {
+          onFile(file);
+        }
+        e.preventDefault();
+        return;
+      }
+    }
+  });
+}
+
+function showImagePreview(pickerEl, file) {
+  pickerEl.innerHTML = "";
+  var img = document.createElement("img");
+  img.src = URL.createObjectURL(file);
+  pickerEl.appendChild(img);
+}
+
+function resetImagePicker(pickerEl) {
+  pickerEl.innerHTML = "";
+  var hint = document.createElement("span");
+  hint.className = "admin-image-picker-hint";
+  hint.textContent = "Bấm / dán ảnh";
+  pickerEl.appendChild(hint);
+}
+
+function fileExtension(file) {
+  if (file.type.indexOf("png") !== -1) {
+    return "png";
+  }
+  if (file.type.indexOf("webp") !== -1) {
+    return "webp";
+  }
+  return "jpg";
+}
+
+async function uploadVocabImage(file, unitId, vocabId) {
+  var path = unitId + "/" + vocabId + "." + fileExtension(file);
+  var uploadResult = await supabaseClient.storage
+    .from("vocab-images")
+    .upload(path, file, { contentType: file.type, upsert: true });
+
+  if (uploadResult.error) {
+    return null;
+  }
+
+  var publicUrlResult = supabaseClient.storage.from("vocab-images").getPublicUrl(path);
+  return publicUrlResult.data.publicUrl;
+}
+
+async function uploadAndSetVocabImage(vocabId, unitId, file) {
+  var url = await uploadVocabImage(file, unitId, vocabId);
+  if (!url) {
+    window.alert("Lỗi upload ảnh");
+    return;
+  }
+  var result = await supabaseClient.from("game_vocab").update({ image_url: url }).eq("id", vocabId);
+  if (result.error) {
+    window.alert("Lỗi lưu ảnh: " + result.error.message);
+    return;
+  }
+  loadVocabTable();
+}
+
+function makeImageTd(row) {
+  var td = document.createElement("td");
+  td.className = "admin-image-cell";
+
+  if (row.image_url) {
+    var img = document.createElement("img");
+    img.className = "admin-image-thumb";
+    img.src = row.image_url;
+    td.appendChild(img);
+  }
+
+  var changeBtn = document.createElement("button");
+  changeBtn.className = "admin-btn-secondary";
+  changeBtn.type = "button";
+  changeBtn.textContent = row.image_url ? "Đổi ảnh" : "Thêm ảnh";
+
+  var fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "image/*";
+  fileInput.style.display = "none";
+  fileInput.addEventListener("change", function () {
+    if (fileInput.files && fileInput.files[0]) {
+      uploadAndSetVocabImage(row.id, row.unit_id, fileInput.files[0]);
+    }
+  });
+
+  changeBtn.addEventListener("click", function () {
+    fileInput.click();
+  });
+
+  td.appendChild(changeBtn);
+  td.appendChild(fileInput);
+
+  return td;
+}
+
 function setAddStatus(text) {
   document.getElementById("addStatus").textContent = text;
 }
+
+var pendingImageFile = null;
 
 function clearAddForm() {
   document.getElementById("newEmoji").value = "";
   document.getElementById("newWordEn").value = "";
   document.getElementById("newPhonetic").value = "";
   document.getElementById("newMeaningVi").value = "";
+  document.getElementById("newImageFile").value = "";
+  pendingImageFile = null;
+  resetImagePicker(document.getElementById("newImagePicker"));
 }
 
 async function loadVocabTable() {
@@ -89,7 +208,7 @@ function renderVocabTable(rows) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  var headers = ["Emoji", "Từ (EN)", "Phiên âm", "Nghĩa (VI)", "Audio EN", "Audio VI", ""];
+  var headers = ["Emoji", "Ảnh", "Từ (EN)", "Phiên âm", "Nghĩa (VI)", "Audio EN", "Audio VI", ""];
   var i;
   for (i = 0; i < headers.length; i++) {
     var th = document.createElement("th");
@@ -115,6 +234,7 @@ function buildVocabRow(row) {
 
   var tr = document.createElement("tr");
   tr.appendChild(makeTd(row.emoji));
+  tr.appendChild(makeImageTd(row));
   tr.appendChild(makeTd(row.word_en));
   tr.appendChild(makeTd(row.phonetic));
   tr.appendChild(makeTd(row.meaning_vi));
@@ -167,6 +287,7 @@ function buildVocabEditRow(row) {
   var meaningTd = makeInputTd(row.meaning_vi);
 
   tr.appendChild(emojiTd);
+  tr.appendChild(makeImageTd(row));
   tr.appendChild(wordTd);
   tr.appendChild(phoneticTd);
   tr.appendChild(meaningTd);
@@ -309,6 +430,7 @@ async function handleAddVocab(e) {
   }
 
   var row = insertResult.data;
+  var imageFile = pendingImageFile;
   clearAddForm();
   loadVocabTable();
 
@@ -318,9 +440,16 @@ async function handleAddVocab(e) {
   setAddStatus("Đang tạo âm thanh tiếng Việt...");
   var audioViUrl = await generateAudio(meaningVi, "vi", unitId + "/" + row.id + "_vi.mp3", setAddStatus);
 
+  var updatePayload = { audio_en_url: audioEnUrl, audio_vi_url: audioViUrl };
+
+  if (imageFile) {
+    setAddStatus("Đang tải ảnh lên...");
+    updatePayload.image_url = await uploadVocabImage(imageFile, unitId, row.id);
+  }
+
   var updateResult = await supabaseClient
     .from("game_vocab")
-    .update({ audio_en_url: audioEnUrl, audio_vi_url: audioViUrl })
+    .update(updatePayload)
     .eq("id", row.id);
 
   if (updateResult.error) {

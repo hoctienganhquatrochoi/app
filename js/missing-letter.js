@@ -34,18 +34,18 @@ function buildMissingLetterQuestion(item) {
   return { item: item, maskedWord: maskedWord, correctLetter: correctLetter, options: options };
 }
 
-function buildMissingLetterQuestions(items) {
-  var shuffled = shuffleArray(items);
+function buildMissingLetterQuestions(items, maxQuestions) {
+  var pool = pickQuestionPool(items, maxQuestions);
   var questions = [];
   var i;
-  for (i = 0; i < shuffled.length; i++) {
-    questions.push(buildMissingLetterQuestion(shuffled[i]));
+  for (i = 0; i < pool.length; i++) {
+    questions.push(buildMissingLetterQuestion(pool[i]));
   }
   return questions;
 }
 
-function renderMissingLetter(container, breadcrumbText, items, unitId) {
-  var questions = buildMissingLetterQuestions(items);
+function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuestions) {
+  var questions = buildMissingLetterQuestions(items, maxQuestions);
   var qIndex = 0;
   var score = 0;
   var answered = false;
@@ -86,10 +86,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId) {
     var card = document.createElement("div");
     card.className = "ml-card";
 
-    var emoji = document.createElement("div");
-    emoji.className = "ml-emoji";
-    emoji.textContent = q.item.emoji;
-    card.appendChild(emoji);
+    card.appendChild(buildVisualElement(q.item, "ml-emoji"));
 
     var meaning = document.createElement("div");
     meaning.className = "ml-meaning";
@@ -221,7 +218,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId) {
     retryBtn.type = "button";
     retryBtn.textContent = "Làm lại";
     retryBtn.addEventListener("click", function () {
-      questions = buildMissingLetterQuestions(items);
+      questions = buildMissingLetterQuestions(items, maxQuestions);
       qIndex = 0;
       score = 0;
       answered = false;

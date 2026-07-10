@@ -1,18 +1,32 @@
-function buildQuizQuestions(items) {
-  var shuffledItems = shuffleArray(items);
+var QUIZ_FORMAT_CONFIG = {
+  "word-to-image": { showWord: true, showPhonetic: true, showImage: false, showMeaning: false, answerType: "image" },
+  "image-to-word": { showWord: false, showPhonetic: true, showImage: true, showMeaning: true, answerType: "word" },
+  "text-to-word": { showWord: false, showPhonetic: true, showImage: false, showMeaning: true, answerType: "word" },
+  "image-only-to-word": { showWord: false, showPhonetic: false, showImage: true, showMeaning: false, answerType: "word" },
+  "word-to-meaning": { showWord: true, showPhonetic: true, showImage: false, showMeaning: false, answerType: "meaning" }
+};
+
+var QUIZ_FORMAT_KEYS = Object.keys(QUIZ_FORMAT_CONFIG);
+
+function buildQuizQuestion(item, pool) {
+  var format = QUIZ_FORMAT_KEYS[Math.floor(Math.random() * QUIZ_FORMAT_KEYS.length)];
+  var distractors = pickRandomDistractors(pool, item, 3);
+  var options = shuffleArray([item].concat(distractors));
+  return { item: item, format: format, options: options };
+}
+
+function buildQuizQuestions(items, maxQuestions) {
+  var pool = pickQuestionPool(items, maxQuestions);
   var questions = [];
-  var i, correct, distractors, options;
-  for (i = 0; i < shuffledItems.length; i++) {
-    correct = shuffledItems[i];
-    distractors = pickRandomDistractors(items, correct, 3);
-    options = shuffleArray([correct].concat(distractors));
-    questions.push({ item: correct, options: options });
+  var i;
+  for (i = 0; i < pool.length; i++) {
+    questions.push(buildQuizQuestion(pool[i], items));
   }
   return questions;
 }
 
-function renderQuiz(container, breadcrumbText, items, unitId) {
-  var questions = buildQuizQuestions(items);
+function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions) {
+  var questions = buildQuizQuestions(items, maxQuestions);
   var qIndex = 0;
   var score = 0;
   var answered = false;
@@ -49,30 +63,23 @@ function renderQuiz(container, breadcrumbText, items, unitId) {
     wrap.appendChild(header);
 
     var q = questions[qIndex];
+    var config = QUIZ_FORMAT_CONFIG[q.format];
 
-    var prompt = document.createElement("div");
-    prompt.className = "quiz-prompt";
+    var body = document.createElement("div");
+    body.className = "quiz-body" + (config.showImage && config.answerType !== "image" ? " quiz-body-row" : "");
 
-    var emoji = document.createElement("div");
-    emoji.className = "quiz-emoji";
-    emoji.textContent = q.item.emoji;
-    prompt.appendChild(emoji);
-
-    var qText = document.createElement("div");
-    qText.className = "quiz-question-text";
-    qText.textContent = "\"" + q.item.vi + "\" tiếng Anh là gì?";
-    prompt.appendChild(qText);
-
-    wrap.appendChild(prompt);
+    body.appendChild(buildPrompt(q, config));
 
     var optionsEl = document.createElement("div");
-    optionsEl.className = "quiz-options";
+    optionsEl.className = "quiz-options" + (config.answerType === "image" ? " quiz-options-image" : "");
 
     var i;
     for (i = 0; i < q.options.length; i++) {
-      optionsEl.appendChild(buildOption(q, q.options[i]));
+      optionsEl.appendChild(buildOption(q, config, q.options[i]));
     }
-    wrap.appendChild(optionsEl);
+    body.appendChild(optionsEl);
+
+    wrap.appendChild(body);
 
     if (answered) {
       var continueWrap = document.createElement("div");
@@ -99,14 +106,57 @@ function renderQuiz(container, breadcrumbText, items, unitId) {
     container.appendChild(wrap);
   }
 
-  function buildOption(q, option) {
+  function buildPrompt(q, config) {
+    var prompt = document.createElement("div");
+    prompt.className = "quiz-prompt";
+
+    if (config.showImage) {
+      prompt.appendChild(buildVisualElement(q.item, "quiz-emoji"));
+    }
+
+    if (config.showWord) {
+      var wordEl = document.createElement("div");
+      wordEl.className = "quiz-question-word";
+      wordEl.textContent = q.item.en + (config.showPhonetic ? " " + (q.item.phonetic || "") : "");
+      prompt.appendChild(wordEl);
+    } else if (config.showPhonetic && q.item.phonetic) {
+      var phoneticEl = document.createElement("div");
+      phoneticEl.className = "quiz-question-phonetic";
+      phoneticEl.textContent = q.item.phonetic;
+      prompt.appendChild(phoneticEl);
+    }
+
+    if (config.showMeaning) {
+      var meaningEl = document.createElement("div");
+      meaningEl.className = "quiz-question-text";
+      meaningEl.textContent = q.item.vi;
+      prompt.appendChild(meaningEl);
+    }
+
+    var audioBtn = document.createElement("button");
+    audioBtn.className = "audio-btn quiz-prompt-audio";
+    audioBtn.type = "button";
+    audioBtn.textContent = "▶";
+    audioBtn.addEventListener("click", function () {
+      playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.en, "en-US");
+    });
+    prompt.appendChild(audioBtn);
+
+    return prompt;
+  }
+
+  function buildOption(q, config, option) {
     var btn = document.createElement("button");
-    btn.className = "quiz-option";
+    btn.className = "quiz-option" + (config.answerType === "image" ? " quiz-option-image" : "");
     btn.type = "button";
 
-    var label = document.createElement("span");
-    label.textContent = option.en;
-    btn.appendChild(label);
+    if (config.answerType === "image") {
+      btn.appendChild(buildVisualElement(option, "quiz-option-visual"));
+    } else {
+      var label = document.createElement("span");
+      label.textContent = config.answerType === "meaning" ? option.vi : option.en;
+      btn.appendChild(label);
+    }
 
     if (answered) {
       btn.disabled = true;
@@ -175,7 +225,7 @@ function renderQuiz(container, breadcrumbText, items, unitId) {
     retryBtn.type = "button";
     retryBtn.textContent = "Làm lại";
     retryBtn.addEventListener("click", function () {
-      questions = buildQuizQuestions(items);
+      questions = buildQuizQuestions(items, maxQuestions);
       qIndex = 0;
       score = 0;
       answered = false;

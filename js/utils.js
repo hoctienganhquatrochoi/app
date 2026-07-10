@@ -47,3 +47,24 @@ function pickRandomDistractors(pool, correctItem, count) {
   candidates = shuffleArray(candidates);
   return candidates.slice(0, count);
 }
+
+function buildVisualElement(item, sizeClass) {
+  if (item.imageUrl) {
+    var img = document.createElement("img");
+    img.src = item.imageUrl;
+    img.alt = item.en;
+    img.className = "vocab-image" + (sizeClass ? " " + sizeClass : "");
+    return img;
+  }
+  var span = document.createElement("span");
+  span.className = "vocab-emoji" + (sizeClass ? " " + sizeClass : "");
+  span.textContent = item.emoji;
+  return span;
+}
+
+function pickQuestionPool(items, maxQuestions) {
+  if (!maxQuestions || items.length <= maxQuestions) {
+    return shuffleArray(items);
+  }
+  return shuffleArray(items).slice(0, maxQuestions);
+}

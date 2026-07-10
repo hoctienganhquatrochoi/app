@@ -110,6 +110,51 @@
   flex: 0 0 70px;
 }
 
+.admin-image-picker {
+  width: 64px;
+  height: 64px;
+  border: 2px dashed #C9D8CE;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  text-align: center;
+  background: #FAFAF7;
+}
+
+.admin-image-picker:focus {
+  outline: none;
+  border-color: #2D6A4F;
+}
+
+.admin-image-picker-hint {
+  font-size: 10px;
+  color: #9AA89E;
+  line-height: 1.3;
+  padding: 2px;
+}
+
+.admin-image-picker img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-image-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.admin-image-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .admin-field-btn {
   flex: 0 0 auto;
 }

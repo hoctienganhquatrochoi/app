@@ -1,6 +1,5 @@
 function renderFlashcard(container, breadcrumbText, items) {
   var index = 0;
-  var flipped = false;
 
   function draw() {
     container.innerHTML = "";
@@ -27,61 +26,36 @@ function renderFlashcard(container, breadcrumbText, items) {
     var card = document.createElement("div");
     card.className = "fc-card";
 
-    var emoji = document.createElement("div");
-    emoji.className = "fc-emoji";
-    emoji.textContent = item.emoji;
-    card.appendChild(emoji);
+    var visual = buildVisualElement(item, "fc-emoji");
+    card.appendChild(visual);
 
-    if (!flipped) {
-      var word = document.createElement("div");
-      word.className = "fc-word";
-      word.textContent = item.en;
-      card.appendChild(word);
+    var word = document.createElement("div");
+    word.className = "fc-word";
+    word.textContent = item.en + " " + (item.phonetic || "");
+    card.appendChild(word);
 
-      var audioBtn = document.createElement("button");
-      audioBtn.className = "audio-btn fc-audio-btn";
-      audioBtn.type = "button";
-      audioBtn.textContent = "▶";
-      audioBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US");
-      });
-      card.appendChild(audioBtn);
+    var meaning = document.createElement("div");
+    meaning.className = "fc-meaning";
+    meaning.textContent = item.vi;
+    card.appendChild(meaning);
 
-      var hint = document.createElement("div");
-      hint.className = "fc-hint";
-      hint.textContent = "Chạm vào thẻ để xem nghĩa tiếng Việt";
-      card.appendChild(hint);
-    } else {
-      var phonetic = document.createElement("div");
-      phonetic.className = "fc-phonetic";
-      phonetic.textContent = item.phonetic;
-      card.appendChild(phonetic);
+    var audioBtn = document.createElement("button");
+    audioBtn.className = "audio-btn fc-audio-btn";
+    audioBtn.type = "button";
+    audioBtn.textContent = "▶";
+    audioBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US");
+    });
+    card.appendChild(audioBtn);
 
-      var meaning = document.createElement("div");
-      meaning.className = "fc-meaning";
-      meaning.textContent = item.vi;
-      card.appendChild(meaning);
-
-      var audioBtnVi = document.createElement("button");
-      audioBtnVi.className = "audio-btn fc-audio-btn";
-      audioBtnVi.type = "button";
-      audioBtnVi.textContent = "▶";
-      audioBtnVi.addEventListener("click", function (e) {
-        e.stopPropagation();
-        playAudioUrlOrSpeak(item.audioViUrl, item.vi, "vi-VN");
-      });
-      card.appendChild(audioBtnVi);
-
-      var hintBack = document.createElement("div");
-      hintBack.className = "fc-hint";
-      hintBack.textContent = "Chạm vào thẻ để quay lại";
-      card.appendChild(hintBack);
-    }
+    var hint = document.createElement("div");
+    hint.className = "fc-hint";
+    hint.textContent = "Chạm vào thẻ để chuyển từ tiếp theo";
+    card.appendChild(hint);
 
     card.addEventListener("click", function () {
-      flipped = !flipped;
-      draw();
+      goNext();
     });
 
     wrap.appendChild(card);
@@ -94,32 +68,26 @@ function renderFlashcard(container, breadcrumbText, items) {
     prevBtn.type = "button";
     prevBtn.textContent = "← Trước";
     prevBtn.disabled = index === 0;
-    prevBtn.addEventListener("click", function () {
+    prevBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
       if (index > 0) {
         index--;
-        flipped = false;
         draw();
       }
     });
     nav.appendChild(prevBtn);
 
-    var nextBtn = document.createElement("button");
-    nextBtn.className = "btn-next";
-    nextBtn.type = "button";
-    nextBtn.textContent = index === items.length - 1 ? "Hoàn thành" : "Tiếp theo →";
-    nextBtn.addEventListener("click", function () {
-      if (index < items.length - 1) {
-        index++;
-        flipped = false;
-        draw();
-      } else {
-        showComplete();
-      }
-    });
-    nav.appendChild(nextBtn);
-
     wrap.appendChild(nav);
     container.appendChild(wrap);
+  }
+
+  function goNext() {
+    if (index < items.length - 1) {
+      index++;
+      draw();
+    } else {
+      showComplete();
+    }
   }
 
   function showComplete() {
@@ -146,7 +114,6 @@ function renderFlashcard(container, breadcrumbText, items) {
     againBtn.textContent = "Học lại";
     againBtn.addEventListener("click", function () {
       index = 0;
-      flipped = false;
       overlay.remove();
       draw();
     });

@@ -210,9 +210,9 @@ async function renderMainContent() {
     if (activity.type === "flashcard") {
       renderFlashcard(main, breadcrumbText, items);
     } else if (activity.type === "quiz") {
-      renderQuiz(main, breadcrumbText, items, unit.id);
+      renderQuiz(main, breadcrumbText, items, unit.id, activity.maxQuestions);
     } else if (activity.type === "missing-letter") {
-      renderMissingLetter(main, breadcrumbText, items, unit.id);
+      renderMissingLetter(main, breadcrumbText, items, unit.id, activity.maxQuestions);
     }
     return;
   }

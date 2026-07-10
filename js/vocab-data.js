@@ -13,6 +13,7 @@ async function loadVocabForUnit(unitId) {
     return {
       id: row.id,
       emoji: row.emoji,
+      imageUrl: row.image_url,
       en: row.word_en,
       phonetic: row.phonetic,
       vi: row.meaning_vi,

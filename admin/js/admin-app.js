@@ -31,6 +31,15 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("resultsUnitSelect").addEventListener("change", loadResults);
   document.getElementById("resultsActivitySelect").addEventListener("change", loadResults);
 
+  setupImagePicker(
+    document.getElementById("newImagePicker"),
+    document.getElementById("newImageFile"),
+    function (file) {
+      pendingImageFile = file;
+      showImagePreview(document.getElementById("newImagePicker"), file);
+    }
+  );
+
   var tabs = document.querySelectorAll(".admin-tab");
   var i;
   for (i = 0; i < tabs.length; i++) {
