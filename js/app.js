@@ -178,6 +178,7 @@ function buildActivityItem(unit, activity) {
       return;
     }
     state.selectedActivity = { unit: unit, activity: activity };
+    document.getElementById("sidebar").classList.remove("mobile-open");
     renderSidebar();
     renderMainContent();
   });
@@ -269,4 +270,8 @@ async function renderMainContent() {
 document.addEventListener("DOMContentLoaded", function () {
   renderSidebar();
   renderMainContent();
+
+  document.getElementById("sidebarToggleBtn").addEventListener("click", function () {
+    document.getElementById("sidebar").classList.toggle("mobile-open");
+  });
 });
