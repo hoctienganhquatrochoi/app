@@ -22,7 +22,6 @@ var DATA = {
               { id: "a2e", name: "Nghe từ, chọn nghĩa", type: "quiz", format: "word-to-meaning", locked: false, maxQuestions: 30 },
               { id: "a3", name: "Đánh máy có gợi ý", type: "typing", mode: "hint", locked: false, maxQuestions: 30 },
               { id: "a4", name: "Đánh máy không gợi ý", type: "typing", mode: "blank", locked: false, maxQuestions: 30 },
-              { id: "a5", name: "Nghe chọn chữ/ảnh đúng", type: "listen-choose", locked: true },
               { id: "a6", name: "Sắp xếp câu song ngữ", type: "sentence-order", locked: true },
               { id: "a12", name: "Khuyết chữ cái", type: "missing-letter", locked: false, maxQuestions: 30 }
             ]
