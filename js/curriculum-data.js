@@ -19,12 +19,12 @@ function buildActivitiesForUnit(unit) {
 }
 
 async function loadCurriculumData() {
-  var classesResult = await supabaseClient.from("game_classes").select("*").order("created_at", { ascending: true });
+  var classesResult = await supabaseClient.from("game_classes").select("*").order("sort_order", { ascending: true });
   var subjectsResult = await supabaseClient.from("game_subjects").select("*").order("created_at", { ascending: true });
   var unitsResult = await supabaseClient.from("game_units").select("*").order("created_at", { ascending: true });
 
   var classes = (classesResult.data || []).map(function (row) {
-    return { id: row.id, name: row.name, level: row.level };
+    return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order };
   });
 
   var subjectsByClass = {};

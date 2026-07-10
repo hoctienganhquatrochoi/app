@@ -6,20 +6,35 @@ function setCurriculumStatus(text) {
   document.getElementById("curriculumStatus").textContent = text || "";
 }
 
-function populateSubjectPicker(selectId) {
-  var select = document.getElementById(selectId);
+function populateNewUnitClassPicker() {
+  var select = document.getElementById("newUnitClassPicker");
   var previous = select.value;
   select.innerHTML = "";
-  var c, s;
-  for (c = 0; c < DATA.classes.length; c++) {
-    var cls = DATA.classes[c];
-    var subjects = DATA.subjectsByClass[cls.id] || [];
-    for (s = 0; s < subjects.length; s++) {
-      var opt = document.createElement("option");
-      opt.value = subjects[s].id;
-      opt.text = cls.name + " › " + subjects[s].name;
-      select.appendChild(opt);
-    }
+  var i;
+  for (i = 0; i < DATA.classes.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = DATA.classes[i].id;
+    opt.text = DATA.classes[i].name;
+    select.appendChild(opt);
+  }
+  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
+    select.value = previous;
+  }
+  populateNewUnitSubjectPicker();
+}
+
+function populateNewUnitSubjectPicker() {
+  var classId = document.getElementById("newUnitClassPicker").value;
+  var select = document.getElementById("newUnitSubjectPicker");
+  var previous = select.value;
+  select.innerHTML = "";
+  var subjects = DATA.subjectsByClass[classId] || [];
+  var i;
+  for (i = 0; i < subjects.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = subjects[i].id;
+    opt.text = subjects[i].name;
+    select.appendChild(opt);
   }
   if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
     select.value = previous;
@@ -101,13 +116,84 @@ function buildManageTable(rows) {
 function renderClassList() {
   var wrap = document.getElementById("classListWrap");
   wrap.innerHTML = "";
-  var rows = DATA.classes.map(function (cls) {
-    var levelText = cls.level === "mamnon" ? "Mầm non" : "Tiểu học";
-    return buildManageRow(cls.name, levelText, function () {
+
+  if (!DATA.classes.length) {
+    wrap.appendChild(buildManageTable([]));
+    return;
+  }
+
+  var table = document.createElement("table");
+  table.className = "admin-table";
+  var tbody = document.createElement("tbody");
+
+  DATA.classes.forEach(function (cls, idx) {
+    var tr = document.createElement("tr");
+
+    var labelTd = document.createElement("td");
+    labelTd.textContent = cls.name;
+    tr.appendChild(labelTd);
+
+    var badgeTd = document.createElement("td");
+    var badge = document.createElement("span");
+    badge.className = "status-badge status-active";
+    badge.textContent = cls.level === "mamnon" ? "Mầm non" : "Tiểu học";
+    badgeTd.appendChild(badge);
+    tr.appendChild(badgeTd);
+
+    var moveTd = document.createElement("td");
+    var upBtn = document.createElement("button");
+    upBtn.className = "admin-btn-secondary";
+    upBtn.type = "button";
+    upBtn.textContent = "↑";
+    upBtn.disabled = idx === 0;
+    upBtn.addEventListener("click", function () {
+      moveClass(cls.id, -1);
+    });
+    moveTd.appendChild(upBtn);
+
+    var downBtn = document.createElement("button");
+    downBtn.className = "admin-btn-secondary";
+    downBtn.type = "button";
+    downBtn.textContent = "↓";
+    downBtn.disabled = idx === DATA.classes.length - 1;
+    downBtn.addEventListener("click", function () {
+      moveClass(cls.id, 1);
+    });
+    moveTd.appendChild(downBtn);
+    tr.appendChild(moveTd);
+
+    var actionTd = document.createElement("td");
+    var delBtn = document.createElement("button");
+    delBtn.className = "admin-btn-danger";
+    delBtn.type = "button";
+    delBtn.textContent = "Xóa";
+    delBtn.addEventListener("click", function () {
       handleDeleteClass(cls.id);
     });
+    actionTd.appendChild(delBtn);
+    tr.appendChild(actionTd);
+
+    tbody.appendChild(tr);
   });
-  wrap.appendChild(buildManageTable(rows));
+
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+}
+
+async function moveClass(classId, direction) {
+  var idx = DATA.classes.findIndex(function (c) { return c.id === classId; });
+  var swapIdx = idx + direction;
+  if (idx === -1 || swapIdx < 0 || swapIdx >= DATA.classes.length) {
+    return;
+  }
+
+  var a = DATA.classes[idx];
+  var b = DATA.classes[swapIdx];
+
+  await supabaseClient.from("game_classes").update({ sort_order: swapIdx }).eq("id", a.id);
+  await supabaseClient.from("game_classes").update({ sort_order: idx }).eq("id", b.id);
+
+  await refreshCurriculumEverywhere();
 }
 
 function renderSubjectList() {
@@ -126,7 +212,7 @@ function renderSubjectList() {
 function renderUnitList() {
   var wrap = document.getElementById("unitListWrap");
   wrap.innerHTML = "";
-  var subjectId = document.getElementById("unitSubjectPicker").value;
+  var subjectId = document.getElementById("newUnitSubjectPicker").value;
   var subject = findSubjectById(subjectId);
   var units = subject ? subject.units : [];
   var rows = units.map(function (unit) {
@@ -138,6 +224,17 @@ function renderUnitList() {
   wrap.appendChild(buildManageTable(rows));
 }
 
+function updateComposeAreaVisibility() {
+  var unitId = document.getElementById("unitSelect").value;
+  var unit = findUnitById(unitId);
+  var isVocab = !!unit && unit.content_type === "vocab";
+
+  document.getElementById("addVocabForm").style.display = isVocab ? "" : "none";
+  document.getElementById("bulkAddForm").style.display = isVocab ? "" : "none";
+  document.getElementById("vocabTableWrap").style.display = isVocab ? "" : "none";
+  document.getElementById("grammarComposeMsg").style.display = isVocab ? "none" : "block";
+}
+
 async function refreshCurriculumEverywhere(opts) {
   await loadCurriculumData();
 
@@ -147,7 +244,7 @@ async function refreshCurriculumEverywhere(opts) {
   populateResultsUnitSelect();
   populateClassSelect();
   populateClassSelect("subjectClassPicker");
-  populateSubjectPicker("unitSubjectPicker");
+  populateNewUnitClassPicker();
 
   renderClassList();
   renderSubjectList();
@@ -156,6 +253,7 @@ async function refreshCurriculumEverywhere(opts) {
   if (selectedUnitId) {
     document.getElementById("unitSelect").value = selectedUnitId;
   }
+  updateComposeAreaVisibility();
   loadVocabTable();
   loadActivityToggles();
 }
@@ -170,7 +268,7 @@ async function handleAddClass() {
   }
 
   setCurriculumStatus("Đang tạo lớp...");
-  var result = await supabaseClient.from("game_classes").insert({ id: genId("c"), name: name, level: level });
+  var result = await supabaseClient.from("game_classes").insert({ id: genId("c"), name: name, level: level, sort_order: DATA.classes.length });
   if (result.error) {
     setCurriculumStatus("Lỗi tạo lớp: " + result.error.message);
     return;
@@ -208,7 +306,7 @@ async function handleAddSubject() {
 }
 
 async function handleAddUnit() {
-  var subjectId = document.getElementById("unitSubjectPicker").value;
+  var subjectId = document.getElementById("newUnitSubjectPicker").value;
   var name = document.getElementById("newUnitName").value.trim();
   var contentType = document.getElementById("newUnitContentType").value;
 
@@ -298,15 +396,21 @@ async function handleDeleteUnit(unitId) {
 
 function initCurriculumManage() {
   populateClassSelect("subjectClassPicker");
-  populateSubjectPicker("unitSubjectPicker");
+  populateNewUnitClassPicker();
   renderClassList();
   renderSubjectList();
   renderUnitList();
+  updateComposeAreaVisibility();
 
   document.getElementById("addClassBtn").addEventListener("click", handleAddClass);
   document.getElementById("addSubjectBtn").addEventListener("click", handleAddSubject);
   document.getElementById("addUnitBtn").addEventListener("click", handleAddUnit);
 
   document.getElementById("subjectClassPicker").addEventListener("change", renderSubjectList);
-  document.getElementById("unitSubjectPicker").addEventListener("change", renderUnitList);
+  document.getElementById("newUnitClassPicker").addEventListener("change", function () {
+    populateNewUnitSubjectPicker();
+    renderUnitList();
+  });
+  document.getElementById("newUnitSubjectPicker").addEventListener("change", renderUnitList);
+  document.getElementById("unitSelect").addEventListener("change", updateComposeAreaVisibility);
 }
