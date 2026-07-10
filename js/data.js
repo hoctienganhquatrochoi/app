@@ -19,9 +19,8 @@ var DATA = {
               { id: "a2a", name: "Nghe từ, chọn hình", type: "quiz", format: "word-to-image", locked: false, maxQuestions: 30 },
               { id: "a2b", name: "Nhìn hình, chọn từ", type: "quiz", format: "image-to-word", locked: false, maxQuestions: 30 },
               { id: "a2d", name: "Chỉ nhìn hình, đoán từ", type: "quiz", format: "image-only-to-word", locked: false, maxQuestions: 30 },
-              { id: "a3", name: "Đánh máy có gợi ý", type: "typing-hint", locked: false, maxQuestions: 30 },
-              { id: "a4", name: "Đánh máy không gợi ý", type: "typing-blank", direction: "en", locked: false, maxQuestions: 30 },
-              { id: "a4v", name: "Dịch nghĩa (gõ tiếng Việt)", type: "typing-blank", direction: "vi", locked: false, maxQuestions: 30 },
+              { id: "a3", name: "Đánh máy có gợi ý", type: "typing", mode: "hint", locked: false, maxQuestions: 30 },
+              { id: "a4", name: "Đánh máy không gợi ý", type: "typing", mode: "blank", locked: false, maxQuestions: 30 },
               { id: "a5", name: "Nghe chọn chữ/ảnh đúng", type: "listen-choose", locked: true },
               { id: "a6", name: "Sắp xếp câu song ngữ", type: "sentence-order", locked: true },
               { id: "a12", name: "Khuyết chữ cái", type: "missing-letter", locked: false, maxQuestions: 30 }

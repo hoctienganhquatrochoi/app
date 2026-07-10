@@ -2,14 +2,14 @@ function normalizeTypedAnswer(text) {
   return text.trim().toLowerCase();
 }
 
-function renderTypingBlank(container, items, unitId, maxQuestions, direction) {
+function renderTyping(container, items, unitId, maxQuestions, mode) {
   var pool = pickQuestionPool(items, maxQuestions);
   var qIndex = 0;
   var score = 0;
   var answered = false;
   var answersLog = [];
   var startedAt = new Date();
-  var activityType = direction === "en" ? "typing-blank" : "typing-vi";
+  var activityType = mode === "hint" ? "typing-hint" : "typing-blank";
 
   function showQuestion() {
     answered = false;
@@ -35,18 +35,21 @@ function renderTypingBlank(container, items, unitId, maxQuestions, direction) {
     header.appendChild(scoreEl);
     wrap.appendChild(header);
 
-    if (direction === "en") {
+    if (item.imageUrl || item.emoji) {
       wrap.appendChild(buildVisualElement(item, "ty-emoji"));
-      var meaning = document.createElement("div");
-      meaning.className = "ty-meaning";
-      meaning.textContent = item.vi;
-      wrap.appendChild(meaning);
-    } else {
+    }
+
+    if (mode === "hint") {
       var wordEl = document.createElement("div");
       wordEl.className = "quiz-question-word";
       wordEl.textContent = item.en + " " + (item.phonetic || "");
       wrap.appendChild(wordEl);
     }
+
+    var meaning = document.createElement("div");
+    meaning.className = "ty-meaning";
+    meaning.textContent = item.vi;
+    wrap.appendChild(meaning);
 
     var audioBtn = document.createElement("button");
     audioBtn.className = "audio-btn";
@@ -60,15 +63,17 @@ function renderTypingBlank(container, items, unitId, maxQuestions, direction) {
     var input = document.createElement("input");
     input.type = "text";
     input.className = "ty-input";
-    input.placeholder = direction === "en" ? "Gõ từ tiếng Anh..." : "Gõ nghĩa tiếng Việt...";
+    input.placeholder = "Gõ từ tiếng Anh...";
     input.disabled = answered;
+    input.autocapitalize = "off";
+    input.autocomplete = "off";
+    input.spellcheck = false;
     wrap.appendChild(input);
 
     if (answered) {
-      var correctAnswer = direction === "en" ? item.en : item.vi;
       var feedback = document.createElement("div");
       feedback.className = "ty-feedback";
-      feedback.textContent = "Đáp án đúng: " + correctAnswer;
+      feedback.textContent = "Đáp án đúng: " + item.en;
       wrap.appendChild(feedback);
     } else {
       var checkBtn = document.createElement("button");
@@ -101,8 +106,7 @@ function renderTypingBlank(container, items, unitId, maxQuestions, direction) {
     answered = true;
 
     var item = pool[qIndex];
-    var correctAnswer = direction === "en" ? item.en : item.vi;
-    var isCorrect = normalizeTypedAnswer(rawValue) === normalizeTypedAnswer(correctAnswer);
+    var isCorrect = normalizeTypedAnswer(rawValue) === normalizeTypedAnswer(item.en);
 
     if (isCorrect) {
       score++;
