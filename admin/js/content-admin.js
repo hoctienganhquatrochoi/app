@@ -553,9 +553,21 @@ async function handleAddVocab(e) {
   var phonetic = document.getElementById("newPhonetic").value.trim();
   var meaningVi = document.getElementById("newMeaningVi").value.trim();
 
-  if (!wordEn || !meaningVi) {
-    window.alert("Cần nhập ít nhất Từ tiếng Anh và Nghĩa tiếng Việt");
+  if (!wordEn) {
+    window.alert("Cần nhập ít nhất Từ tiếng Anh");
     return;
+  }
+
+  if (!phonetic) {
+    setAddStatus("Đang tra phiên âm...");
+    phonetic = await lookupPhonetic(wordEn);
+  }
+  if (!emoji) {
+    emoji = lookupEmoji(wordEn);
+  }
+  if (!meaningVi) {
+    setAddStatus("Đang dịch nghĩa...");
+    meaningVi = await translateToVietnamese(wordEn, setAddStatus);
   }
 
   setAddStatus("Đang lưu từ vựng...");
@@ -650,6 +662,28 @@ async function lookupPhonetic(word) {
   }
 }
 
+async function translateToVietnamese(text, statusSetter) {
+  try {
+    var resp = await fetch(TRANSLATE_TEXT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ text: text })
+    });
+    var data = await resp.json();
+    if (!resp.ok || data.error) {
+      statusSetter("Lỗi dịch \"" + text + "\": " + (data.error || resp.status));
+      return "";
+    }
+    return data.translation || "";
+  } catch (err) {
+    statusSetter("Lỗi kết nối dịch thuật: " + err);
+    return "";
+  }
+}
+
 function sleep(ms) {
   return new Promise(function (resolve) {
     setTimeout(resolve, ms);
@@ -699,7 +733,7 @@ async function handleBulkAdd(e) {
   var validItems = [];
   var i;
   for (i = 0; i < items.length; i++) {
-    if (!items[i].word_en || !items[i].meaning_vi) {
+    if (!items[i].word_en) {
       invalidLines.push(i + 1);
     } else {
       validItems.push(items[i]);
@@ -716,6 +750,9 @@ async function handleBulkAdd(e) {
     }
     if (!item.emoji) {
       item.emoji = lookupEmoji(item.word_en);
+    }
+    if (!item.meaning_vi) {
+      item.meaning_vi = await translateToVietnamese(item.word_en, setBulkStatus);
     }
 
     var insertResult = await supabaseClient
@@ -752,7 +789,7 @@ async function handleBulkAdd(e) {
 
   var summary = "Xong! Đã thêm " + successCount + "/" + validItems.length + " từ.";
   if (invalidLines.length) {
-    summary += " Bỏ qua dòng thiếu dữ liệu (cần ít nhất Từ tiếng Anh + Nghĩa tiếng Việt): dòng " + invalidLines.join(", ") + ".";
+    summary += " Bỏ qua dòng trống: dòng " + invalidLines.join(", ") + ".";
   }
   setBulkStatus(summary);
 

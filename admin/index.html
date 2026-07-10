@@ -51,11 +51,11 @@
           <input type="text" id="newWordEn" placeholder="Apple">
         </div>
         <div class="admin-field">
-          <label>Phiên âm</label>
+          <label>Phiên âm (để trống = tự tra)</label>
           <input type="text" id="newPhonetic" placeholder="/ˈæp.əl/">
         </div>
         <div class="admin-field">
-          <label>Nghĩa tiếng Việt</label>
+          <label>Nghĩa tiếng Việt (để trống = tự dịch)</label>
           <input type="text" id="newMeaningVi" placeholder="Quả táo">
         </div>
         <div class="admin-field admin-field-btn">
@@ -68,13 +68,14 @@
     <form class="admin-form" id="bulkAddForm">
       <h3>Nhập hàng loạt</h3>
       <p class="admin-hint">
-        Mỗi dòng 1 từ, theo định dạng: <code>từ tiếng Anh | phiên âm | nghĩa tiếng Việt | emoji</code>.
-        Có thể bỏ trống phiên âm/emoji (để trống giữa 2 dấu <code>|</code>) — hệ thống sẽ tự tra phiên âm
-        (qua từ điển công khai) và tự gán emoji cho các từ thông dụng đã có sẵn trong kho, còn lại để trống cho bạn điền tay.
+        Đơn giản nhất: mỗi dòng chỉ cần gõ 1 từ tiếng Anh (VD <code>book</code>), hệ thống tự tra phiên âm,
+        tự dịch nghĩa tiếng Việt và tự gán emoji cho các từ thông dụng. Muốn tự chỉnh phần nào thì gõ theo
+        định dạng: <code>từ tiếng Anh | phiên âm | nghĩa tiếng Việt | emoji</code> (bỏ trống phần nào cũng
+        được, hệ thống tự điền phần đó).
       </p>
-      <textarea class="admin-textarea" id="bulkTextarea" rows="8" placeholder="Apple | /ˈæp.əl/ | Quả táo | 🍎
-Banana || Quả chuối |
-Watermelon | | Quả dưa hấu |"></textarea>
+      <textarea class="admin-textarea" id="bulkTextarea" rows="8" placeholder="book
+pen
+Apple | /ˈæp.əl/ | Quả táo | 🍎"></textarea>
       <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả + tạo âm thanh</button>
       <div class="admin-status" id="bulkStatus"></div>
     </form>

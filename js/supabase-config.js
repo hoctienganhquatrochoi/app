@@ -6,4 +6,7 @@ var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 // URL của Edge Function "generate-audio" sau khi deploy (Dashboard > Edge Functions > generate-audio > Details > sao chép URL)
 var GENERATE_AUDIO_URL = SUPABASE_URL + "/functions/v1/generate-audio";
 
+// URL của Edge Function "translate-text" sau khi deploy
+var TRANSLATE_TEXT_URL = SUPABASE_URL + "/functions/v1/translate-text";
+
 var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
