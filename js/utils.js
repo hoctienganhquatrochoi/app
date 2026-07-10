@@ -49,17 +49,23 @@ function pickRandomDistractors(pool, correctItem, count) {
 }
 
 function buildVisualElement(item, sizeClass) {
+  var frame = document.createElement("div");
+  frame.className = "vocab-visual-frame" + (sizeClass ? " " + sizeClass : "");
+
   if (item.imageUrl) {
     var img = document.createElement("img");
     img.src = item.imageUrl;
     img.alt = item.en;
-    img.className = "vocab-image" + (sizeClass ? " " + sizeClass : "");
-    return img;
+    img.className = "vocab-image";
+    frame.appendChild(img);
+  } else {
+    var span = document.createElement("span");
+    span.className = "vocab-emoji";
+    span.textContent = item.emoji;
+    frame.appendChild(span);
   }
-  var span = document.createElement("span");
-  span.className = "vocab-emoji" + (sizeClass ? " " + sizeClass : "");
-  span.textContent = item.emoji;
-  return span;
+
+  return frame;
 }
 
 function pickQuestionPool(items, maxQuestions) {
