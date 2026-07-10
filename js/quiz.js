@@ -163,7 +163,6 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
         selected_label: option.en,
         is_correct: isCorrect
       });
-      playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.en, "en-US");
       draw();
 
       setTimeout(function () {
