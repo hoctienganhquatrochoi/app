@@ -17,19 +17,6 @@ function renderFlashcard(container, breadcrumbText, items) {
     var card = document.createElement("div");
     card.className = "fc-card";
 
-    var visual = buildVisualElement(item, "fc-emoji");
-    card.appendChild(visual);
-
-    var word = document.createElement("div");
-    word.className = "fc-word";
-    word.textContent = item.en + " " + (item.phonetic || "");
-    card.appendChild(word);
-
-    var meaning = document.createElement("div");
-    meaning.className = "fc-meaning";
-    meaning.textContent = item.vi;
-    card.appendChild(meaning);
-
     var audioBtn = document.createElement("button");
     audioBtn.className = "audio-btn fc-audio-btn";
     audioBtn.type = "button";
@@ -39,6 +26,14 @@ function renderFlashcard(container, breadcrumbText, items) {
       playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US");
     });
     card.appendChild(audioBtn);
+
+    var visual = buildVisualElement(item, "fc-emoji");
+    card.appendChild(visual);
+
+    var line = document.createElement("div");
+    line.className = "fc-word";
+    line.textContent = item.en + " " + (item.phonetic || "") + " - " + item.vi;
+    card.appendChild(line);
 
     var hint = document.createElement("div");
     hint.className = "fc-hint";

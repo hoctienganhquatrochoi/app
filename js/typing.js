@@ -63,22 +63,6 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
     header.appendChild(scoreEl);
     wrap.appendChild(header);
 
-    if (item.imageUrl || item.emoji) {
-      wrap.appendChild(buildVisualElement(item, "ty-emoji"));
-    }
-
-    if (mode === "hint") {
-      var wordEl = document.createElement("div");
-      wordEl.className = "quiz-question-word";
-      wordEl.textContent = item.en + " " + (item.phonetic || "");
-      wrap.appendChild(wordEl);
-    }
-
-    var meaning = document.createElement("div");
-    meaning.className = "ty-meaning";
-    meaning.textContent = item.vi;
-    wrap.appendChild(meaning);
-
     var audioBtn = document.createElement("button");
     audioBtn.className = "audio-btn";
     audioBtn.type = "button";
@@ -87,6 +71,15 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
       playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US");
     });
     wrap.appendChild(audioBtn);
+
+    if (item.imageUrl || item.emoji) {
+      wrap.appendChild(buildVisualElement(item, "ty-emoji"));
+    }
+
+    var line = document.createElement("div");
+    line.className = "ty-meaning";
+    line.textContent = mode === "hint" ? (item.en + " " + (item.phonetic || "") + " - " + item.vi) : item.vi;
+    wrap.appendChild(line);
 
     var blanksEl = document.createElement("div");
     blanksEl.className = "ty-blanks";

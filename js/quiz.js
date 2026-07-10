@@ -86,29 +86,6 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     var prompt = document.createElement("div");
     prompt.className = "quiz-prompt";
 
-    if (config.showImage) {
-      prompt.appendChild(buildVisualElement(q.item, "quiz-emoji"));
-    }
-
-    if (config.showWord) {
-      var wordEl = document.createElement("div");
-      wordEl.className = "quiz-question-word";
-      wordEl.textContent = q.item.en + (config.showPhonetic ? " " + (q.item.phonetic || "") : "");
-      prompt.appendChild(wordEl);
-    } else if (config.showPhonetic && q.item.phonetic) {
-      var phoneticEl = document.createElement("div");
-      phoneticEl.className = "quiz-question-phonetic";
-      phoneticEl.textContent = q.item.phonetic;
-      prompt.appendChild(phoneticEl);
-    }
-
-    if (config.showMeaning) {
-      var meaningEl = document.createElement("div");
-      meaningEl.className = "quiz-question-text";
-      meaningEl.textContent = q.item.vi;
-      prompt.appendChild(meaningEl);
-    }
-
     var audioBtn = document.createElement("button");
     audioBtn.className = "audio-btn quiz-prompt-audio";
     audioBtn.type = "button";
@@ -117,6 +94,29 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
       playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.en, "en-US");
     });
     prompt.appendChild(audioBtn);
+
+    if (config.showImage) {
+      prompt.appendChild(buildVisualElement(q.item, "quiz-emoji"));
+    }
+
+    var parts = [];
+    if (config.showWord) {
+      parts.push(q.item.en);
+    }
+    if (config.showPhonetic && q.item.phonetic) {
+      parts.push(q.item.phonetic);
+    }
+    var line = parts.join(" ");
+    if (config.showMeaning) {
+      line = line ? line + " - " + q.item.vi : q.item.vi;
+    }
+
+    if (line) {
+      var lineEl = document.createElement("div");
+      lineEl.className = "quiz-question-word";
+      lineEl.textContent = line;
+      prompt.appendChild(lineEl);
+    }
 
     return prompt;
   }
