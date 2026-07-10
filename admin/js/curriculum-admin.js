@@ -6,6 +6,29 @@ function setCurriculumStatus(text) {
   document.getElementById("curriculumStatus").textContent = text || "";
 }
 
+function findClassById(classId) {
+  var i;
+  for (i = 0; i < DATA.classes.length; i++) {
+    if (DATA.classes[i].id === classId) {
+      return DATA.classes[i];
+    }
+  }
+  return null;
+}
+
+function findSubjectById(subjectId) {
+  var c, s;
+  for (c = 0; c < DATA.classes.length; c++) {
+    var subjects = DATA.subjectsByClass[DATA.classes[c].id] || [];
+    for (s = 0; s < subjects.length; s++) {
+      if (subjects[s].id === subjectId) {
+        return subjects[s];
+      }
+    }
+  }
+  return null;
+}
+
 function populateNewUnitClassPicker() {
   var select = document.getElementById("newUnitClassPicker");
   var previous = select.value;
@@ -41,60 +64,20 @@ function populateNewUnitSubjectPicker() {
   }
 }
 
-function findClassById(classId) {
-  var i;
-  for (i = 0; i < DATA.classes.length; i++) {
-    if (DATA.classes[i].id === classId) {
-      return DATA.classes[i];
-    }
-  }
-  return null;
+/* ---------- small row-builder helpers ---------- */
+
+function buildActionBtn(label, className, onClick) {
+  var btn = document.createElement("button");
+  btn.className = className;
+  btn.type = "button";
+  btn.textContent = label;
+  btn.addEventListener("click", onClick);
+  return btn;
 }
 
-function findSubjectById(subjectId) {
-  var c, s;
-  for (c = 0; c < DATA.classes.length; c++) {
-    var subjects = DATA.subjectsByClass[DATA.classes[c].id] || [];
-    for (s = 0; s < subjects.length; s++) {
-      if (subjects[s].id === subjectId) {
-        return subjects[s];
-      }
-    }
-  }
-  return null;
-}
-
-function buildManageRow(labelText, badgeText, onDelete) {
-  var tr = document.createElement("tr");
-
-  var labelTd = document.createElement("td");
-  labelTd.textContent = labelText;
-  tr.appendChild(labelTd);
-
-  var badgeTd = document.createElement("td");
-  if (badgeText) {
-    var badge = document.createElement("span");
-    badge.className = "status-badge status-active";
-    badge.textContent = badgeText;
-    badgeTd.appendChild(badge);
-  }
-  tr.appendChild(badgeTd);
-
-  var actionTd = document.createElement("td");
-  var delBtn = document.createElement("button");
-  delBtn.className = "admin-btn-danger";
-  delBtn.type = "button";
-  delBtn.textContent = "Xóa";
-  delBtn.addEventListener("click", onDelete);
-  actionTd.appendChild(delBtn);
-  tr.appendChild(actionTd);
-
-  return tr;
-}
-
-function buildManageTable(rows) {
+function buildTableWrap(hasRows, tbodyBuilder) {
   var wrap = document.createElement("div");
-  if (!rows.length) {
+  if (!hasRows) {
     var empty = document.createElement("div");
     empty.className = "admin-status";
     empty.textContent = "Chưa có mục nào.";
@@ -104,80 +87,126 @@ function buildManageTable(rows) {
   var table = document.createElement("table");
   table.className = "admin-table";
   var tbody = document.createElement("tbody");
-  var i;
-  for (i = 0; i < rows.length; i++) {
-    tbody.appendChild(rows[i]);
-  }
+  tbodyBuilder(tbody);
   table.appendChild(tbody);
   wrap.appendChild(table);
   return wrap;
 }
 
+/* ---------- sub-tab switching ---------- */
+
+function switchCurriculumSubTab(target) {
+  var tabs = document.querySelectorAll("#curriculumSubTabs .admin-subtab");
+  var i;
+  for (i = 0; i < tabs.length; i++) {
+    tabs[i].className = tabs[i].getAttribute("data-subtab") === target ? "admin-subtab active" : "admin-subtab";
+  }
+  document.getElementById("classesSubPanel").style.display = target === "classes" ? "block" : "none";
+  document.getElementById("subjectsSubPanel").style.display = target === "subjects" ? "block" : "none";
+  document.getElementById("unitsSubPanel").style.display = target === "units" ? "block" : "none";
+}
+
+/* ---------- Lớp ---------- */
+
+var editingClassId = null;
+
 function renderClassList() {
   var wrap = document.getElementById("classListWrap");
   wrap.innerHTML = "";
-
-  if (!DATA.classes.length) {
-    wrap.appendChild(buildManageTable([]));
-    return;
-  }
-
-  var table = document.createElement("table");
-  table.className = "admin-table";
-  var tbody = document.createElement("tbody");
-
-  DATA.classes.forEach(function (cls, idx) {
-    var tr = document.createElement("tr");
-
-    var labelTd = document.createElement("td");
-    labelTd.textContent = cls.name;
-    tr.appendChild(labelTd);
-
-    var badgeTd = document.createElement("td");
-    var badge = document.createElement("span");
-    badge.className = "status-badge status-active";
-    badge.textContent = cls.level === "mamnon" ? "Mầm non" : "Tiểu học";
-    badgeTd.appendChild(badge);
-    tr.appendChild(badgeTd);
-
-    var moveTd = document.createElement("td");
-    var upBtn = document.createElement("button");
-    upBtn.className = "admin-btn-secondary";
-    upBtn.type = "button";
-    upBtn.textContent = "↑";
-    upBtn.disabled = idx === 0;
-    upBtn.addEventListener("click", function () {
-      moveClass(cls.id, -1);
+  wrap.appendChild(buildTableWrap(DATA.classes.length > 0, function (tbody) {
+    DATA.classes.forEach(function (cls, idx) {
+      tbody.appendChild(editingClassId === cls.id ? buildClassEditRow(cls) : buildClassRow(cls, idx));
     });
-    moveTd.appendChild(upBtn);
+  }));
+}
 
-    var downBtn = document.createElement("button");
-    downBtn.className = "admin-btn-secondary";
-    downBtn.type = "button";
-    downBtn.textContent = "↓";
-    downBtn.disabled = idx === DATA.classes.length - 1;
-    downBtn.addEventListener("click", function () {
-      moveClass(cls.id, 1);
-    });
-    moveTd.appendChild(downBtn);
-    tr.appendChild(moveTd);
+function buildClassRow(cls, idx) {
+  var tr = document.createElement("tr");
 
-    var actionTd = document.createElement("td");
-    var delBtn = document.createElement("button");
-    delBtn.className = "admin-btn-danger";
-    delBtn.type = "button";
-    delBtn.textContent = "Xóa";
-    delBtn.addEventListener("click", function () {
-      handleDeleteClass(cls.id);
-    });
-    actionTd.appendChild(delBtn);
-    tr.appendChild(actionTd);
+  var nameTd = document.createElement("td");
+  nameTd.textContent = cls.name;
+  tr.appendChild(nameTd);
 
-    tbody.appendChild(tr);
+  var badgeTd = document.createElement("td");
+  var badge = document.createElement("span");
+  badge.className = "status-badge status-active";
+  badge.textContent = cls.level === "mamnon" ? "Mầm non" : "Tiểu học";
+  badgeTd.appendChild(badge);
+  tr.appendChild(badgeTd);
+
+  var moveTd = document.createElement("td");
+  var upBtn = buildActionBtn("↑", "admin-btn-secondary", function () { moveClass(cls.id, -1); });
+  upBtn.disabled = idx === 0;
+  var downBtn = buildActionBtn("↓", "admin-btn-secondary", function () { moveClass(cls.id, 1); });
+  downBtn.disabled = idx === DATA.classes.length - 1;
+  moveTd.appendChild(upBtn);
+  moveTd.appendChild(downBtn);
+  tr.appendChild(moveTd);
+
+  var actionTd = document.createElement("td");
+  actionTd.appendChild(buildActionBtn("Sửa", "admin-btn-secondary", function () {
+    editingClassId = cls.id;
+    renderClassList();
+  }));
+  actionTd.appendChild(buildActionBtn("Xóa", "admin-btn-danger", function () {
+    handleDeleteClass(cls.id);
+  }));
+  tr.appendChild(actionTd);
+
+  return tr;
+}
+
+function buildClassEditRow(cls) {
+  var tr = document.createElement("tr");
+  tr.className = "editing-row";
+
+  var nameTd = document.createElement("td");
+  var nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.className = "admin-inline-input";
+  nameInput.value = cls.name;
+  nameTd.appendChild(nameInput);
+  tr.appendChild(nameTd);
+
+  var levelTd = document.createElement("td");
+  var levelSelect = document.createElement("select");
+  levelSelect.className = "admin-inline-input";
+  [["tieuhoc", "Tiểu học"], ["mamnon", "Mầm non"]].forEach(function (pair) {
+    var opt = document.createElement("option");
+    opt.value = pair[0];
+    opt.text = pair[1];
+    if (cls.level === pair[0]) {
+      opt.selected = true;
+    }
+    levelSelect.appendChild(opt);
   });
+  levelTd.appendChild(levelSelect);
+  tr.appendChild(levelTd);
 
-  table.appendChild(tbody);
-  wrap.appendChild(table);
+  tr.appendChild(document.createElement("td"));
+
+  var actionTd = document.createElement("td");
+  actionTd.appendChild(buildActionBtn("Lưu", "admin-btn-primary", async function () {
+    var newName = nameInput.value.trim();
+    if (!newName) {
+      window.alert("Cần nhập tên lớp");
+      return;
+    }
+    var result = await supabaseClient.from("game_classes").update({ name: newName, level: levelSelect.value }).eq("id", cls.id);
+    if (result.error) {
+      window.alert("Lỗi lưu: " + result.error.message);
+      return;
+    }
+    editingClassId = null;
+    await refreshCurriculumEverywhere();
+  }));
+  actionTd.appendChild(buildActionBtn("Hủy", "admin-btn-danger", function () {
+    editingClassId = null;
+    renderClassList();
+  }));
+  tr.appendChild(actionTd);
+
+  return tr;
 }
 
 async function moveClass(classId, direction) {
@@ -194,68 +223,6 @@ async function moveClass(classId, direction) {
   await supabaseClient.from("game_classes").update({ sort_order: idx }).eq("id", b.id);
 
   await refreshCurriculumEverywhere();
-}
-
-function renderSubjectList() {
-  var wrap = document.getElementById("subjectListWrap");
-  wrap.innerHTML = "";
-  var classId = document.getElementById("subjectClassPicker").value;
-  var subjects = DATA.subjectsByClass[classId] || [];
-  var rows = subjects.map(function (subj) {
-    return buildManageRow(subj.name, subj.units.length + " unit", function () {
-      handleDeleteSubject(subj.id);
-    });
-  });
-  wrap.appendChild(buildManageTable(rows));
-}
-
-function renderUnitList() {
-  var wrap = document.getElementById("unitListWrap");
-  wrap.innerHTML = "";
-  var subjectId = document.getElementById("newUnitSubjectPicker").value;
-  var subject = findSubjectById(subjectId);
-  var units = subject ? subject.units : [];
-  var rows = units.map(function (unit) {
-    var typeText = unit.content_type === "vocab" ? "Từ vựng" : "Ngữ pháp";
-    return buildManageRow(unit.name, typeText, function () {
-      handleDeleteUnit(unit.id);
-    });
-  });
-  wrap.appendChild(buildManageTable(rows));
-}
-
-function updateComposeAreaVisibility() {
-  var unitId = document.getElementById("unitSelect").value;
-  var unit = findUnitById(unitId);
-  var isVocab = !!unit && unit.content_type === "vocab";
-
-  document.getElementById("addVocabForm").style.display = isVocab ? "" : "none";
-  document.getElementById("bulkAddForm").style.display = isVocab ? "" : "none";
-  document.getElementById("vocabTableWrap").style.display = isVocab ? "" : "none";
-  document.getElementById("grammarComposeMsg").style.display = isVocab ? "none" : "block";
-}
-
-async function refreshCurriculumEverywhere(opts) {
-  await loadCurriculumData();
-
-  var selectedUnitId = opts && opts.selectUnitId;
-
-  populateUnitSelect();
-  populateResultsUnitSelect();
-  populateClassSelect();
-  populateClassSelect("subjectClassPicker");
-  populateNewUnitClassPicker();
-
-  renderClassList();
-  renderSubjectList();
-  renderUnitList();
-
-  if (selectedUnitId) {
-    document.getElementById("unitSelect").value = selectedUnitId;
-  }
-  updateComposeAreaVisibility();
-  loadVocabTable();
-  loadActivityToggles();
 }
 
 async function handleAddClass() {
@@ -277,6 +244,116 @@ async function handleAddClass() {
   document.getElementById("newClassName").value = "";
   setCurriculumStatus("Đã tạo lớp \"" + name + "\".");
   await refreshCurriculumEverywhere();
+}
+
+async function handleDeleteClass(classId) {
+  var studentsResult = await supabaseClient.from("game_students").select("id", { count: "exact", head: true }).eq("class_id", classId);
+  if ((studentsResult.count || 0) > 0) {
+    window.alert("Lớp này còn học sinh, hãy chuyển học sinh sang lớp khác trước khi xóa.");
+    return;
+  }
+  if ((DATA.subjectsByClass[classId] || []).length > 0) {
+    window.alert("Lớp này còn Môn học, hãy xóa hết Môn học trong lớp trước.");
+    return;
+  }
+  var cls = findClassById(classId);
+  if (!window.confirm("Xóa lớp \"" + (cls ? cls.name : classId) + "\"?")) {
+    return;
+  }
+
+  var result = await supabaseClient.from("game_classes").delete().eq("id", classId);
+  if (result.error) {
+    window.alert("Lỗi xóa: " + result.error.message);
+    return;
+  }
+  setCurriculumStatus("Đã xóa lớp.");
+  await refreshCurriculumEverywhere();
+}
+
+/* ---------- Môn học ---------- */
+
+var editingSubjectId = null;
+
+function renderSubjectList() {
+  var wrap = document.getElementById("subjectListWrap");
+  wrap.innerHTML = "";
+  var classId = document.getElementById("subjectClassPicker").value;
+  var subjects = DATA.subjectsByClass[classId] || [];
+  wrap.appendChild(buildTableWrap(subjects.length > 0, function (tbody) {
+    subjects.forEach(function (subj) {
+      tbody.appendChild(editingSubjectId === subj.id ? buildSubjectEditRow(subj) : buildSubjectRow(subj));
+    });
+  }));
+}
+
+function buildSubjectRow(subj) {
+  var tr = document.createElement("tr");
+
+  var nameTd = document.createElement("td");
+  nameTd.textContent = subj.name;
+  tr.appendChild(nameTd);
+
+  var badgeTd = document.createElement("td");
+  var badge = document.createElement("span");
+  badge.className = "status-badge status-active";
+  badge.textContent = subj.units.length + " unit";
+  badgeTd.appendChild(badge);
+  tr.appendChild(badgeTd);
+
+  var actionTd = document.createElement("td");
+  actionTd.appendChild(buildActionBtn("Sửa", "admin-btn-secondary", function () {
+    editingSubjectId = subj.id;
+    renderSubjectList();
+  }));
+  actionTd.appendChild(buildActionBtn("Xóa", "admin-btn-danger", function () {
+    handleDeleteSubject(subj.id);
+  }));
+  tr.appendChild(actionTd);
+
+  return tr;
+}
+
+function buildSubjectEditRow(subj) {
+  var tr = document.createElement("tr");
+  tr.className = "editing-row";
+
+  var nameTd = document.createElement("td");
+  var nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.className = "admin-inline-input";
+  nameInput.value = subj.name;
+  nameTd.appendChild(nameInput);
+  tr.appendChild(nameTd);
+
+  var colorTd = document.createElement("td");
+  var colorInput = document.createElement("input");
+  colorInput.type = "color";
+  colorInput.value = subj.color;
+  colorTd.appendChild(colorInput);
+  tr.appendChild(colorTd);
+
+  var actionTd = document.createElement("td");
+  actionTd.appendChild(buildActionBtn("Lưu", "admin-btn-primary", async function () {
+    var newName = nameInput.value.trim();
+    if (!newName) {
+      window.alert("Cần nhập tên môn học");
+      return;
+    }
+    var result = await supabaseClient.from("game_subjects").update({ name: newName, color: colorInput.value }).eq("id", subj.id);
+    if (result.error) {
+      window.alert("Lỗi lưu: " + result.error.message);
+      return;
+    }
+    editingSubjectId = null;
+    await refreshCurriculumEverywhere();
+  }));
+  actionTd.appendChild(buildActionBtn("Hủy", "admin-btn-danger", function () {
+    editingSubjectId = null;
+    renderSubjectList();
+  }));
+  tr.appendChild(actionTd);
+
+  return tr;
 }
 
 async function handleAddSubject() {
@@ -305,57 +382,6 @@ async function handleAddSubject() {
   await refreshCurriculumEverywhere();
 }
 
-async function handleAddUnit() {
-  var subjectId = document.getElementById("newUnitSubjectPicker").value;
-  var name = document.getElementById("newUnitName").value.trim();
-  var contentType = document.getElementById("newUnitContentType").value;
-
-  if (!subjectId) {
-    window.alert("Chưa có Môn học nào, hãy tạo Môn học trước");
-    return;
-  }
-  if (!name) {
-    window.alert("Cần nhập tên unit");
-    return;
-  }
-
-  setCurriculumStatus("Đang tạo unit...");
-  var newId = genId("u");
-  var result = await supabaseClient.from("game_units").insert({ id: newId, subject_id: subjectId, name: name, content_type: contentType });
-  if (result.error) {
-    setCurriculumStatus("Lỗi tạo unit: " + result.error.message);
-    return;
-  }
-
-  document.getElementById("newUnitName").value = "";
-  setCurriculumStatus("Đã tạo unit \"" + name + "\".");
-  await refreshCurriculumEverywhere({ selectUnitId: newId });
-}
-
-async function handleDeleteClass(classId) {
-  var studentsResult = await supabaseClient.from("game_students").select("id", { count: "exact", head: true }).eq("class_id", classId);
-  if ((studentsResult.count || 0) > 0) {
-    window.alert("Lớp này còn học sinh, hãy chuyển học sinh sang lớp khác trước khi xóa.");
-    return;
-  }
-  if ((DATA.subjectsByClass[classId] || []).length > 0) {
-    window.alert("Lớp này còn Môn học, hãy xóa hết Môn học trong lớp trước.");
-    return;
-  }
-  var cls = findClassById(classId);
-  if (!window.confirm("Xóa lớp \"" + (cls ? cls.name : classId) + "\"?")) {
-    return;
-  }
-
-  var result = await supabaseClient.from("game_classes").delete().eq("id", classId);
-  if (result.error) {
-    window.alert("Lỗi xóa: " + result.error.message);
-    return;
-  }
-  setCurriculumStatus("Đã xóa lớp.");
-  await refreshCurriculumEverywhere();
-}
-
 async function handleDeleteSubject(subjectId) {
   var subject = findSubjectById(subjectId);
   if (subject && subject.units.length > 0) {
@@ -375,13 +401,158 @@ async function handleDeleteSubject(subjectId) {
   await refreshCurriculumEverywhere();
 }
 
+/* ---------- Bài học (Unit) ---------- */
+
+var editingUnitId = null;
+
+function renderUnitList() {
+  var wrap = document.getElementById("unitListWrap");
+  wrap.innerHTML = "";
+  var subjectId = document.getElementById("newUnitSubjectPicker").value;
+  var subject = findSubjectById(subjectId);
+  var units = subject ? subject.units : [];
+  wrap.appendChild(buildTableWrap(units.length > 0, function (tbody) {
+    units.forEach(function (unit) {
+      tbody.appendChild(editingUnitId === unit.id ? buildUnitEditRow(unit) : buildUnitRow(unit));
+    });
+  }));
+}
+
+function buildUnitRow(unit) {
+  var tr = document.createElement("tr");
+
+  var nameTd = document.createElement("td");
+  nameTd.textContent = unit.name;
+  tr.appendChild(nameTd);
+
+  var badgeTd = document.createElement("td");
+  var badge = document.createElement("span");
+  badge.className = "status-badge status-active";
+  badge.textContent = unit.content_type === "vocab" ? "Từ vựng" : "Ngữ pháp";
+  badgeTd.appendChild(badge);
+  tr.appendChild(badgeTd);
+
+  var actionTd = document.createElement("td");
+  actionTd.appendChild(buildActionBtn("Soạn", "admin-btn-primary", function () {
+    selectUnitForComposing(unit.id);
+  }));
+  actionTd.appendChild(buildActionBtn("Sửa", "admin-btn-secondary", function () {
+    editingUnitId = unit.id;
+    renderUnitList();
+  }));
+  actionTd.appendChild(buildActionBtn("Xóa", "admin-btn-danger", function () {
+    handleDeleteUnit(unit.id);
+  }));
+  tr.appendChild(actionTd);
+
+  return tr;
+}
+
+function buildUnitEditRow(unit) {
+  var tr = document.createElement("tr");
+  tr.className = "editing-row";
+
+  var nameTd = document.createElement("td");
+  var nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.className = "admin-inline-input";
+  nameInput.value = unit.name;
+  nameTd.appendChild(nameInput);
+  tr.appendChild(nameTd);
+
+  var typeTd = document.createElement("td");
+  var typeSelect = document.createElement("select");
+  typeSelect.className = "admin-inline-input";
+  [["vocab", "Từ vựng"], ["grammar", "Ngữ pháp (sắp ra mắt)"]].forEach(function (pair) {
+    var opt = document.createElement("option");
+    opt.value = pair[0];
+    opt.text = pair[1];
+    if (unit.content_type === pair[0]) {
+      opt.selected = true;
+    }
+    typeSelect.appendChild(opt);
+  });
+  typeTd.appendChild(typeSelect);
+  tr.appendChild(typeTd);
+
+  var actionTd = document.createElement("td");
+  actionTd.appendChild(buildActionBtn("Lưu", "admin-btn-primary", async function () {
+    var newName = nameInput.value.trim();
+    if (!newName) {
+      window.alert("Cần nhập tên bài");
+      return;
+    }
+    var result = await supabaseClient.from("game_units").update({ name: newName, content_type: typeSelect.value }).eq("id", unit.id);
+    if (result.error) {
+      window.alert("Lỗi lưu: " + result.error.message);
+      return;
+    }
+    editingUnitId = null;
+    await refreshCurriculumEverywhere({ selectUnitId: unit.id });
+  }));
+  actionTd.appendChild(buildActionBtn("Hủy", "admin-btn-danger", function () {
+    editingUnitId = null;
+    renderUnitList();
+  }));
+  tr.appendChild(actionTd);
+
+  return tr;
+}
+
+function selectUnitForComposing(unitId) {
+  var select = document.getElementById("unitSelect");
+  select.value = unitId;
+  updateComposeAreaVisibility();
+  loadVocabTable();
+  loadActivityToggles();
+  document.getElementById("composeAreaBox").scrollIntoView({ behavior: "smooth" });
+}
+
+function updateComposeAreaVisibility() {
+  var unitId = document.getElementById("unitSelect").value;
+  var unit = findUnitById(unitId);
+  var isVocab = !!unit && unit.content_type === "vocab";
+
+  document.getElementById("addVocabForm").style.display = isVocab ? "" : "none";
+  document.getElementById("bulkAddForm").style.display = isVocab ? "" : "none";
+  document.getElementById("vocabTableWrap").style.display = isVocab ? "" : "none";
+  document.getElementById("grammarComposeMsg").style.display = isVocab ? "none" : "block";
+}
+
+async function handleAddUnit() {
+  var subjectId = document.getElementById("newUnitSubjectPicker").value;
+  var name = document.getElementById("newUnitName").value.trim();
+  var contentType = document.getElementById("newUnitContentType").value;
+
+  if (!subjectId) {
+    window.alert("Chưa có Môn học nào, hãy tạo Môn học trước");
+    return;
+  }
+  if (!name) {
+    window.alert("Cần nhập tên bài");
+    return;
+  }
+
+  setCurriculumStatus("Đang tạo bài học...");
+  var newId = genId("u");
+  var result = await supabaseClient.from("game_units").insert({ id: newId, subject_id: subjectId, name: name, content_type: contentType });
+  if (result.error) {
+    setCurriculumStatus("Lỗi tạo bài học: " + result.error.message);
+    return;
+  }
+
+  document.getElementById("newUnitName").value = "";
+  setCurriculumStatus("Đã tạo bài học \"" + name + "\".");
+  await refreshCurriculumEverywhere({ selectUnitId: newId });
+}
+
 async function handleDeleteUnit(unitId) {
   var vocabResult = await supabaseClient.from("game_vocab").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   if ((vocabResult.count || 0) > 0) {
-    window.alert("Unit này còn từ vựng, hãy xóa hết từ vựng trong bảng bên dưới trước khi xóa Unit.");
+    window.alert("Bài học này còn từ vựng, hãy xóa hết từ vựng trong bảng bên dưới trước khi xóa.");
     return;
   }
-  if (!window.confirm("Xóa unit này?")) {
+  if (!window.confirm("Xóa bài học này?")) {
     return;
   }
 
@@ -390,8 +561,33 @@ async function handleDeleteUnit(unitId) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
-  setCurriculumStatus("Đã xóa unit.");
+  setCurriculumStatus("Đã xóa bài học.");
   await refreshCurriculumEverywhere();
+}
+
+/* ---------- shared refresh ---------- */
+
+async function refreshCurriculumEverywhere(opts) {
+  await loadCurriculumData();
+
+  var selectedUnitId = opts && opts.selectUnitId;
+
+  populateUnitSelect();
+  populateResultsUnitSelect();
+  populateClassSelect();
+  populateClassSelect("subjectClassPicker");
+  populateNewUnitClassPicker();
+
+  renderClassList();
+  renderSubjectList();
+  renderUnitList();
+
+  if (selectedUnitId) {
+    document.getElementById("unitSelect").value = selectedUnitId;
+  }
+  updateComposeAreaVisibility();
+  loadVocabTable();
+  loadActivityToggles();
 }
 
 function initCurriculumManage() {
@@ -401,6 +597,7 @@ function initCurriculumManage() {
   renderSubjectList();
   renderUnitList();
   updateComposeAreaVisibility();
+  switchCurriculumSubTab("classes");
 
   document.getElementById("addClassBtn").addEventListener("click", handleAddClass);
   document.getElementById("addSubjectBtn").addEventListener("click", handleAddSubject);
@@ -413,4 +610,12 @@ function initCurriculumManage() {
   });
   document.getElementById("newUnitSubjectPicker").addEventListener("change", renderUnitList);
   document.getElementById("unitSelect").addEventListener("change", updateComposeAreaVisibility);
+
+  var subTabs = document.querySelectorAll("#curriculumSubTabs .admin-subtab");
+  var i;
+  for (i = 0; i < subTabs.length; i++) {
+    subTabs[i].addEventListener("click", function () {
+      switchCurriculumSubTab(this.getAttribute("data-subtab"));
+    });
+  }
 }

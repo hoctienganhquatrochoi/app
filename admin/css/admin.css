@@ -27,6 +27,22 @@
   border-bottom-color: #1B4332;
 }
 
+.admin-subtab {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #7A8B82;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+}
+
+.admin-subtab.active {
+  color: #1B4332;
+  border-bottom-color: #1B4332;
+}
+
 .admin-panel h2 {
   font-size: 20px;
   margin-bottom: 16px;
