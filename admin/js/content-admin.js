@@ -120,33 +120,33 @@ function makeImageTd(row) {
   var td = document.createElement("td");
   td.className = "admin-image-cell";
 
+  var picker = document.createElement("div");
+  picker.className = "admin-image-picker";
+  picker.tabIndex = 0;
+  picker.title = "Bấm để chọn file, hoặc bấm rồi Ctrl+V để dán ảnh";
+
   if (row.image_url) {
     var img = document.createElement("img");
-    img.className = "admin-image-thumb";
     img.src = row.image_url;
-    td.appendChild(img);
+    picker.appendChild(img);
+  } else {
+    var hint = document.createElement("span");
+    hint.className = "admin-image-picker-hint";
+    hint.textContent = "Bấm / dán ảnh";
+    picker.appendChild(hint);
   }
-
-  var changeBtn = document.createElement("button");
-  changeBtn.className = "admin-btn-secondary";
-  changeBtn.type = "button";
-  changeBtn.textContent = row.image_url ? "Đổi ảnh" : "Thêm ảnh";
 
   var fileInput = document.createElement("input");
   fileInput.type = "file";
   fileInput.accept = "image/*";
   fileInput.style.display = "none";
-  fileInput.addEventListener("change", function () {
-    if (fileInput.files && fileInput.files[0]) {
-      uploadAndSetVocabImage(row.id, row.unit_id, fileInput.files[0]);
-    }
+
+  setupImagePicker(picker, fileInput, function (file) {
+    showImagePreview(picker, file);
+    uploadAndSetVocabImage(row.id, row.unit_id, file);
   });
 
-  changeBtn.addEventListener("click", function () {
-    fileInput.click();
-  });
-
-  td.appendChild(changeBtn);
+  td.appendChild(picker);
   td.appendChild(fileInput);
 
   return td;
