@@ -17,13 +17,16 @@ function switchTab(target) {
   }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
+  await loadCurriculumData();
+
   populateUnitSelect();
   populateClassSelect();
   populateResultsUnitSelect();
   loadVocabTable();
   loadStudents();
   loadActivityToggles();
+  initCurriculumManage();
 
   document.getElementById("unitSelect").addEventListener("change", loadVocabTable);
   document.getElementById("unitSelect").addEventListener("change", loadActivityToggles);

@@ -1,5 +1,5 @@
-function populateClassSelect() {
-  var select = document.getElementById("studentClassSelect");
+function populateClassSelect(selectId) {
+  var select = document.getElementById(selectId || "studentClassSelect");
   select.innerHTML = "";
   var i;
   for (i = 0; i < DATA.classes.length; i++) {

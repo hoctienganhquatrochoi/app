@@ -32,6 +32,76 @@
   <section class="admin-panel" id="contentPanel">
     <h2>Nội dung bài học</h2>
 
+    <details class="admin-form" id="curriculumManageBox">
+      <summary style="cursor:pointer;font-weight:600;">Quản lý Lớp / Môn học / Unit</summary>
+
+      <div style="margin-top:14px;">
+        <h4>Lớp</h4>
+        <div id="classListWrap"></div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label>Tên lớp mới</label>
+            <input type="text" id="newClassName" placeholder="Lớp 4B">
+          </div>
+          <div class="admin-field admin-field-small">
+            <label>Cấp</label>
+            <select id="newClassLevel">
+              <option value="tieuhoc">Tiểu học</option>
+              <option value="mamnon">Mầm non</option>
+            </select>
+          </div>
+          <div class="admin-field admin-field-btn">
+            <button type="button" class="admin-btn-primary" id="addClassBtn">+ Thêm lớp</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <h4>Môn học</h4>
+        <label class="admin-label">Thuộc lớp</label>
+        <select class="admin-select" id="subjectClassPicker"></select>
+        <div id="subjectListWrap"></div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label>Tên môn mới</label>
+            <input type="text" id="newSubjectName" placeholder="Tiếng Anh">
+          </div>
+          <div class="admin-field admin-field-small">
+            <label>Màu</label>
+            <input type="color" id="newSubjectColor" value="#2D6A4F">
+          </div>
+          <div class="admin-field admin-field-btn">
+            <button type="button" class="admin-btn-primary" id="addSubjectBtn">+ Thêm môn</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <h4>Unit</h4>
+        <label class="admin-label">Thuộc môn</label>
+        <select class="admin-select" id="unitSubjectPicker"></select>
+        <div id="unitListWrap"></div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label>Tên unit mới</label>
+            <input type="text" id="newUnitName" placeholder="Màu sắc – Colors">
+          </div>
+          <div class="admin-field admin-field-small">
+            <label>Loại nội dung</label>
+            <select id="newUnitContentType">
+              <option value="vocab">Từ vựng</option>
+              <option value="grammar">Ngữ pháp (sắp ra mắt)</option>
+            </select>
+          </div>
+          <div class="admin-field admin-field-btn">
+            <button type="button" class="admin-btn-primary" id="addUnitBtn">+ Thêm unit</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-status" id="curriculumStatus"></div>
+    </details>
+
     <label class="admin-label" for="unitSelect">Chọn Unit</label>
     <select class="admin-select" id="unitSelect"></select>
 
@@ -150,10 +220,12 @@ Apple | /ˈæp.əl/ | Quả táo | 🍎"></textarea>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/data.js"></script>
 <script src="../js/supabase-config.js"></script>
+<script src="../js/curriculum-data.js"></script>
 <script src="js/content-admin.js"></script>
 <script src="js/students-admin.js"></script>
 <script src="js/results-admin.js"></script>
 <script src="js/activity-toggles-admin.js"></script>
+<script src="js/curriculum-admin.js"></script>
 <script src="js/admin-app.js"></script>
 </body>
 </html>

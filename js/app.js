@@ -1,5 +1,5 @@
 var state = {
-  selectedClassId: DATA.classes[0].id,
+  selectedClassId: null,
   openSubjectId: null,
   openUnitId: null,
   selectedActivity: null
@@ -152,7 +152,7 @@ function buildUnitItem(unit) {
 
 function buildActivityItem(unit, activity) {
   var item = document.createElement("div");
-  var isSelected = state.selectedActivity && state.selectedActivity.activity.id === activity.id;
+  var isSelected = state.selectedActivity && state.selectedActivity.unit.id === unit.id && state.selectedActivity.activity.id === activity.id;
   var classes = "activity-item";
   if (isSelected) {
     classes += " selected";
@@ -214,7 +214,7 @@ async function renderMainContent() {
 
     var items = await loadVocabForUnit(unit.id);
 
-    if (state.selectedActivity.activity.id !== activity.id) {
+    if (!state.selectedActivity || state.selectedActivity.unit.id !== unit.id || state.selectedActivity.activity.id !== activity.id) {
       return;
     }
 
@@ -267,7 +267,12 @@ async function renderMainContent() {
   main.appendChild(screen);
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
+  document.getElementById("sidebar").innerHTML = '<div class="placeholder">Đang tải...</div>';
+
+  await loadCurriculumData();
+  state.selectedClassId = DATA.classes[0] ? DATA.classes[0].id : null;
+
   renderSidebar();
   renderMainContent();
 
