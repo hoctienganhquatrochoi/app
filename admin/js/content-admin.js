@@ -274,7 +274,7 @@ function renderVocabTable(rows) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  var headers = ["Ảnh", "Từ (EN)", "Phiên âm", "Nghĩa (VI)", "Audio EN", "Audio VI", ""];
+  var headers = ["Ảnh", "Từ (EN)", "Phiên âm", "Nghĩa (VI)", "Audio EN", ""];
   var i;
   for (i = 0; i < headers.length; i++) {
     var th = document.createElement("th");
@@ -307,7 +307,6 @@ function buildVocabBulkEditRow(row) {
   tr.appendChild(phoneticTd);
   tr.appendChild(meaningTd);
   tr.appendChild(makeAudioTd(row.audio_en_url));
-  tr.appendChild(makeAudioTd(row.audio_vi_url));
 
   var actionsTd = document.createElement("td");
   var delBtn = document.createElement("button");
@@ -359,7 +358,6 @@ async function handleSaveAll() {
     if (textChanged) {
       var noop = function () {};
       updatePayload.audio_en_url = await generateAudio(newWordEn, "en-US", ref.row.unit_id + "/" + ref.row.id + "_en.mp3", noop);
-      updatePayload.audio_vi_url = await generateAudio(newMeaningVi, "vi", ref.row.unit_id + "/" + ref.row.id + "_vi.mp3", noop);
     }
 
     await supabaseClient.from("game_vocab").update(updatePayload).eq("id", ref.row.id);
@@ -382,7 +380,6 @@ function buildVocabRow(row) {
   tr.appendChild(makeTd(row.phonetic));
   tr.appendChild(makeTd(row.meaning_vi));
   tr.appendChild(makeAudioTd(row.audio_en_url));
-  tr.appendChild(makeAudioTd(row.audio_vi_url));
 
   var actionsTd = document.createElement("td");
 
@@ -433,7 +430,6 @@ function buildVocabEditRow(row) {
   tr.appendChild(phoneticTd);
   tr.appendChild(meaningTd);
   tr.appendChild(makeAudioTd(row.audio_en_url));
-  tr.appendChild(makeAudioTd(row.audio_vi_url));
 
   var actionsTd = document.createElement("td");
 
@@ -475,7 +471,6 @@ function buildVocabEditRow(row) {
       saveBtn.textContent = "Đang tạo âm thanh...";
       var noop = function () {};
       updatePayload.audio_en_url = await generateAudio(newWordEn, "en-US", row.unit_id + "/" + row.id + "_en.mp3", noop);
-      updatePayload.audio_vi_url = await generateAudio(newMeaningVi, "vi", row.unit_id + "/" + row.id + "_vi.mp3", noop);
     } else {
       saveBtn.textContent = "Đang lưu...";
     }
@@ -580,13 +575,10 @@ async function handleAddVocab(e) {
   clearAddForm();
   loadVocabTable();
 
-  setAddStatus("Đang tạo âm thanh tiếng Anh...");
+  setAddStatus("Đang tạo âm thanh...");
   var audioEnUrl = await generateAudio(wordEn, "en-US", unitId + "/" + row.id + "_en.mp3", setAddStatus);
 
-  setAddStatus("Đang tạo âm thanh tiếng Việt...");
-  var audioViUrl = await generateAudio(meaningVi, "vi", unitId + "/" + row.id + "_vi.mp3", setAddStatus);
-
-  var updatePayload = { audio_en_url: audioEnUrl, audio_vi_url: audioViUrl };
+  var updatePayload = { audio_en_url: audioEnUrl };
 
   if (imageFile) {
     setAddStatus("Đang tải ảnh lên...");
@@ -753,11 +745,10 @@ async function handleBulkAdd(e) {
     var row = insertResult.data;
 
     var audioEnUrl = await generateAudio(item.word_en, "en-US", unitId + "/" + row.id + "_en.mp3", setBulkStatus);
-    var audioViUrl = await generateAudio(item.meaning_vi, "vi", unitId + "/" + row.id + "_vi.mp3", setBulkStatus);
 
     await supabaseClient
       .from("game_vocab")
-      .update({ audio_en_url: audioEnUrl, audio_vi_url: audioViUrl })
+      .update({ audio_en_url: audioEnUrl })
       .eq("id", row.id);
 
     successCount++;
