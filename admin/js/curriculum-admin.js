@@ -618,6 +618,7 @@ function selectUnitForComposing(unitId) {
   updateComposeBreadcrumb();
   updateComposeAreaVisibility();
   loadVocabTable();
+  loadSpeakingTable();
   loadActivityToggles();
   showUnitsComposeView();
 }
@@ -630,6 +631,7 @@ function updateComposeAreaVisibility() {
   document.getElementById("addVocabForm").style.display = isVocab ? "" : "none";
   document.getElementById("bulkAddForm").style.display = isVocab ? "" : "none";
   document.getElementById("vocabTableWrap").style.display = isVocab ? "" : "none";
+  document.getElementById("speakingSection").style.display = isVocab ? "" : "none";
   document.getElementById("grammarComposeMsg").style.display = isVocab ? "none" : "block";
 }
 
@@ -668,6 +670,11 @@ async function handleDeleteUnit(unitId) {
     window.alert("Bài học này còn từ vựng, hãy xóa hết từ vựng trong bảng bên dưới trước khi xóa.");
     return;
   }
+  var speakingResult = await supabaseClient.from("game_speaking_questions").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  if ((speakingResult.count || 0) > 0) {
+    window.alert("Bài học này còn câu hỏi Kiểm tra nói, hãy xóa hết trong bảng Kiểm tra nói trước khi xóa.");
+    return;
+  }
   if (!window.confirm("Xóa bài học này?")) {
     return;
   }
@@ -704,6 +711,7 @@ async function refreshCurriculumEverywhere(opts) {
   }
   updateComposeAreaVisibility();
   loadVocabTable();
+  loadSpeakingTable();
   loadActivityToggles();
 }
 

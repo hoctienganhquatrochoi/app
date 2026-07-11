@@ -53,6 +53,12 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
   var answersLog = [];
   var startedAt = new Date();
 
+  function showQuestion() {
+    draw();
+    var q = questions[qIndex];
+    playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.en, "en-US");
+  }
+
   function draw() {
     container.innerHTML = "";
 
@@ -112,28 +118,6 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
     }
     wrap.appendChild(optionsEl);
 
-    if (answered) {
-      var continueWrap = document.createElement("div");
-      continueWrap.className = "quiz-continue-wrap";
-
-      var continueBtn = document.createElement("button");
-      continueBtn.className = "quiz-continue-btn";
-      continueBtn.type = "button";
-      continueBtn.textContent = qIndex === questions.length - 1 ? "Xem kết quả" : "Câu tiếp theo →";
-      continueBtn.addEventListener("click", function () {
-        if (qIndex < questions.length - 1) {
-          qIndex++;
-          answered = false;
-          selectedWrongLetter = null;
-          draw();
-        } else {
-          showResult();
-        }
-      });
-      continueWrap.appendChild(continueBtn);
-      wrap.appendChild(continueWrap);
-    }
-
     container.appendChild(wrap);
   }
 
@@ -176,6 +160,17 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
         is_correct: isCorrect
       });
       draw();
+
+      setTimeout(function () {
+        if (qIndex < questions.length - 1) {
+          qIndex++;
+          answered = false;
+          selectedWrongLetter = null;
+          showQuestion();
+        } else {
+          showResult();
+        }
+      }, QUIZ_ADVANCE_DELAY_MS);
     });
 
     return btn;
@@ -214,12 +209,12 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
       selectedWrongLetter = null;
       answersLog = [];
       startedAt = new Date();
-      draw();
+      showQuestion();
     });
     wrap.appendChild(retryBtn);
 
     container.appendChild(wrap);
   }
 
-  draw();
+  showQuestion();
 }

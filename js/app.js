@@ -268,6 +268,32 @@ async function renderMainContent() {
     return;
   }
 
+  if (activity.type === "speaking") {
+    var speakingLoading = document.createElement("div");
+    speakingLoading.className = "placeholder";
+    speakingLoading.textContent = "Đang tải nội dung...";
+    main.appendChild(speakingLoading);
+
+    var speakingItems = await loadSpeakingForUnit(unit.id);
+
+    if (!state.selectedActivity || state.selectedActivity.unit.id !== unit.id || state.selectedActivity.activity.id !== activity.id) {
+      return;
+    }
+
+    if (!speakingItems.length) {
+      main.innerHTML = "";
+      var speakingEmpty = document.createElement("div");
+      speakingEmpty.className = "placeholder";
+      speakingEmpty.textContent = "Unit này chưa có nội dung.";
+      main.appendChild(speakingEmpty);
+      return;
+    }
+
+    main.innerHTML = "";
+    renderSpeaking(main, breadcrumbText, speakingItems);
+    return;
+  }
+
   var screen = document.createElement("div");
   screen.className = "play-screen" + (isMamNon ? " mamnon" : "");
 

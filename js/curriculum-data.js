@@ -6,8 +6,8 @@ var VOCAB_ACTIVITY_TEMPLATE = [
   { id: "a2e", name: "Nghe từ, chọn nghĩa", type: "quiz", format: "word-to-meaning", locked: false, maxQuestions: 30 },
   { id: "a3", name: "Đánh máy có gợi ý", type: "typing", mode: "hint", locked: false, maxQuestions: 30 },
   { id: "a4", name: "Đánh máy không gợi ý", type: "typing", mode: "blank", locked: false, maxQuestions: 30 },
-  { id: "a6", name: "Sắp xếp câu song ngữ", type: "sentence-order", locked: true },
-  { id: "a12", name: "Khuyết chữ cái", type: "missing-letter", locked: false, maxQuestions: 30 }
+  { id: "a12", name: "Khuyết chữ cái", type: "missing-letter", locked: false, maxQuestions: 30 },
+  { id: "a13", name: "Kiểm tra nói", type: "speaking", locked: false }
 ];
 
 var PLACEHOLDER_ACTIVITY = [
