@@ -117,4 +117,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("loginCancelBtn").addEventListener("click", closeLoginModal);
   document.getElementById("loginSubmitBtn").addEventListener("click", handleLoginSubmit);
+
+  var passwordToggles = document.querySelectorAll(".password-toggle-btn");
+  var i;
+  for (i = 0; i < passwordToggles.length; i++) {
+    passwordToggles[i].addEventListener("click", function () {
+      var input = document.getElementById(this.getAttribute("data-target"));
+      var isHidden = input.type === "password";
+      input.type = isHidden ? "text" : "password";
+      this.textContent = isHidden ? "🙈" : "👁️";
+    });
+  }
 });

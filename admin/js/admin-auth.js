@@ -116,4 +116,15 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("changeAdminPasswordBtn").addEventListener("click", openChangeAdminPasswordModal);
   document.getElementById("cancelChangeAdminPasswordBtn").addEventListener("click", closeChangeAdminPasswordModal);
   document.getElementById("submitChangeAdminPasswordBtn").addEventListener("click", handleChangeAdminPasswordSubmit);
+
+  var passwordToggles = document.querySelectorAll(".password-toggle-btn");
+  var i;
+  for (i = 0; i < passwordToggles.length; i++) {
+    passwordToggles[i].addEventListener("click", function () {
+      var input = document.getElementById(this.getAttribute("data-target"));
+      var isHidden = input.type === "password";
+      input.type = isHidden ? "text" : "password";
+      this.textContent = isHidden ? "🙈" : "👁️";
+    });
+  }
 });

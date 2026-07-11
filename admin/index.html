@@ -28,7 +28,10 @@
     <h3>Đăng nhập quản trị</h3>
     <div class="admin-field">
       <label>Mật khẩu</label>
-      <input type="password" id="adminLoginPassword">
+      <div class="password-input-wrap">
+        <input type="password" id="adminLoginPassword">
+        <button type="button" class="password-toggle-btn" data-target="adminLoginPassword">👁️</button>
+      </div>
     </div>
     <div class="login-modal-status" id="adminLoginStatus"></div>
     <div class="login-modal-actions">
@@ -42,15 +45,24 @@
     <h3>Đổi mật khẩu quản trị</h3>
     <div class="admin-field">
       <label>Mật khẩu hiện tại</label>
-      <input type="password" id="currentAdminPassword">
+      <div class="password-input-wrap">
+        <input type="password" id="currentAdminPassword">
+        <button type="button" class="password-toggle-btn" data-target="currentAdminPassword">👁️</button>
+      </div>
     </div>
     <div class="admin-field">
       <label>Mật khẩu mới</label>
-      <input type="password" id="newAdminPassword">
+      <div class="password-input-wrap">
+        <input type="password" id="newAdminPassword">
+        <button type="button" class="password-toggle-btn" data-target="newAdminPassword">👁️</button>
+      </div>
     </div>
     <div class="admin-field">
       <label>Nhập lại mật khẩu mới</label>
-      <input type="password" id="confirmAdminPassword">
+      <div class="password-input-wrap">
+        <input type="password" id="confirmAdminPassword">
+        <button type="button" class="password-toggle-btn" data-target="confirmAdminPassword">👁️</button>
+      </div>
     </div>
     <div class="login-modal-status" id="changeAdminPasswordStatus"></div>
     <div class="login-modal-actions">
