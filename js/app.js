@@ -329,14 +329,26 @@ async function renderMainContent() {
   main.appendChild(screen);
 }
 
+function slugify(text) {
+  var s = (text || "").toLowerCase();
+  s = s.replace(/đ/g, "d");
+  var combiningMarkStart = String.fromCharCode(768);
+  var combiningMarkEnd = String.fromCharCode(879);
+  var combiningMarkRegex = new RegExp("[" + combiningMarkStart + "-" + combiningMarkEnd + "]", "g");
+  s = s.normalize("NFD").replace(combiningMarkRegex, "");
+  s = s.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return s || "x";
+}
+
 function updateUrlHash() {
   var parts = [];
-  if (state.selectedClassId) {
-    parts.push(state.selectedClassId);
+  var cls = getSelectedClass();
+  if (cls) {
+    parts.push(slugify(cls.name));
   }
   if (state.selectedActivity) {
-    parts.push(state.selectedActivity.unit.id);
-    parts.push(state.selectedActivity.activity.id);
+    parts.push(slugify(state.selectedActivity.unit.name));
+    parts.push(slugify(state.selectedActivity.activity.name));
   }
   var hash = parts.length ? "#" + parts.join("/") : "";
   window.history.replaceState(null, "", window.location.pathname + window.location.search + hash);
@@ -349,14 +361,14 @@ function applyUrlHash() {
   }
 
   var parts = hash.split("/");
-  var classId = parts[0];
-  var unitId = parts[1];
-  var activityId = parts[2];
+  var classSlug = parts[0];
+  var unitSlug = parts[1];
+  var activitySlug = parts[2];
 
   var cls = null;
   var c;
   for (c = 0; c < DATA.classes.length; c++) {
-    if (DATA.classes[c].id === classId) {
+    if (slugify(DATA.classes[c].name) === classSlug) {
       cls = DATA.classes[c];
     }
   }
@@ -364,20 +376,20 @@ function applyUrlHash() {
     return false;
   }
 
-  state.selectedClassId = classId;
+  state.selectedClassId = cls.id;
 
-  if (!unitId) {
+  if (!unitSlug) {
     autoOpenFirstSubject();
     return true;
   }
 
-  var subjects = DATA.subjectsByClass[classId] || [];
+  var subjects = DATA.subjectsByClass[cls.id] || [];
   var foundSubject = null;
   var foundUnit = null;
   var s, u;
   for (s = 0; s < subjects.length; s++) {
     for (u = 0; u < subjects[s].units.length; u++) {
-      if (subjects[s].units[u].id === unitId) {
+      if (slugify(subjects[s].units[u].name) === unitSlug) {
         foundSubject = subjects[s];
         foundUnit = subjects[s].units[u];
       }
@@ -392,11 +404,11 @@ function applyUrlHash() {
   state.openSubjectId = foundSubject.id;
   state.openUnitId = foundUnit.id;
 
-  if (activityId) {
+  if (activitySlug) {
     var activity = null;
     var a;
     for (a = 0; a < foundUnit.activities.length; a++) {
-      if (foundUnit.activities[a].id === activityId) {
+      if (slugify(foundUnit.activities[a].name) === activitySlug) {
         activity = foundUnit.activities[a];
       }
     }
