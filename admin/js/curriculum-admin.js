@@ -449,13 +449,33 @@ function renderUnitList() {
   var subject = findSubjectById(subjectId);
   var units = subject ? subject.units : [];
   wrap.appendChild(buildTableWrap(units.length > 0, function (tbody) {
-    units.forEach(function (unit) {
-      tbody.appendChild(editingUnitId === unit.id ? buildUnitEditRow(unit) : buildUnitRow(unit));
+    units.forEach(function (unit, idx) {
+      tbody.appendChild(editingUnitId === unit.id ? buildUnitEditRow(unit) : buildUnitRow(unit, null, idx, units.length));
     });
   }));
 }
 
-function buildUnitRow(unit, pathLabel) {
+async function moveUnit(unitId, direction) {
+  var subject = findSubjectById(document.getElementById("manageUnitSubjectPicker").value);
+  if (!subject) {
+    return;
+  }
+  var idx = subject.units.findIndex(function (u) { return u.id === unitId; });
+  var swapIdx = idx + direction;
+  if (idx === -1 || swapIdx < 0 || swapIdx >= subject.units.length) {
+    return;
+  }
+
+  var a = subject.units[idx];
+  var b = subject.units[swapIdx];
+
+  await supabaseClient.from("game_units").update({ sort_order: swapIdx }).eq("id", a.id);
+  await supabaseClient.from("game_units").update({ sort_order: idx }).eq("id", b.id);
+
+  await refreshCurriculumEverywhere();
+}
+
+function buildUnitRow(unit, pathLabel, idx, total) {
   var tr = document.createElement("tr");
 
   var nameTd = document.createElement("td");
@@ -468,6 +488,17 @@ function buildUnitRow(unit, pathLabel) {
   badge.textContent = unit.content_type === "vocab" ? "Từ vựng" : "Ngữ pháp";
   badgeTd.appendChild(badge);
   tr.appendChild(badgeTd);
+
+  var moveTd = document.createElement("td");
+  if (typeof idx === "number") {
+    var upBtn = buildActionBtn("↑", "admin-btn-secondary", function () { moveUnit(unit.id, -1); });
+    upBtn.disabled = idx === 0;
+    var downBtn = buildActionBtn("↓", "admin-btn-secondary", function () { moveUnit(unit.id, 1); });
+    downBtn.disabled = idx === total - 1;
+    moveTd.appendChild(upBtn);
+    moveTd.appendChild(downBtn);
+  }
+  tr.appendChild(moveTd);
 
   var actionTd = document.createElement("td");
   actionTd.appendChild(buildActionBtn("Soạn", "admin-btn-primary", function () {
@@ -651,7 +682,9 @@ async function handleAddUnit() {
 
   setCurriculumStatus("Đang tạo bài học...");
   var newId = genId("u");
-  var result = await supabaseClient.from("game_units").insert({ id: newId, subject_id: subjectId, name: name, content_type: contentType });
+  var subjectForOrder = findSubjectById(subjectId);
+  var newSortOrder = subjectForOrder ? subjectForOrder.units.length : 0;
+  var result = await supabaseClient.from("game_units").insert({ id: newId, subject_id: subjectId, name: name, content_type: contentType, sort_order: newSortOrder });
   if (result.error) {
     setCurriculumStatus("Lỗi tạo bài học: " + result.error.message);
     return;

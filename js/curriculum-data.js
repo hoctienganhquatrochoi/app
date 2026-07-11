@@ -21,7 +21,7 @@ function buildActivitiesForUnit(unit) {
 async function loadCurriculumData() {
   var classesResult = await supabaseClient.from("game_classes").select("*").order("sort_order", { ascending: true });
   var subjectsResult = await supabaseClient.from("game_subjects").select("*").order("created_at", { ascending: true });
-  var unitsResult = await supabaseClient.from("game_units").select("*").order("created_at", { ascending: true });
+  var unitsResult = await supabaseClient.from("game_units").select("*").order("sort_order", { ascending: true });
 
   var classes = (classesResult.data || []).map(function (row) {
     return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order };
@@ -49,7 +49,7 @@ async function loadCurriculumData() {
     if (!subj) {
       continue;
     }
-    var unit = { id: urow.id, subject_id: urow.subject_id, name: urow.name, content_type: urow.content_type, progress: "" };
+    var unit = { id: urow.id, subject_id: urow.subject_id, name: urow.name, content_type: urow.content_type, sort_order: urow.sort_order, progress: "" };
     unit.activities = buildActivitiesForUnit(unit);
     subj.units.push(unit);
   }

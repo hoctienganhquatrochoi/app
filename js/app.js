@@ -15,6 +15,12 @@ function getSelectedClass() {
   return DATA.classes[0];
 }
 
+function autoOpenFirstSubject() {
+  var subjects = DATA.subjectsByClass[state.selectedClassId] || [];
+  state.openSubjectId = subjects.length ? subjects[0].id : null;
+  state.openUnitId = null;
+}
+
 function renderSidebar() {
   var sidebar = document.getElementById("sidebar");
   sidebar.innerHTML = "";
@@ -33,9 +39,9 @@ function renderSidebar() {
   }
   select.addEventListener("change", function (e) {
     state.selectedClassId = e.target.value;
-    state.openSubjectId = null;
-    state.openUnitId = null;
+    autoOpenFirstSubject();
     renderSidebar();
+    updateUrlHash();
   });
   sidebar.appendChild(select);
 
@@ -73,6 +79,7 @@ function buildSubjectItem(subject) {
     state.openSubjectId = isOpen ? null : subject.id;
     state.openUnitId = null;
     renderSidebar();
+    updateUrlHash();
   });
 
   wrap.appendChild(header);
@@ -155,6 +162,7 @@ function buildUnitItem(unit) {
       loadUnitDisabledActivities(unit.id);
     }
     renderSidebar();
+    updateUrlHash();
   });
 
   wrap.appendChild(header);
@@ -208,6 +216,7 @@ function buildActivityItem(unit, activity) {
     document.getElementById("sidebar").classList.remove("mobile-open");
     renderSidebar();
     renderMainContent();
+    updateUrlHash();
   });
 
   return item;
@@ -320,14 +329,104 @@ async function renderMainContent() {
   main.appendChild(screen);
 }
 
+function updateUrlHash() {
+  var parts = [];
+  if (state.selectedClassId) {
+    parts.push(state.selectedClassId);
+  }
+  if (state.selectedActivity) {
+    parts.push(state.selectedActivity.unit.id);
+    parts.push(state.selectedActivity.activity.id);
+  }
+  var hash = parts.length ? "#" + parts.join("/") : "";
+  window.history.replaceState(null, "", window.location.pathname + window.location.search + hash);
+}
+
+function applyUrlHash() {
+  var hash = window.location.hash.replace(/^#/, "");
+  if (!hash) {
+    return false;
+  }
+
+  var parts = hash.split("/");
+  var classId = parts[0];
+  var unitId = parts[1];
+  var activityId = parts[2];
+
+  var cls = null;
+  var c;
+  for (c = 0; c < DATA.classes.length; c++) {
+    if (DATA.classes[c].id === classId) {
+      cls = DATA.classes[c];
+    }
+  }
+  if (!cls) {
+    return false;
+  }
+
+  state.selectedClassId = classId;
+
+  if (!unitId) {
+    autoOpenFirstSubject();
+    return true;
+  }
+
+  var subjects = DATA.subjectsByClass[classId] || [];
+  var foundSubject = null;
+  var foundUnit = null;
+  var s, u;
+  for (s = 0; s < subjects.length; s++) {
+    for (u = 0; u < subjects[s].units.length; u++) {
+      if (subjects[s].units[u].id === unitId) {
+        foundSubject = subjects[s];
+        foundUnit = subjects[s].units[u];
+      }
+    }
+  }
+
+  if (!foundUnit) {
+    autoOpenFirstSubject();
+    return true;
+  }
+
+  state.openSubjectId = foundSubject.id;
+  state.openUnitId = foundUnit.id;
+
+  if (activityId) {
+    var activity = null;
+    var a;
+    for (a = 0; a < foundUnit.activities.length; a++) {
+      if (foundUnit.activities[a].id === activityId) {
+        activity = foundUnit.activities[a];
+      }
+    }
+    if (activity && !activity.locked) {
+      state.selectedActivity = { unit: foundUnit, activity: activity };
+    }
+  }
+
+  return true;
+}
+
 document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("sidebar").innerHTML = '<div class="placeholder">Đang tải...</div>';
 
   await loadCurriculumData();
-  state.selectedClassId = DATA.classes[0] ? DATA.classes[0].id : null;
 
-  renderSidebar();
+  var matched = applyUrlHash();
+  if (!matched) {
+    state.selectedClassId = DATA.classes[0] ? DATA.classes[0].id : null;
+    autoOpenFirstSubject();
+  }
+
+  if (state.openUnitId) {
+    await loadUnitDisabledActivities(state.openUnitId);
+  } else {
+    renderSidebar();
+  }
+
   renderMainContent();
+  updateUrlHash();
 
   document.getElementById("sidebarToggleBtn").addEventListener("click", function () {
     document.getElementById("sidebar").classList.toggle("mobile-open");
