@@ -95,7 +95,8 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     });
     prompt.appendChild(audioBtn);
 
-    if (config.showImage) {
+    var hasVisual = config.showImage && !!(q.item.imageUrl || q.item.emoji);
+    if (hasVisual) {
       prompt.appendChild(buildVisualElement(q.item, "quiz-emoji"));
     }
 
@@ -113,7 +114,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
 
     if (line) {
       var lineEl = document.createElement("div");
-      lineEl.className = "quiz-question-word";
+      lineEl.className = "quiz-question-word" + (hasVisual ? "" : " no-visual");
       lineEl.textContent = line;
       prompt.appendChild(lineEl);
     }

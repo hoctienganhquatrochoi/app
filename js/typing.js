@@ -72,12 +72,13 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
     });
     wrap.appendChild(audioBtn);
 
-    if (item.imageUrl || item.emoji) {
+    var hasVisual = !!(item.imageUrl || item.emoji);
+    if (hasVisual) {
       wrap.appendChild(buildVisualElement(item, "ty-emoji"));
     }
 
     var line = document.createElement("div");
-    line.className = "ty-meaning";
+    line.className = "ty-meaning" + (hasVisual ? "" : " no-visual");
     line.textContent = mode === "hint" ? (item.en + " " + (item.phonetic || "") + " - " + item.vi) : item.vi;
     wrap.appendChild(line);
 

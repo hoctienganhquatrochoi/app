@@ -562,9 +562,6 @@ async function handleAddVocab(e) {
     setAddStatus("Đang tra phiên âm...");
     phonetic = await lookupPhonetic(wordEn);
   }
-  if (!emoji) {
-    emoji = lookupEmoji(wordEn);
-  }
   if (!meaningVi) {
     setAddStatus("Đang dịch nghĩa...");
     meaningVi = await translateToVietnamese(wordEn, setAddStatus);
@@ -695,12 +692,31 @@ function setBulkStatus(text) {
 }
 
 function parseBulkLine(line) {
-  var parts = line.split("|");
+  if (line.indexOf("|") !== -1) {
+    var parts = line.split("|");
+    return {
+      word_en: (parts[0] || "").trim(),
+      phonetic: (parts[1] || "").trim(),
+      meaning_vi: (parts[2] || "").trim(),
+      emoji: (parts[3] || "").trim()
+    };
+  }
+
+  var slashMatch = line.match(/^(\S+)\s+\/([^/]+)\/\s*[-–]?\s*(.*)$/);
+  if (slashMatch) {
+    return {
+      word_en: slashMatch[1].trim(),
+      phonetic: "/" + slashMatch[2].trim() + "/",
+      meaning_vi: slashMatch[3].trim(),
+      emoji: ""
+    };
+  }
+
   return {
-    word_en: (parts[0] || "").trim(),
-    phonetic: (parts[1] || "").trim(),
-    meaning_vi: (parts[2] || "").trim(),
-    emoji: (parts[3] || "").trim()
+    word_en: line.trim(),
+    phonetic: "",
+    meaning_vi: "",
+    emoji: ""
   };
 }
 
@@ -747,9 +763,6 @@ async function handleBulkAdd(e) {
 
     if (!item.phonetic) {
       item.phonetic = await lookupPhonetic(item.word_en);
-    }
-    if (!item.emoji) {
-      item.emoji = lookupEmoji(item.word_en);
     }
     if (!item.meaning_vi) {
       item.meaning_vi = await translateToVietnamese(item.word_en, setBulkStatus);

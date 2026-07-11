@@ -77,10 +77,13 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
     var card = document.createElement("div");
     card.className = "ml-card";
 
-    card.appendChild(buildVisualElement(q.item, "ml-emoji"));
+    var hasVisual = !!(q.item.imageUrl || q.item.emoji);
+    if (hasVisual) {
+      card.appendChild(buildVisualElement(q.item, "ml-emoji"));
+    }
 
     var meaning = document.createElement("div");
-    meaning.className = "ml-meaning";
+    meaning.className = "ml-meaning" + (hasVisual ? "" : " no-visual");
     meaning.textContent = q.item.vi;
     card.appendChild(meaning);
 

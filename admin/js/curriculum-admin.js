@@ -578,13 +578,43 @@ function buildUnitEditRow(unit) {
   return tr;
 }
 
+function showUnitsManageView() {
+  document.getElementById("unitsManageView").style.display = "block";
+  document.getElementById("unitsComposeView").style.display = "none";
+}
+
+function showUnitsComposeView() {
+  document.getElementById("unitsManageView").style.display = "none";
+  document.getElementById("unitsComposeView").style.display = "block";
+}
+
+function updateComposeBreadcrumb() {
+  var unitId = document.getElementById("unitSelect").value;
+  var unit = findUnitById(unitId);
+  var subject = unit ? findSubjectById(unit.subject_id) : null;
+  var cls = subject ? findClassById(subject.class_id) : null;
+
+  var parts = [];
+  if (cls) {
+    parts.push(cls.name);
+  }
+  if (subject) {
+    parts.push(subject.name);
+  }
+  if (unit) {
+    parts.push(unit.name);
+  }
+  document.getElementById("composeBreadcrumb").textContent = "Đang soạn: " + parts.join(" › ");
+}
+
 function selectUnitForComposing(unitId) {
   var select = document.getElementById("unitSelect");
   select.value = unitId;
+  updateComposeBreadcrumb();
   updateComposeAreaVisibility();
   loadVocabTable();
   loadActivityToggles();
-  document.getElementById("composeAreaBox").scrollIntoView({ behavior: "smooth" });
+  showUnitsComposeView();
 }
 
 function updateComposeAreaVisibility() {
@@ -623,6 +653,7 @@ async function handleAddUnit() {
   document.getElementById("newUnitName").value = "";
   setCurriculumStatus("Đã tạo bài học \"" + name + "\".");
   await refreshCurriculumEverywhere({ selectUnitId: newId });
+  selectUnitForComposing(newId);
 }
 
 async function handleDeleteUnit(unitId) {
@@ -676,6 +707,7 @@ function initCurriculumManage() {
   renderSubjectList();
   renderUnitList();
   updateComposeAreaVisibility();
+  showUnitsManageView();
   switchCurriculumSubTab("classes");
 
   document.getElementById("addClassBtn").addEventListener("click", handleAddClass);
@@ -690,6 +722,7 @@ function initCurriculumManage() {
   document.getElementById("newUnitSubjectPicker").addEventListener("change", renderUnitList);
   document.getElementById("unitSearchInput").addEventListener("input", renderUnitList);
   document.getElementById("unitSelect").addEventListener("change", updateComposeAreaVisibility);
+  document.getElementById("backToUnitListBtn").addEventListener("click", showUnitsManageView);
 
   var subTabs = document.querySelectorAll("#curriculumSubTabs .admin-subtab");
   var i;

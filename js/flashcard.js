@@ -27,11 +27,13 @@ function renderFlashcard(container, breadcrumbText, items) {
     });
     card.appendChild(audioBtn);
 
-    var visual = buildVisualElement(item, "fc-emoji");
-    card.appendChild(visual);
+    var hasVisual = !!(item.imageUrl || item.emoji);
+    if (hasVisual) {
+      card.appendChild(buildVisualElement(item, "fc-emoji"));
+    }
 
     var line = document.createElement("div");
-    line.className = "fc-word";
+    line.className = "fc-word" + (hasVisual ? "" : " no-visual");
     line.textContent = item.en + " " + (item.phonetic || "") + " - " + item.vi;
     card.appendChild(line);
 
