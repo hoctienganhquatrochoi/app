@@ -18,11 +18,49 @@
     </div>
   </div>
   <div class="banner-right">
+    <button class="refresh-btn" id="changeAdminPasswordBtn" type="button">Đổi mật khẩu</button>
     <a class="login-btn" href="../index.html">← Về trang học</a>
   </div>
 </header>
 
-<div class="admin-body">
+<div class="login-modal-overlay" id="adminLoginOverlay" style="display:flex">
+  <div class="login-modal">
+    <h3>Đăng nhập quản trị</h3>
+    <div class="admin-field">
+      <label>Mật khẩu</label>
+      <input type="password" id="adminLoginPassword">
+    </div>
+    <div class="login-modal-status" id="adminLoginStatus"></div>
+    <div class="login-modal-actions">
+      <button class="login-modal-btn login-modal-btn-submit" id="adminLoginSubmitBtn" type="button">Đăng nhập</button>
+    </div>
+  </div>
+</div>
+
+<div class="login-modal-overlay" id="changeAdminPasswordOverlay" style="display:none">
+  <div class="login-modal">
+    <h3>Đổi mật khẩu quản trị</h3>
+    <div class="admin-field">
+      <label>Mật khẩu hiện tại</label>
+      <input type="password" id="currentAdminPassword">
+    </div>
+    <div class="admin-field">
+      <label>Mật khẩu mới</label>
+      <input type="password" id="newAdminPassword">
+    </div>
+    <div class="admin-field">
+      <label>Nhập lại mật khẩu mới</label>
+      <input type="password" id="confirmAdminPassword">
+    </div>
+    <div class="login-modal-status" id="changeAdminPasswordStatus"></div>
+    <div class="login-modal-actions">
+      <button class="login-modal-btn login-modal-btn-cancel" id="cancelChangeAdminPasswordBtn" type="button">Hủy</button>
+      <button class="login-modal-btn login-modal-btn-submit" id="submitChangeAdminPasswordBtn" type="button">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<div class="admin-body" id="adminBody" style="display:none">
   <nav class="admin-tabs">
     <button class="admin-tab active" type="button" data-tab="content">Nội dung bài học</button>
     <button class="admin-tab" type="button" data-tab="students">Học sinh</button>
@@ -298,6 +336,7 @@ What's this? | It's a pen."></textarea>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/data.js"></script>
 <script src="../js/supabase-config.js"></script>
+<script src="js/admin-auth.js"></script>
 <script src="../js/curriculum-data.js"></script>
 <script src="js/content-admin.js"></script>
 <script src="js/speaking-admin.js"></script>
