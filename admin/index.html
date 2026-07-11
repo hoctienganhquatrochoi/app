@@ -81,11 +81,15 @@
       </div>
 
       <div id="unitsSubPanel" style="display:none">
+        <label class="admin-label" for="unitSearchInput">Tìm bài học theo tên (tìm trên tất cả Lớp/Môn)</label>
+        <input type="text" id="unitSearchInput" class="admin-select" placeholder="VD: Colors" style="margin-bottom:16px;">
+
         <label class="admin-label">Chọn Lớp</label>
         <select class="admin-select" id="newUnitClassPicker"></select>
         <label class="admin-label">Chọn Môn</label>
         <select class="admin-select" id="newUnitSubjectPicker"></select>
 
+        <p class="admin-hint">Đang gõ tìm kiếm ở trên thì danh sách dưới đây sẽ hiện kết quả tìm được trên tất cả các Lớp/Môn thay vì chỉ Lớp/Môn đã chọn.</p>
         <div id="unitListWrap"></div>
         <div class="admin-form-row">
           <div class="admin-field">

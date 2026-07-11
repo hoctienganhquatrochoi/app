@@ -29,6 +29,22 @@ function findSubjectById(subjectId) {
   return null;
 }
 
+function findAllUnitsWithPath() {
+  var results = [];
+  var c, s, u;
+  for (c = 0; c < DATA.classes.length; c++) {
+    var cls = DATA.classes[c];
+    var subjects = DATA.subjectsByClass[cls.id] || [];
+    for (s = 0; s < subjects.length; s++) {
+      var subj = subjects[s];
+      for (u = 0; u < subj.units.length; u++) {
+        results.push({ unit: subj.units[u], cls: cls, subj: subj });
+      }
+    }
+  }
+  return results;
+}
+
 function populateNewUnitClassPicker() {
   var select = document.getElementById("newUnitClassPicker");
   var previous = select.value;
@@ -408,6 +424,22 @@ var editingUnitId = null;
 function renderUnitList() {
   var wrap = document.getElementById("unitListWrap");
   wrap.innerHTML = "";
+
+  var query = document.getElementById("unitSearchInput").value.trim().toLowerCase();
+
+  if (query) {
+    var matches = findAllUnitsWithPath().filter(function (entry) {
+      return entry.unit.name.toLowerCase().indexOf(query) !== -1;
+    });
+    wrap.appendChild(buildTableWrap(matches.length > 0, function (tbody) {
+      matches.forEach(function (entry) {
+        var pathLabel = entry.cls.name + " › " + entry.subj.name;
+        tbody.appendChild(editingUnitId === entry.unit.id ? buildUnitEditRow(entry.unit) : buildUnitRow(entry.unit, pathLabel));
+      });
+    }));
+    return;
+  }
+
   var subjectId = document.getElementById("newUnitSubjectPicker").value;
   var subject = findSubjectById(subjectId);
   var units = subject ? subject.units : [];
@@ -418,11 +450,11 @@ function renderUnitList() {
   }));
 }
 
-function buildUnitRow(unit) {
+function buildUnitRow(unit, pathLabel) {
   var tr = document.createElement("tr");
 
   var nameTd = document.createElement("td");
-  nameTd.textContent = unit.name;
+  nameTd.textContent = pathLabel ? pathLabel + " › " + unit.name : unit.name;
   tr.appendChild(nameTd);
 
   var badgeTd = document.createElement("td");
@@ -452,6 +484,9 @@ function buildUnitEditRow(unit) {
   var tr = document.createElement("tr");
   tr.className = "editing-row";
 
+  var currentSubject = findSubjectById(unit.subject_id);
+  var currentClassId = currentSubject ? currentSubject.class_id : null;
+
   var nameTd = document.createElement("td");
   var nameInput = document.createElement("input");
   nameInput.type = "text";
@@ -475,6 +510,42 @@ function buildUnitEditRow(unit) {
   typeTd.appendChild(typeSelect);
   tr.appendChild(typeTd);
 
+  var classTd = document.createElement("td");
+  var classSelect = document.createElement("select");
+  classSelect.className = "admin-inline-input";
+  DATA.classes.forEach(function (cls) {
+    var opt = document.createElement("option");
+    opt.value = cls.id;
+    opt.text = cls.name;
+    if (cls.id === currentClassId) {
+      opt.selected = true;
+    }
+    classSelect.appendChild(opt);
+  });
+  classTd.appendChild(classSelect);
+  tr.appendChild(classTd);
+
+  var subjectTd = document.createElement("td");
+  var subjectSelect = document.createElement("select");
+  subjectSelect.className = "admin-inline-input";
+  function populateEditSubjectOptions() {
+    subjectSelect.innerHTML = "";
+    var subjects = DATA.subjectsByClass[classSelect.value] || [];
+    subjects.forEach(function (s) {
+      var opt = document.createElement("option");
+      opt.value = s.id;
+      opt.text = s.name;
+      if (s.id === unit.subject_id) {
+        opt.selected = true;
+      }
+      subjectSelect.appendChild(opt);
+    });
+  }
+  populateEditSubjectOptions();
+  classSelect.addEventListener("change", populateEditSubjectOptions);
+  subjectTd.appendChild(subjectSelect);
+  tr.appendChild(subjectTd);
+
   var actionTd = document.createElement("td");
   actionTd.appendChild(buildActionBtn("Lưu", "admin-btn-primary", async function () {
     var newName = nameInput.value.trim();
@@ -482,7 +553,15 @@ function buildUnitEditRow(unit) {
       window.alert("Cần nhập tên bài");
       return;
     }
-    var result = await supabaseClient.from("game_units").update({ name: newName, content_type: typeSelect.value }).eq("id", unit.id);
+    if (!subjectSelect.value) {
+      window.alert("Lớp này chưa có Môn học nào");
+      return;
+    }
+    var result = await supabaseClient.from("game_units").update({
+      name: newName,
+      content_type: typeSelect.value,
+      subject_id: subjectSelect.value
+    }).eq("id", unit.id);
     if (result.error) {
       window.alert("Lỗi lưu: " + result.error.message);
       return;
@@ -609,6 +688,7 @@ function initCurriculumManage() {
     renderUnitList();
   });
   document.getElementById("newUnitSubjectPicker").addEventListener("change", renderUnitList);
+  document.getElementById("unitSearchInput").addEventListener("input", renderUnitList);
   document.getElementById("unitSelect").addEventListener("change", updateComposeAreaVisibility);
 
   var subTabs = document.querySelectorAll("#curriculumSubTabs .admin-subtab");
