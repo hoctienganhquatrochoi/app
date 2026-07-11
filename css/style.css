@@ -239,6 +239,9 @@ html, body {
   border-right: 1px solid #E5E0D5;
   padding: 12px;
   overflow-y: auto;
+  height: calc(100vh - 68px);
+  position: sticky;
+  top: 68px;
 }
 
 .main-content {
@@ -1044,6 +1047,9 @@ html, body {
     border-right: none;
     border-bottom: 1px solid #E5E0D5;
     display: none;
+    position: static;
+    height: auto;
+    max-height: 70vh;
   }
   .sidebar.mobile-open {
     display: block;
