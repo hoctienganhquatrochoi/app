@@ -29,6 +29,7 @@ function makeAudioTd(url) {
   if (url) {
     var audio = document.createElement("audio");
     audio.controls = true;
+    audio.preload = "metadata";
     audio.src = url;
     audio.style.width = "150px";
     td.appendChild(audio);
