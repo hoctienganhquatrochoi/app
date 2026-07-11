@@ -130,12 +130,17 @@ function collectDisabledIds() {
 }
 
 async function saveToggleState(disabledIds) {
+  var statusEl = document.getElementById("activityToggleStatus");
+  statusEl.textContent = "Đang lưu...";
+
   var orderIds = currentToggleActivities.map(function (a) {
     return a.id;
   });
-  await supabaseClient
+  var result = await supabaseClient
     .from("game_unit_settings")
     .upsert({ unit_id: currentToggleUnitId, disabled_activity_ids: disabledIds, activity_order: orderIds });
+
+  statusEl.textContent = result.error ? "Lỗi lưu: " + result.error.message : "Đã lưu ✓";
 }
 
 async function handleToggleChange() {
