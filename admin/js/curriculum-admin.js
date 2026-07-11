@@ -666,18 +666,30 @@ async function handleAddUnit() {
 
 async function handleDeleteUnit(unitId) {
   var vocabResult = await supabaseClient.from("game_vocab").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
-  if ((vocabResult.count || 0) > 0) {
-    window.alert("Bài học này còn từ vựng, hãy xóa hết từ vựng trong bảng bên dưới trước khi xóa.");
-    return;
-  }
   var speakingResult = await supabaseClient.from("game_speaking_questions").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
-  if ((speakingResult.count || 0) > 0) {
-    window.alert("Bài học này còn câu hỏi Kiểm tra nói, hãy xóa hết trong bảng Kiểm tra nói trước khi xóa.");
+  var vocabCount = vocabResult.count || 0;
+  var speakingCount = speakingResult.count || 0;
+
+  var warnParts = [];
+  if (vocabCount > 0) {
+    warnParts.push(vocabCount + " từ vựng");
+  }
+  if (speakingCount > 0) {
+    warnParts.push(speakingCount + " câu Kiểm tra nói");
+  }
+  var warnMsg = warnParts.length > 0 ? ("Xóa Unit này sẽ xóa luôn " + warnParts.join(" và ") + " bên trong, không thể khôi phục. ") : "";
+
+  if (!window.confirm(warnMsg + "Bạn có chắc chắn muốn xóa Unit này?")) {
     return;
   }
-  if (!window.confirm("Xóa bài học này?")) {
-    return;
+
+  if (vocabCount > 0) {
+    await supabaseClient.from("game_vocab").delete().eq("unit_id", unitId);
   }
+  if (speakingCount > 0) {
+    await supabaseClient.from("game_speaking_questions").delete().eq("unit_id", unitId);
+  }
+  await supabaseClient.from("game_unit_settings").delete().eq("unit_id", unitId);
 
   var result = await supabaseClient.from("game_units").delete().eq("id", unitId);
   if (result.error) {
