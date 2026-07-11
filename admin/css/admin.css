@@ -88,17 +88,31 @@
 .admin-toggle-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   padding: 6px 0;
+  border-bottom: 1px solid #F0EDE4;
+}
+
+.admin-toggle-item-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
   color: #1B4332;
   cursor: pointer;
 }
 
-.admin-toggle-item input {
+.admin-toggle-item-label input {
   width: 16px;
   height: 16px;
   cursor: pointer;
+}
+
+.admin-toggle-move {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .admin-hint code {

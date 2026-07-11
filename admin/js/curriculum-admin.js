@@ -45,8 +45,8 @@ function findAllUnitsWithPath() {
   return results;
 }
 
-function populateNewUnitClassPicker() {
-  var select = document.getElementById("newUnitClassPicker");
+function populateUnitClassPicker(prefix) {
+  var select = document.getElementById(prefix + "UnitClassPicker");
   var previous = select.value;
   select.innerHTML = "";
   var i;
@@ -59,12 +59,12 @@ function populateNewUnitClassPicker() {
   if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
     select.value = previous;
   }
-  populateNewUnitSubjectPicker();
+  populateUnitSubjectPicker(prefix);
 }
 
-function populateNewUnitSubjectPicker() {
-  var classId = document.getElementById("newUnitClassPicker").value;
-  var select = document.getElementById("newUnitSubjectPicker");
+function populateUnitSubjectPicker(prefix) {
+  var classId = document.getElementById(prefix + "UnitClassPicker").value;
+  var select = document.getElementById(prefix + "UnitSubjectPicker");
   var previous = select.value;
   select.innerHTML = "";
   var subjects = DATA.subjectsByClass[classId] || [];
@@ -119,7 +119,12 @@ function switchCurriculumSubTab(target) {
   }
   document.getElementById("classesSubPanel").style.display = target === "classes" ? "block" : "none";
   document.getElementById("subjectsSubPanel").style.display = target === "subjects" ? "block" : "none";
-  document.getElementById("unitsSubPanel").style.display = target === "units" ? "block" : "none";
+  document.getElementById("addContentSubPanel").style.display = target === "addContent" ? "block" : "none";
+  document.getElementById("manageContentSubPanel").style.display = target === "manageContent" ? "block" : "none";
+
+  if (target === "manageContent") {
+    showUnitsManageView();
+  }
 }
 
 /* ---------- Lớp ---------- */
@@ -440,7 +445,7 @@ function renderUnitList() {
     return;
   }
 
-  var subjectId = document.getElementById("newUnitSubjectPicker").value;
+  var subjectId = document.getElementById("manageUnitSubjectPicker").value;
   var subject = findSubjectById(subjectId);
   var units = subject ? subject.units : [];
   wrap.appendChild(buildTableWrap(units.length > 0, function (tbody) {
@@ -629,7 +634,7 @@ function updateComposeAreaVisibility() {
 }
 
 async function handleAddUnit() {
-  var subjectId = document.getElementById("newUnitSubjectPicker").value;
+  var subjectId = document.getElementById("addUnitSubjectPicker").value;
   var name = document.getElementById("newUnitName").value.trim();
   var contentType = document.getElementById("newUnitContentType").value;
 
@@ -653,6 +658,7 @@ async function handleAddUnit() {
   document.getElementById("newUnitName").value = "";
   setCurriculumStatus("Đã tạo bài học \"" + name + "\".");
   await refreshCurriculumEverywhere({ selectUnitId: newId });
+  switchCurriculumSubTab("manageContent");
   selectUnitForComposing(newId);
 }
 
@@ -686,7 +692,8 @@ async function refreshCurriculumEverywhere(opts) {
   populateResultsUnitSelect();
   populateClassSelect();
   populateClassSelect("subjectClassPicker");
-  populateNewUnitClassPicker();
+  populateUnitClassPicker("add");
+  populateUnitClassPicker("manage");
 
   renderClassList();
   renderSubjectList();
@@ -702,7 +709,8 @@ async function refreshCurriculumEverywhere(opts) {
 
 function initCurriculumManage() {
   populateClassSelect("subjectClassPicker");
-  populateNewUnitClassPicker();
+  populateUnitClassPicker("add");
+  populateUnitClassPicker("manage");
   renderClassList();
   renderSubjectList();
   renderUnitList();
@@ -715,11 +723,14 @@ function initCurriculumManage() {
   document.getElementById("addUnitBtn").addEventListener("click", handleAddUnit);
 
   document.getElementById("subjectClassPicker").addEventListener("change", renderSubjectList);
-  document.getElementById("newUnitClassPicker").addEventListener("change", function () {
-    populateNewUnitSubjectPicker();
+  document.getElementById("addUnitClassPicker").addEventListener("change", function () {
+    populateUnitSubjectPicker("add");
+  });
+  document.getElementById("manageUnitClassPicker").addEventListener("change", function () {
+    populateUnitSubjectPicker("manage");
     renderUnitList();
   });
-  document.getElementById("newUnitSubjectPicker").addEventListener("change", renderUnitList);
+  document.getElementById("manageUnitSubjectPicker").addEventListener("change", renderUnitList);
   document.getElementById("unitSearchInput").addEventListener("input", renderUnitList);
   document.getElementById("unitSelect").addEventListener("change", updateComposeAreaVisibility);
   document.getElementById("backToUnitListBtn").addEventListener("click", showUnitsManageView);

@@ -91,16 +91,42 @@ function buildSubjectItem(subject) {
 }
 
 var unitDisabledActivities = {};
+var unitActivityOrder = {};
 
 async function loadUnitDisabledActivities(unitId) {
   var result = await supabaseClient
     .from("game_unit_settings")
-    .select("disabled_activity_ids")
+    .select("disabled_activity_ids, activity_order")
     .eq("unit_id", unitId)
     .maybeSingle();
 
   unitDisabledActivities[unitId] = (result.data && result.data.disabled_activity_ids) || [];
+  unitActivityOrder[unitId] = result.data ? result.data.activity_order : null;
   renderSidebar();
+}
+
+function orderedActivitiesForUnit(unit) {
+  var orderIds = unitActivityOrder[unit.id];
+  if (!orderIds || !orderIds.length) {
+    return unit.activities;
+  }
+  var byId = {};
+  unit.activities.forEach(function (a) {
+    byId[a.id] = a;
+  });
+  var ordered = [];
+  orderIds.forEach(function (id) {
+    if (byId[id]) {
+      ordered.push(byId[id]);
+      delete byId[id];
+    }
+  });
+  unit.activities.forEach(function (a) {
+    if (byId[a.id]) {
+      ordered.push(a);
+    }
+  });
+  return ordered;
 }
 
 function buildUnitItem(unit) {
@@ -137,12 +163,13 @@ function buildUnitItem(unit) {
     var list = document.createElement("div");
     list.className = "activity-list";
     var disabledIds = unitDisabledActivities[unit.id] || [];
+    var activities = orderedActivitiesForUnit(unit);
     var i;
-    for (i = 0; i < unit.activities.length; i++) {
-      if (disabledIds.indexOf(unit.activities[i].id) !== -1) {
+    for (i = 0; i < activities.length; i++) {
+      if (disabledIds.indexOf(activities[i].id) !== -1) {
         continue;
       }
-      list.appendChild(buildActivityItem(unit, unit.activities[i]));
+      list.appendChild(buildActivityItem(unit, activities[i]));
     }
     wrap.appendChild(list);
   }

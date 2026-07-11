@@ -24,6 +24,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
   var firstAttemptCorrect = false;
   var activityType = mode === "hint" ? "typing-hint" : "typing-blank";
   var keyInputEl = null;
+  var keyboardModeEnabled = false;
 
   function setupQuestion() {
     var item = pool[qIndex];
@@ -97,33 +98,51 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
     }
     wrap.appendChild(tilesEl);
 
+    var toggleLabel = document.createElement("label");
+    toggleLabel.className = "ty-keyboard-toggle";
+    var toggleCheckbox = document.createElement("input");
+    toggleCheckbox.type = "checkbox";
+    toggleCheckbox.checked = keyboardModeEnabled;
+    toggleCheckbox.addEventListener("change", function () {
+      keyboardModeEnabled = toggleCheckbox.checked;
+      draw();
+    });
+    toggleLabel.appendChild(toggleCheckbox);
+    toggleLabel.appendChild(document.createTextNode(" Dùng bàn phím máy tính để gõ (tắt sẵn để dùng trên điện thoại/máy tính bảng)"));
+    wrap.appendChild(toggleLabel);
+
     var hint = document.createElement("div");
     hint.className = "ty-hint";
-    hint.textContent = "Bấm vào ô chữ ở trên, hoặc gõ bàn phím trực tiếp";
+    hint.textContent = keyboardModeEnabled ? "Bấm vào ô chữ ở trên, hoặc gõ bàn phím trực tiếp" : "Bấm vào ô chữ ở trên để ghép từ";
     wrap.appendChild(hint);
 
-    keyInputEl = document.createElement("input");
-    keyInputEl.type = "text";
-    keyInputEl.className = "ty-key-input";
-    keyInputEl.autocapitalize = "off";
-    keyInputEl.autocomplete = "off";
-    keyInputEl.spellcheck = false;
-    keyInputEl.addEventListener("input", function () {
-      var ch = keyInputEl.value.slice(-1).toLowerCase();
-      keyInputEl.value = "";
-      if (ch) {
-        tryFillLetter(ch);
-      }
-    });
-    keyInputEl.addEventListener("keydown", function (e) {
-      if (e.key === "Backspace") {
-        removeLastFilledBlank();
-      }
-    });
-    wrap.appendChild(keyInputEl);
+    keyInputEl = null;
+    if (keyboardModeEnabled) {
+      keyInputEl = document.createElement("input");
+      keyInputEl.type = "text";
+      keyInputEl.className = "ty-key-input";
+      keyInputEl.autocapitalize = "off";
+      keyInputEl.autocomplete = "off";
+      keyInputEl.spellcheck = false;
+      keyInputEl.addEventListener("input", function () {
+        var ch = keyInputEl.value.slice(-1).toLowerCase();
+        keyInputEl.value = "";
+        if (ch) {
+          tryFillLetter(ch);
+        }
+      });
+      keyInputEl.addEventListener("keydown", function (e) {
+        if (e.key === "Backspace") {
+          removeLastFilledBlank();
+        }
+      });
+      wrap.appendChild(keyInputEl);
+    }
 
     container.appendChild(wrap);
-    keyInputEl.focus();
+    if (keyboardModeEnabled && keyInputEl) {
+      keyInputEl.focus();
+    }
   }
 
   function firstEmptyBlankIndex() {

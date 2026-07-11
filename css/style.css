@@ -805,6 +805,17 @@ html, body {
   visibility: hidden;
 }
 
+.ty-keyboard-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #556355;
+  margin: 4px 0;
+  cursor: pointer;
+}
+
 .ty-hint {
   font-size: 12px;
   color: #9AA89E;
