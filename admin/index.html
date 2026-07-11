@@ -150,10 +150,6 @@
               <h3>Thêm từ vựng mới</h3>
               <div class="admin-form-row">
                 <div class="admin-field admin-field-small">
-                  <label>Emoji</label>
-                  <input type="text" id="newEmoji" placeholder="🍎" maxlength="4">
-                </div>
-                <div class="admin-field admin-field-small">
                   <label>Hình ảnh</label>
                   <div id="newImagePickerContainer"></div>
                 </div>
@@ -179,15 +175,15 @@
             <form class="admin-form" id="bulkAddForm">
               <h3>Nhập hàng loạt</h3>
               <p class="admin-hint">
-                Nhanh nhất nếu đã có sẵn danh sách dạng <code>từ /phiên âm/ nghĩa tiếng Việt</code>, dán thẳng vào
-                là xong (không cần chờ tự tra cứu). Chỉ có 1 từ tiếng Anh thì gõ mỗi dòng 1 từ (VD <code>book</code>),
-                hệ thống tự tra phiên âm và tự dịch nghĩa. Muốn tách riêng emoji thì dùng định dạng
-                <code>từ tiếng Anh | phiên âm | nghĩa tiếng Việt | emoji</code> (bỏ trống phần nào cũng được, hệ
-                thống tự điền phần đó). Không tự gán emoji mặc định nữa — bài không có ảnh sẽ hiện chữ to hơn thay vì khung trống.
+                Định dạng chuẩn mỗi dòng: <code>từ tiếng Anh /phiên âm/ nghĩa tiếng Việt</code> — có sẵn danh sách
+                dạng này thì dán thẳng vào là xong, không cần chờ tự tra cứu. Chỉ có 1 từ tiếng Anh thì gõ mỗi
+                dòng 1 từ (VD <code>book</code>), hệ thống tự tra phiên âm và tự dịch nghĩa. Cũng chấp nhận định
+                dạng cũ <code>từ tiếng Anh | phiên âm | nghĩa tiếng Việt</code> nếu quen dùng. Không dùng emoji
+                nữa — bài không có ảnh sẽ hiện chữ to hơn thay vì khung trống.
               </p>
               <textarea class="admin-textarea" id="bulkTextarea" rows="8" placeholder="dish /dɪʃ/ món ăn
 book
-Apple | /ˈæp.əl/ | Quả táo | 🍎"></textarea>
+school bag /ˈskuːl bæɡ/ cặp đi học"></textarea>
               <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả + tạo âm thanh</button>
               <div class="admin-status" id="bulkStatus"></div>
             </form>

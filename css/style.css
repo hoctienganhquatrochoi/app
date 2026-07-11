@@ -88,6 +88,18 @@ html, body {
   margin-left: 8px;
 }
 
+.refresh-btn {
+  background: transparent;
+  color: #F4E9CB;
+  border: 1px solid rgba(244, 233, 203, 0.5);
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
 .student-badge {
   display: flex;
   align-items: center;
@@ -1028,6 +1040,10 @@ html, body {
   .login-btn {
     font-size: 12px;
     padding: 7px 12px;
+  }
+  .refresh-btn {
+    font-size: 11px;
+    padding: 6px 10px;
   }
   .social-icon {
     width: 28px;

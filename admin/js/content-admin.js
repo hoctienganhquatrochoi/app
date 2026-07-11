@@ -180,7 +180,6 @@ function initNewImagePicker() {
 }
 
 function clearAddForm() {
-  document.getElementById("newEmoji").value = "";
   document.getElementById("newWordEn").value = "";
   document.getElementById("newPhonetic").value = "";
   document.getElementById("newMeaningVi").value = "";
@@ -274,7 +273,7 @@ function renderVocabTable(rows) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  var headers = ["Emoji", "Ảnh", "Từ (EN)", "Phiên âm", "Nghĩa (VI)", "Audio EN", "Audio VI", ""];
+  var headers = ["Ảnh", "Từ (EN)", "Phiên âm", "Nghĩa (VI)", "Audio EN", "Audio VI", ""];
   var i;
   for (i = 0; i < headers.length; i++) {
     var th = document.createElement("th");
@@ -298,12 +297,10 @@ function buildVocabBulkEditRow(row) {
   var tr = document.createElement("tr");
   tr.className = "editing-row";
 
-  var emojiTd = makeInputTd(row.emoji, "admin-inline-input-small");
   var wordTd = makeInputTd(row.word_en);
   var phoneticTd = makeInputTd(row.phonetic);
   var meaningTd = makeInputTd(row.meaning_vi);
 
-  tr.appendChild(emojiTd);
   tr.appendChild(makeImageTd(row));
   tr.appendChild(wordTd);
   tr.appendChild(phoneticTd);
@@ -322,7 +319,7 @@ function buildVocabBulkEditRow(row) {
   actionsTd.appendChild(delBtn);
   tr.appendChild(actionsTd);
 
-  bulkEditRefs.push({ row: row, emojiTd: emojiTd, wordTd: wordTd, phoneticTd: phoneticTd, meaningTd: meaningTd });
+  bulkEditRefs.push({ row: row, wordTd: wordTd, phoneticTd: phoneticTd, meaningTd: meaningTd });
 
   return tr;
 }
@@ -336,7 +333,6 @@ async function handleSaveAll() {
   var savedCount = 0;
   for (i = 0; i < bulkEditRefs.length; i++) {
     var ref = bulkEditRefs[i];
-    var newEmoji = ref.emojiTd.inputEl.value.trim();
     var newWordEn = ref.wordTd.inputEl.value.trim();
     var newPhonetic = ref.phoneticTd.inputEl.value.trim();
     var newMeaningVi = ref.meaningTd.inputEl.value.trim();
@@ -346,7 +342,7 @@ async function handleSaveAll() {
     }
 
     var textChanged = newWordEn !== ref.row.word_en || newMeaningVi !== ref.row.meaning_vi;
-    var otherChanged = newEmoji !== (ref.row.emoji || "") || newPhonetic !== (ref.row.phonetic || "");
+    var otherChanged = newPhonetic !== (ref.row.phonetic || "");
     if (!textChanged && !otherChanged) {
       continue;
     }
@@ -354,7 +350,6 @@ async function handleSaveAll() {
     status.textContent = "Đang lưu " + (savedCount + 1) + "/" + bulkEditRefs.length + ": " + newWordEn + "...";
 
     var updatePayload = {
-      emoji: newEmoji,
       word_en: newWordEn,
       phonetic: newPhonetic,
       meaning_vi: newMeaningVi
@@ -381,7 +376,6 @@ function buildVocabRow(row) {
   }
 
   var tr = document.createElement("tr");
-  tr.appendChild(makeTd(row.emoji));
   tr.appendChild(makeImageTd(row));
   tr.appendChild(makeTd(row.word_en));
   tr.appendChild(makeTd(row.phonetic));
@@ -429,12 +423,10 @@ function buildVocabEditRow(row) {
   var tr = document.createElement("tr");
   tr.className = "editing-row";
 
-  var emojiTd = makeInputTd(row.emoji, "admin-inline-input-small");
   var wordTd = makeInputTd(row.word_en);
   var phoneticTd = makeInputTd(row.phonetic);
   var meaningTd = makeInputTd(row.meaning_vi);
 
-  tr.appendChild(emojiTd);
   tr.appendChild(makeImageTd(row));
   tr.appendChild(wordTd);
   tr.appendChild(phoneticTd);
@@ -459,7 +451,6 @@ function buildVocabEditRow(row) {
   });
 
   saveBtn.addEventListener("click", async function () {
-    var newEmoji = emojiTd.inputEl.value.trim();
     var newWordEn = wordTd.inputEl.value.trim();
     var newPhonetic = phoneticTd.inputEl.value.trim();
     var newMeaningVi = meaningTd.inputEl.value.trim();
@@ -474,7 +465,6 @@ function buildVocabEditRow(row) {
 
     var textChanged = newWordEn !== row.word_en || newMeaningVi !== row.meaning_vi;
     var updatePayload = {
-      emoji: newEmoji,
       word_en: newWordEn,
       phonetic: newPhonetic,
       meaning_vi: newMeaningVi
@@ -548,7 +538,6 @@ async function handleAddVocab(e) {
   e.preventDefault();
 
   var unitId = document.getElementById("unitSelect").value;
-  var emoji = document.getElementById("newEmoji").value.trim();
   var wordEn = document.getElementById("newWordEn").value.trim();
   var phonetic = document.getElementById("newPhonetic").value.trim();
   var meaningVi = document.getElementById("newMeaningVi").value.trim();
@@ -573,7 +562,6 @@ async function handleAddVocab(e) {
     .from("game_vocab")
     .insert({
       unit_id: unitId,
-      emoji: emoji,
       word_en: wordEn,
       phonetic: phonetic,
       meaning_vi: meaningVi
@@ -616,26 +604,6 @@ async function handleAddVocab(e) {
   }
 
   loadVocabTable();
-}
-
-var EMOJI_LOOKUP = {
-  "apple": "🍎", "banana": "🍌", "orange": "🍊", "grape": "🍇", "watermelon": "🍉",
-  "strawberry": "🍓", "pineapple": "🍍", "mango": "🥭", "lemon": "🍋", "coconut": "🥥",
-  "pear": "🍐", "cherry": "🍒", "kiwi": "🥝", "guava": "🍈",
-  "dog": "🐶", "cat": "🐱", "cow": "🐮", "pig": "🐷", "chicken": "🐔", "duck": "🦆",
-  "fish": "🐟", "bird": "🐦", "elephant": "🐘", "lion": "🦁", "tiger": "🐯", "monkey": "🐵",
-  "rabbit": "🐰", "bear": "🐻", "frog": "🐸", "horse": "🐴", "sheep": "🐑", "snake": "🐍",
-  "red": "🔴", "blue": "🔵", "green": "🟢", "yellow": "🟡", "black": "⚫", "white": "⚪",
-  "one": "1️⃣", "two": "2️⃣", "three": "3️⃣", "four": "4️⃣", "five": "5️⃣",
-  "six": "6️⃣", "seven": "7️⃣", "eight": "8️⃣", "nine": "9️⃣", "ten": "🔟",
-  "mother": "👩", "father": "👨", "sister": "👧", "brother": "👦", "baby": "👶",
-  "book": "📘", "pen": "🖊️", "pencil": "✏️", "school": "🏫", "ball": "⚽",
-  "sun": "☀️", "moon": "🌙", "star": "⭐", "rain": "🌧️", "tree": "🌳", "flower": "🌸",
-  "car": "🚗", "bus": "🚌", "bike": "🚲", "house": "🏠", "chair": "🪑", "table": "🪑"
-};
-
-function lookupEmoji(word) {
-  return EMOJI_LOOKUP[word.toLowerCase().trim()] || "";
 }
 
 async function lookupPhonetic(word) {
@@ -697,26 +665,23 @@ function parseBulkLine(line) {
     return {
       word_en: (parts[0] || "").trim(),
       phonetic: (parts[1] || "").trim(),
-      meaning_vi: (parts[2] || "").trim(),
-      emoji: (parts[3] || "").trim()
+      meaning_vi: (parts[2] || "").trim()
     };
   }
 
-  var slashMatch = line.match(/^(\S+)\s+\/([^/]+)\/\s*[-–]?\s*(.*)$/);
+  var slashMatch = line.match(/^(.+?)\s+\/([^/]+)\/\s*[-–]?\s*(.*)$/);
   if (slashMatch) {
     return {
       word_en: slashMatch[1].trim(),
       phonetic: "/" + slashMatch[2].trim() + "/",
-      meaning_vi: slashMatch[3].trim(),
-      emoji: ""
+      meaning_vi: slashMatch[3].trim()
     };
   }
 
   return {
     word_en: line.trim(),
     phonetic: "",
-    meaning_vi: "",
-    emoji: ""
+    meaning_vi: ""
   };
 }
 
@@ -772,7 +737,6 @@ async function handleBulkAdd(e) {
       .from("game_vocab")
       .insert({
         unit_id: unitId,
-        emoji: item.emoji,
         word_en: item.word_en,
         phonetic: item.phonetic,
         meaning_vi: item.meaning_vi

@@ -306,4 +306,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("sidebarToggleBtn").addEventListener("click", function () {
     document.getElementById("sidebar").classList.toggle("mobile-open");
   });
+
+  document.getElementById("refreshBtn").addEventListener("click", function () {
+    window.location.href = window.location.pathname + "?refresh=" + Date.now();
+  });
 });
