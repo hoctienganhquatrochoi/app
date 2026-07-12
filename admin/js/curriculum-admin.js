@@ -6,6 +6,24 @@ function unitDisplayName(unit) {
   return unit.name || ("(Không đặt tên #" + unit.id.slice(-4) + ")");
 }
 
+var CLASS_LEVEL_OPTIONS = [
+  ["mamnon", "Mầm non"],
+  ["tieuhoc", "Tiểu học"],
+  ["cap2", "Cấp 2"],
+  ["cap3", "Cấp 3"],
+  ["ielts", "IELTS"]
+];
+
+function classLevelLabel(level) {
+  var i;
+  for (i = 0; i < CLASS_LEVEL_OPTIONS.length; i++) {
+    if (CLASS_LEVEL_OPTIONS[i][0] === level) {
+      return CLASS_LEVEL_OPTIONS[i][1];
+    }
+  }
+  return "Tiểu học";
+}
+
 function setCurriculumStatus(text) {
   document.getElementById("curriculumStatus").textContent = text || "";
 }
@@ -171,7 +189,7 @@ function buildClassRow(cls, idx) {
   var badgeTd = document.createElement("td");
   var badge = document.createElement("span");
   badge.className = "status-badge status-active";
-  badge.textContent = cls.level === "mamnon" ? "Mầm non" : "Tiểu học";
+  badge.textContent = classLevelLabel(cls.level);
   badgeTd.appendChild(badge);
   tr.appendChild(badgeTd);
 
@@ -212,7 +230,7 @@ function buildClassEditRow(cls) {
   var levelTd = document.createElement("td");
   var levelSelect = document.createElement("select");
   levelSelect.className = "admin-inline-input";
-  [["tieuhoc", "Tiểu học"], ["mamnon", "Mầm non"]].forEach(function (pair) {
+  CLASS_LEVEL_OPTIONS.forEach(function (pair) {
     var opt = document.createElement("option");
     opt.value = pair[0];
     opt.text = pair[1];
