@@ -18,10 +18,29 @@ function buildActivitiesForUnit(unit) {
   return unit.content_type === "vocab" ? VOCAB_ACTIVITY_TEMPLATE : PLACEHOLDER_ACTIVITY;
 }
 
+function buildWordwallActivities(rows) {
+  var byUnit = {};
+  rows.forEach(function (row) {
+    if (!byUnit[row.unit_id]) {
+      byUnit[row.unit_id] = [];
+    }
+    byUnit[row.unit_id].push({
+      id: "ww_" + row.id,
+      name: row.name,
+      type: "wordwall",
+      locked: false,
+      embedUrl: row.embed_url
+    });
+  });
+  return byUnit;
+}
+
 async function loadCurriculumData() {
   var classesResult = await supabaseClient.from("game_classes").select("*").order("sort_order", { ascending: true });
   var subjectsResult = await supabaseClient.from("game_subjects").select("*").order("sort_order", { ascending: true });
   var unitsResult = await supabaseClient.from("game_units").select("*").order("sort_order", { ascending: true });
+  var wordwallResult = await supabaseClient.from("game_wordwall_activities").select("*").order("sort_order", { ascending: true });
+  var wordwallByUnit = buildWordwallActivities(wordwallResult.data || []);
 
   var classes = (classesResult.data || []).map(function (row) {
     return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order };
@@ -50,7 +69,7 @@ async function loadCurriculumData() {
       continue;
     }
     var unit = { id: urow.id, subject_id: urow.subject_id, name: urow.name, content_type: urow.content_type, sort_order: urow.sort_order, progress: "" };
-    unit.activities = buildActivitiesForUnit(unit);
+    unit.activities = buildActivitiesForUnit(unit).concat(wordwallByUnit[urow.id] || []);
     subj.units.push(unit);
   }
 

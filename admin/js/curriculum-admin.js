@@ -691,6 +691,7 @@ function selectUnitForComposing(unitId) {
   updateComposeAreaVisibility();
   loadVocabTable();
   loadSpeakingTestList().then(loadSpeakingTable);
+  loadWordwallList();
   loadActivityToggles();
   showUnitsComposeView();
 }
@@ -718,6 +719,7 @@ function switchComposeSubTab(target) {
   }
   document.getElementById("vocabComposeSubPanel").style.display = target === "vocab" ? "" : "none";
   document.getElementById("speakingComposeSubPanel").style.display = target === "speaking" ? "" : "none";
+  document.getElementById("wordwallComposeSubPanel").style.display = target === "wordwall" ? "" : "none";
 }
 
 async function handleAddUnit() {
@@ -810,6 +812,7 @@ async function refreshCurriculumEverywhere(opts) {
   updateComposeAreaVisibility();
   loadVocabTable();
   loadSpeakingTestList().then(loadSpeakingTable);
+  loadWordwallList();
   loadActivityToggles();
 }
 
@@ -858,4 +861,5 @@ function initCurriculumManage() {
 
   document.getElementById("addSpeakingTestBtn").addEventListener("click", handleAddSpeakingTest);
   document.getElementById("speakingTestSelect").addEventListener("change", loadSpeakingTable);
+  document.getElementById("addWordwallBtn").addEventListener("click", handleAddWordwall);
 }

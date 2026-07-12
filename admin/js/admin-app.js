@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   populateAssignmentUnitSelect();
   loadVocabTable();
   loadSpeakingTestList().then(loadSpeakingTable);
+  loadWordwallList();
   loadStudents();
   loadActivityToggles();
   initCurriculumManage();
@@ -36,6 +37,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("unitSelect").addEventListener("change", function () {
     loadSpeakingTestList().then(loadSpeakingTable);
   });
+  document.getElementById("unitSelect").addEventListener("change", loadWordwallList);
   document.getElementById("unitSelect").addEventListener("change", loadActivityToggles);
   document.getElementById("bulkAddForm").addEventListener("submit", handleBulkAdd);
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);

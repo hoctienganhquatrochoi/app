@@ -318,6 +318,12 @@ async function renderMainContent() {
     return;
   }
 
+  if (activity.type === "wordwall") {
+    main.innerHTML = "";
+    renderWordwallActivity(main, breadcrumbText, activity.embedUrl);
+    return;
+  }
+
   var screen = document.createElement("div");
   screen.className = "play-screen" + (isMamNon ? " mamnon" : "");
 
