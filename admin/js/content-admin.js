@@ -165,29 +165,6 @@ function makeImageTd(row) {
   return td;
 }
 
-function setAddStatus(text) {
-  document.getElementById("addStatus").textContent = text;
-}
-
-var pendingImageFile = null;
-var newImagePicker = null;
-
-function initNewImagePicker() {
-  newImagePicker = buildImagePicker(null, function (file) {
-    pendingImageFile = file;
-    showImagePreview(newImagePicker, file);
-  });
-  document.getElementById("newImagePickerContainer").appendChild(newImagePicker.wrap);
-}
-
-function clearAddForm() {
-  document.getElementById("newWordEn").value = "";
-  document.getElementById("newPhonetic").value = "";
-  document.getElementById("newMeaningVi").value = "";
-  pendingImageFile = null;
-  setImagePickerImage(newImagePicker, null);
-}
-
 async function loadVocabTable() {
   var unitId = document.getElementById("unitSelect").value;
   var wrap = document.getElementById("vocabTableWrap");
@@ -528,75 +505,6 @@ async function generateAudio(text, lang, path, statusSetter) {
     statusSetter("Lỗi kết nối tới generate-audio: " + err);
     return null;
   }
-}
-
-async function handleAddVocab(e) {
-  e.preventDefault();
-
-  var unitId = document.getElementById("unitSelect").value;
-  var wordEn = document.getElementById("newWordEn").value.trim();
-  var phonetic = document.getElementById("newPhonetic").value.trim();
-  var meaningVi = document.getElementById("newMeaningVi").value.trim();
-
-  if (!wordEn) {
-    window.alert("Cần nhập ít nhất Từ tiếng Anh");
-    return;
-  }
-
-  if (!phonetic) {
-    setAddStatus("Đang tra phiên âm...");
-    phonetic = await lookupPhonetic(wordEn);
-  }
-  if (!meaningVi) {
-    setAddStatus("Đang dịch nghĩa...");
-    meaningVi = await translateToVietnamese(wordEn, setAddStatus);
-  }
-
-  setAddStatus("Đang lưu từ vựng...");
-
-  var insertResult = await supabaseClient
-    .from("game_vocab")
-    .insert({
-      unit_id: unitId,
-      word_en: wordEn,
-      phonetic: phonetic,
-      meaning_vi: meaningVi
-    })
-    .select()
-    .single();
-
-  if (insertResult.error) {
-    setAddStatus("Lỗi lưu: " + insertResult.error.message);
-    return;
-  }
-
-  var row = insertResult.data;
-  var imageFile = pendingImageFile;
-  clearAddForm();
-  loadVocabTable();
-
-  setAddStatus("Đang tạo âm thanh...");
-  var audioEnUrl = await generateAudio(wordEn, "en-US", unitId + "/" + row.id + "_en.mp3", setAddStatus);
-
-  var updatePayload = { audio_en_url: audioEnUrl };
-
-  if (imageFile) {
-    setAddStatus("Đang tải ảnh lên...");
-    updatePayload.image_url = await uploadVocabImage(imageFile, unitId, row.id);
-  }
-
-  var updateResult = await supabaseClient
-    .from("game_vocab")
-    .update(updatePayload)
-    .eq("id", row.id);
-
-  if (updateResult.error) {
-    setAddStatus("Lưu audio thất bại: " + updateResult.error.message);
-  } else {
-    setAddStatus("Xong! Đã thêm từ và tạo âm thanh.");
-  }
-
-  loadVocabTable();
 }
 
 async function lookupPhonetic(word) {

@@ -659,7 +659,6 @@ function updateComposeAreaVisibility() {
   var unit = findUnitById(unitId);
   var isVocab = !!unit && unit.content_type === "vocab";
 
-  document.getElementById("addVocabForm").style.display = isVocab ? "" : "none";
   document.getElementById("bulkAddForm").style.display = isVocab ? "" : "none";
   document.getElementById("vocabTableWrap").style.display = isVocab ? "" : "none";
   document.getElementById("speakingSection").style.display = isVocab ? "" : "none";
