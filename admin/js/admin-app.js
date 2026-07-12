@@ -36,7 +36,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("unitSelect").addEventListener("change", loadSpeakingTable);
   document.getElementById("unitSelect").addEventListener("change", loadActivityToggles);
   document.getElementById("bulkAddForm").addEventListener("submit", handleBulkAdd);
-  document.getElementById("addSpeakingForm").addEventListener("submit", handleAddSpeaking);
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);
   document.getElementById("addStudentForm").addEventListener("submit", handleAddStudent);
   document.getElementById("addTeachingGroupBtn").addEventListener("click", handleAddTeachingGroup);
@@ -49,8 +48,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("resultsGroupFilter").addEventListener("change", loadResults);
   document.getElementById("addAssignmentBtn").addEventListener("click", handleAddAssignment);
   document.getElementById("assignmentUnitSearch").addEventListener("input", populateAssignmentUnitSelect);
-
-  initNewSpeakingImagePicker();
 
   var tabs = document.querySelectorAll(".admin-tab");
   var i;

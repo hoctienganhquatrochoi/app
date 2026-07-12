@@ -66,20 +66,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
     var wrap = document.createElement("div");
     wrap.className = "ml-wrap";
 
-    var header = document.createElement("div");
-    header.className = "quiz-header";
-
-    var counter = document.createElement("span");
-    counter.textContent = "Câu " + (qIndex + 1) + " / " + questions.length;
-    header.appendChild(counter);
-
-    var scoreEl = document.createElement("span");
-    scoreEl.textContent = "Đúng: " + score;
-    header.appendChild(scoreEl);
-
-    header.appendChild(buildTimerEl(startedAt));
-
-    wrap.appendChild(header);
+    wrap.appendChild(buildActivityHeader(startedAt, score));
 
     var q = questions[qIndex];
 
@@ -121,6 +108,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
     }
     wrap.appendChild(optionsEl);
 
+    wrap.appendChild(buildProgressFooter(qIndex + 1, questions.length));
     container.appendChild(wrap);
   }
 

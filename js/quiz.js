@@ -1,6 +1,6 @@
 var QUIZ_FORMAT_CONFIG = {
   "word-to-image": { showWord: true, showPhonetic: true, showImage: false, showMeaning: false, answerType: "image" },
-  "image-to-word": { showWord: false, showPhonetic: true, showImage: true, showMeaning: true, answerType: "word" },
+  "image-to-word": { showWord: true, showPhonetic: true, showImage: true, showMeaning: true, answerType: "word" },
   "text-to-word": { showWord: false, showPhonetic: true, showImage: false, showMeaning: true, answerType: "word" },
   "image-only-to-word": { showWord: false, showPhonetic: false, showImage: true, showMeaning: false, answerType: "word" },
   "word-to-meaning": { showWord: true, showPhonetic: true, showImage: false, showMeaning: false, answerType: "meaning" }
@@ -49,20 +49,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     var wrap = document.createElement("div");
     wrap.className = "quiz-wrap";
 
-    var header = document.createElement("div");
-    header.className = "quiz-header";
-
-    var counter = document.createElement("span");
-    counter.textContent = "Câu " + (qIndex + 1) + " / " + questions.length;
-    header.appendChild(counter);
-
-    var scoreEl = document.createElement("span");
-    scoreEl.textContent = "Đúng: " + score;
-    header.appendChild(scoreEl);
-
-    header.appendChild(buildTimerEl(startedAt));
-
-    wrap.appendChild(header);
+    wrap.appendChild(buildActivityHeader(startedAt, score));
 
     var q = questions[qIndex];
     var config = QUIZ_FORMAT_CONFIG[q.format];
@@ -82,6 +69,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     body.appendChild(optionsEl);
 
     wrap.appendChild(body);
+    wrap.appendChild(buildProgressFooter(qIndex + 1, questions.length));
     container.appendChild(wrap);
   }
 

@@ -90,12 +90,40 @@ function buildTimerEl(startedAt) {
   return el;
 }
 
+var currentActivityTimerId = null;
+
 function startActivityTimer(startedAt) {
-  return setInterval(function () {
+  if (currentActivityTimerId) {
+    clearInterval(currentActivityTimerId);
+  }
+  currentActivityTimerId = setInterval(function () {
     var el = document.getElementById("activity-timer");
     if (!el) {
+      clearInterval(currentActivityTimerId);
+      currentActivityTimerId = null;
       return;
     }
     el.textContent = formatElapsed(startedAt);
   }, 1000);
+  return currentActivityTimerId;
+}
+
+function buildActivityHeader(startedAt, score) {
+  var header = document.createElement("div");
+  header.className = "quiz-header";
+  header.appendChild(buildTimerEl(startedAt));
+
+  var scoreEl = document.createElement("span");
+  scoreEl.className = "quiz-score";
+  scoreEl.textContent = "✓ " + score;
+  header.appendChild(scoreEl);
+
+  return header;
+}
+
+function buildProgressFooter(current, total) {
+  var el = document.createElement("div");
+  el.className = "quiz-progress-footer";
+  el.textContent = "Câu " + current + " / " + total;
+  return el;
 }

@@ -1,25 +1,3 @@
-var pendingSpeakingImageFile = null;
-var newSpeakingImagePicker = null;
-
-function initNewSpeakingImagePicker() {
-  newSpeakingImagePicker = buildImagePicker(null, function (file) {
-    pendingSpeakingImageFile = file;
-    showImagePreview(newSpeakingImagePicker, file);
-  });
-  document.getElementById("newSpeakingImagePickerContainer").appendChild(newSpeakingImagePicker.wrap);
-}
-
-function clearSpeakingAddForm() {
-  document.getElementById("newSpeakingQuestion").value = "";
-  document.getElementById("newSpeakingAnswer").value = "";
-  pendingSpeakingImageFile = null;
-  setImagePickerImage(newSpeakingImagePicker, null);
-}
-
-function setAddSpeakingStatus(text) {
-  document.getElementById("addSpeakingStatus").textContent = text;
-}
-
 function setBulkSpeakingStatus(text) {
   document.getElementById("bulkSpeakingStatus").textContent = text;
 }
@@ -226,64 +204,6 @@ async function deleteSpeaking(id) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
-  loadSpeakingTable();
-}
-
-async function handleAddSpeaking(e) {
-  e.preventDefault();
-
-  var unitId = document.getElementById("unitSelect").value;
-  var question = document.getElementById("newSpeakingQuestion").value.trim();
-  var answer = document.getElementById("newSpeakingAnswer").value.trim();
-
-  if (!question || !answer) {
-    window.alert("Cần nhập cả Câu hỏi và Câu trả lời");
-    return;
-  }
-
-  setAddSpeakingStatus("Đang lưu câu hỏi...");
-
-  var insertResult = await supabaseClient
-    .from("game_speaking_questions")
-    .insert({
-      unit_id: unitId,
-      question_en: question,
-      answer_en: answer
-    })
-    .select()
-    .single();
-
-  if (insertResult.error) {
-    setAddSpeakingStatus("Lỗi lưu: " + insertResult.error.message);
-    return;
-  }
-
-  var row = insertResult.data;
-  var imageFile = pendingSpeakingImageFile;
-  clearSpeakingAddForm();
-  loadSpeakingTable();
-
-  setAddSpeakingStatus("Đang tạo âm thanh câu hỏi...");
-  var audioQuestionUrl = await generateAudio(question, "en-US", unitId + "/" + row.id + "_q.mp3", setAddSpeakingStatus);
-
-  var updatePayload = { audio_question_url: audioQuestionUrl };
-
-  if (imageFile) {
-    setAddSpeakingStatus("Đang tải ảnh lên...");
-    updatePayload.image_url = await uploadVocabImage(imageFile, unitId, row.id);
-  }
-
-  var updateResult = await supabaseClient
-    .from("game_speaking_questions")
-    .update(updatePayload)
-    .eq("id", row.id);
-
-  if (updateResult.error) {
-    setAddSpeakingStatus("Lưu audio thất bại: " + updateResult.error.message);
-  } else {
-    setAddSpeakingStatus("Xong! Đã thêm câu hỏi và tạo âm thanh.");
-  }
-
   loadSpeakingTable();
 }
 

@@ -55,16 +55,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
     var wrap = document.createElement("div");
     wrap.className = "ty-wrap";
 
-    var header = document.createElement("div");
-    header.className = "quiz-header";
-    var counter = document.createElement("span");
-    counter.textContent = "Câu " + (qIndex + 1) + " / " + pool.length;
-    header.appendChild(counter);
-    var scoreEl = document.createElement("span");
-    scoreEl.textContent = "Đúng: " + score;
-    header.appendChild(scoreEl);
-    header.appendChild(buildTimerEl(startedAt));
-    wrap.appendChild(header);
+    wrap.appendChild(buildActivityHeader(startedAt, score));
 
     var audioBtn = document.createElement("button");
     audioBtn.className = "audio-btn";
@@ -141,6 +132,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
       wrap.appendChild(keyInputEl);
     }
 
+    wrap.appendChild(buildProgressFooter(qIndex + 1, pool.length));
     container.appendChild(wrap);
     if (keyboardModeEnabled && keyInputEl) {
       keyInputEl.focus();

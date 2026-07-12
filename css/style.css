@@ -443,7 +443,7 @@ html, body {
   border: none;
   font-size: 18px;
   cursor: pointer;
-  margin-top: 20px;
+  margin-top: 8px;
 }
 
 /* Mầm non: bigger text & touch targets */
@@ -476,14 +476,14 @@ html, body {
 .fc-progress {
   color: #7A8B82;
   font-size: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .fc-card {
   background: #FFFFFF;
   border: 1px solid #E5E0D5;
   border-radius: 20px;
-  padding: 40px 24px;
+  padding: 24px 24px;
   min-height: 260px;
   display: flex;
   flex-direction: column;
@@ -494,10 +494,10 @@ html, body {
 }
 
 .fc-emoji {
-  width: 280px;
-  height: 280px;
+  width: 220px;
+  height: 220px;
   margin: 0 auto 14px;
-  font-size: 170px;
+  font-size: 140px;
 }
 
 .fc-word {
@@ -612,14 +612,26 @@ html, body {
 .quiz-header {
   display: flex;
   justify-content: space-between;
-  font-size: 14px;
+  font-size: 13px;
   color: #7A8B82;
-  margin-bottom: 18px;
+  margin-bottom: 6px;
 }
 
 .activity-timer {
   font-weight: 600;
   color: #2D6A4F;
+}
+
+.quiz-score {
+  font-weight: 600;
+  color: #1B4332;
+}
+
+.quiz-progress-footer {
+  margin-top: 18px;
+  font-size: 13px;
+  color: #9AA89E;
+  text-align: center;
 }
 
 .quiz-body {
@@ -638,7 +650,7 @@ html, body {
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  background: #F7F5EE;
+  background: #FFFFFF;
 }
 
 .vocab-visual-frame .vocab-image {
@@ -654,9 +666,9 @@ html, body {
 }
 
 .quiz-emoji {
-  width: 280px;
-  height: 280px;
-  font-size: 170px;
+  width: 220px;
+  height: 220px;
+  font-size: 140px;
   margin-top: 4px;
 }
 
@@ -685,6 +697,7 @@ html, body {
 
 .quiz-options-image {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
 }
 
 .quiz-option {
@@ -703,8 +716,25 @@ html, body {
 }
 
 .quiz-option-image {
-  padding: 8px;
+  padding: 10px;
+  border: none;
+  box-shadow: 0 2px 10px rgba(27, 67, 50, 0.12);
 }
+
+.quiz-option-image:hover {
+  box-shadow: 0 4px 14px rgba(27, 67, 50, 0.18);
+}
+
+.quiz-option:not(.quiz-option-image) {
+  border: none;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.quiz-option:not(.quiz-option-image):nth-child(1) { background: #4A90D2; }
+.quiz-option:not(.quiz-option-image):nth-child(2) { background: #E1566A; }
+.quiz-option:not(.quiz-option-image):nth-child(3) { background: #F0973D; }
+.quiz-option:not(.quiz-option-image):nth-child(4) { background: #4FAE6D; }
 
 .quiz-option-visual {
   width: 100%;
@@ -732,19 +762,28 @@ html, body {
   border-color: #2D6A4F;
 }
 
+.quiz-option:not(.quiz-option-image):hover {
+  filter: brightness(1.08);
+}
+
 .quiz-option.correct {
-  background: #DCEAE2;
+  background: #DCEAE2 !important;
   border-color: #2D6A4F;
+  color: #1B4332 !important;
 }
 
 .quiz-option.wrong {
-  background: #FBE0E0;
+  background: #FBE0E0 !important;
   border-color: #E63946;
-  color: #8A1F1F;
+  color: #8A1F1F !important;
 }
 
 .quiz-option.disabled {
   cursor: default;
+}
+
+.quiz-option.disabled:not(.correct):not(.wrong) {
+  opacity: 0.5;
 }
 
 .quiz-continue-wrap {
@@ -781,10 +820,10 @@ html, body {
 }
 
 .ty-emoji {
-  width: 260px;
-  height: 260px;
+  width: 210px;
+  height: 210px;
   margin: 4px auto 10px;
-  font-size: 160px;
+  font-size: 130px;
 }
 
 .ty-meaning {
@@ -813,7 +852,7 @@ html, body {
   height: 52px;
   border: none;
   border-bottom: 3px solid #C9D8CE;
-  background: #F7F5EE;
+  background: #F4F4F0;
   border-radius: 8px 8px 0 0;
   font-size: 26px;
   font-weight: bold;
@@ -960,28 +999,38 @@ html, body {
   position: relative;
   padding: 16px 0;
   border-radius: 14px;
-  border: 2px solid #E5E0D5;
+  border: none;
   background: #FFFFFF;
   font-size: 24px;
   font-weight: bold;
   text-transform: lowercase;
-  color: #1B4332;
+  color: #FFFFFF;
   cursor: pointer;
 }
 
+.ml-option:nth-child(1) { background: #4A90D2; }
+.ml-option:nth-child(2) { background: #E1566A; }
+.ml-option:nth-child(3) { background: #F0973D; }
+.ml-option:nth-child(4) { background: #4FAE6D; }
+
 .ml-option:hover {
-  border-color: #2D6A4F;
+  filter: brightness(1.08);
 }
 
 .ml-option.correct {
-  background: #DCEAE2;
-  border-color: #2D6A4F;
+  background: #DCEAE2 !important;
+  border: 2px solid #2D6A4F;
+  color: #1B4332 !important;
 }
 
 .ml-option.wrong {
-  background: #FBE0E0;
-  border-color: #E63946;
-  color: #8A1F1F;
+  background: #FBE0E0 !important;
+  border: 2px solid #E63946;
+  color: #8A1F1F !important;
+}
+
+.ml-option.disabled:not(.correct):not(.wrong) {
+  opacity: 0.5;
 }
 
 .ml-option.disabled {

@@ -312,13 +312,31 @@ function renderSubjectList() {
   var classId = document.getElementById("subjectClassPicker").value;
   var subjects = DATA.subjectsByClass[classId] || [];
   wrap.appendChild(buildTableWrap(subjects.length > 0, function (tbody) {
-    subjects.forEach(function (subj) {
-      tbody.appendChild(editingSubjectId === subj.id ? buildSubjectEditRow(subj) : buildSubjectRow(subj));
+    subjects.forEach(function (subj, idx) {
+      tbody.appendChild(editingSubjectId === subj.id ? buildSubjectEditRow(subj) : buildSubjectRow(subj, idx, subjects.length));
     });
   }));
 }
 
-function buildSubjectRow(subj) {
+async function moveSubject(subjectId, direction) {
+  var classId = document.getElementById("subjectClassPicker").value;
+  var subjects = DATA.subjectsByClass[classId] || [];
+  var idx = subjects.findIndex(function (s) { return s.id === subjectId; });
+  var swapIdx = idx + direction;
+  if (idx === -1 || swapIdx < 0 || swapIdx >= subjects.length) {
+    return;
+  }
+
+  var a = subjects[idx];
+  var b = subjects[swapIdx];
+
+  await supabaseClient.from("game_subjects").update({ sort_order: swapIdx }).eq("id", a.id);
+  await supabaseClient.from("game_subjects").update({ sort_order: idx }).eq("id", b.id);
+
+  await refreshCurriculumEverywhere();
+}
+
+function buildSubjectRow(subj, idx, total) {
   var tr = document.createElement("tr");
 
   var nameTd = document.createElement("td");
@@ -331,6 +349,15 @@ function buildSubjectRow(subj) {
   badge.textContent = subj.units.length + " unit";
   badgeTd.appendChild(badge);
   tr.appendChild(badgeTd);
+
+  var moveTd = document.createElement("td");
+  var upBtn = buildActionBtn("↑", "admin-btn-secondary", function () { moveSubject(subj.id, -1); });
+  upBtn.disabled = idx === 0;
+  var downBtn = buildActionBtn("↓", "admin-btn-secondary", function () { moveSubject(subj.id, 1); });
+  downBtn.disabled = idx === total - 1;
+  moveTd.appendChild(upBtn);
+  moveTd.appendChild(downBtn);
+  tr.appendChild(moveTd);
 
   var actionTd = document.createElement("td");
   actionTd.appendChild(buildActionBtn("Sửa", "admin-btn-secondary", function () {
@@ -363,6 +390,8 @@ function buildSubjectEditRow(subj) {
   colorInput.value = subj.color;
   colorTd.appendChild(colorInput);
   tr.appendChild(colorTd);
+
+  tr.appendChild(document.createElement("td"));
 
   var actionTd = document.createElement("td");
   actionTd.appendChild(buildActionBtn("Lưu", "admin-btn-primary", async function () {
@@ -403,7 +432,8 @@ async function handleAddSubject() {
   }
 
   setCurriculumStatus("Đang tạo môn học...");
-  var result = await supabaseClient.from("game_subjects").insert({ id: genId("s"), class_id: classId, name: name, color: color });
+  var newSortOrder = (DATA.subjectsByClass[classId] || []).length;
+  var result = await supabaseClient.from("game_subjects").insert({ id: genId("s"), class_id: classId, name: name, color: color, sort_order: newSortOrder });
   if (result.error) {
     setCurriculumStatus("Lỗi tạo môn học: " + result.error.message);
     return;

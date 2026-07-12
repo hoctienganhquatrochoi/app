@@ -20,7 +20,7 @@ function buildActivitiesForUnit(unit) {
 
 async function loadCurriculumData() {
   var classesResult = await supabaseClient.from("game_classes").select("*").order("sort_order", { ascending: true });
-  var subjectsResult = await supabaseClient.from("game_subjects").select("*").order("created_at", { ascending: true });
+  var subjectsResult = await supabaseClient.from("game_subjects").select("*").order("sort_order", { ascending: true });
   var unitsResult = await supabaseClient.from("game_units").select("*").order("sort_order", { ascending: true });
 
   var classes = (classesResult.data || []).map(function (row) {
@@ -34,7 +34,7 @@ async function loadCurriculumData() {
   var subjectRows = subjectsResult.data || [];
   for (i = 0; i < subjectRows.length; i++) {
     var srow = subjectRows[i];
-    var subject = { id: srow.id, class_id: srow.class_id, name: srow.name, color: srow.color, units: [] };
+    var subject = { id: srow.id, class_id: srow.class_id, name: srow.name, color: srow.color, sort_order: srow.sort_order, units: [] };
     subjectById[srow.id] = subject;
     if (!subjectsByClass[srow.class_id]) {
       subjectsByClass[srow.class_id] = [];
