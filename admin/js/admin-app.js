@@ -22,7 +22,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   populateUnitSelect();
   populateClassSelect();
+  populateStudentsClassFilter();
   populateResultsUnitSelect();
+  populateResultsClassFilter();
+  populateAssignmentUnitSelect();
   loadVocabTable();
   loadSpeakingTable();
   loadStudents();
@@ -36,8 +39,14 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("addSpeakingForm").addEventListener("submit", handleAddSpeaking);
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);
   document.getElementById("addStudentForm").addEventListener("submit", handleAddStudent);
+  document.getElementById("studentsClassFilter").addEventListener("change", function () {
+    loadStudents();
+    populateAssignmentUnitSelect();
+  });
   document.getElementById("resultsUnitSelect").addEventListener("change", loadResults);
   document.getElementById("resultsActivitySelect").addEventListener("change", loadResults);
+  document.getElementById("resultsClassFilter").addEventListener("change", loadResults);
+  document.getElementById("addAssignmentBtn").addEventListener("click", handleAddAssignment);
 
   initNewSpeakingImagePicker();
 

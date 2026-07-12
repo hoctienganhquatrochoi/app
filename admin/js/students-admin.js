@@ -10,6 +10,26 @@ function populateClassSelect(selectId) {
   }
 }
 
+function populateStudentsClassFilter() {
+  var select = document.getElementById("studentsClassFilter");
+  var previous = select.value;
+  select.innerHTML = "";
+  var allOpt = document.createElement("option");
+  allOpt.value = "";
+  allOpt.text = "Tất cả";
+  select.appendChild(allOpt);
+  var i;
+  for (i = 0; i < DATA.classes.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = DATA.classes[i].id;
+    opt.text = DATA.classes[i].name;
+    select.appendChild(opt);
+  }
+  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
+    select.value = previous;
+  }
+}
+
 function classNameById(classId) {
   var i;
   for (i = 0; i < DATA.classes.length; i++) {
@@ -55,10 +75,12 @@ async function loadStudents() {
   var wrap = document.getElementById("studentsTableWrap");
   wrap.textContent = "Đang tải...";
 
-  var result = await supabaseClient
-    .from("game_students")
-    .select("*")
-    .order("expiry_date", { ascending: true });
+  var classFilter = document.getElementById("studentsClassFilter").value;
+  var query = supabaseClient.from("game_students").select("*").order("expiry_date", { ascending: true });
+  if (classFilter) {
+    query = query.eq("class_id", classFilter);
+  }
+  var result = await query;
 
   if (result.error) {
     wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
@@ -66,6 +88,7 @@ async function loadStudents() {
   }
 
   renderStudentsTable(result.data);
+  loadAssignmentList();
 }
 
 var currentStudentRows = [];
@@ -89,7 +112,7 @@ function renderStudentsTable(rows) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  var headers = ["Tên", "Lớp", "Tài khoản", "Ngày bắt đầu", "Hạn dùng", "Trạng thái", ""];
+  var headers = ["Tên", "Lớp", "Ngày sinh", "SĐT", "Tài khoản", "Ngày bắt đầu", "Hạn dùng", "Trạng thái", ""];
   var i;
   for (i = 0; i < headers.length; i++) {
     var th = document.createElement("th");
@@ -116,6 +139,8 @@ function buildStudentRow(row) {
   var tr = document.createElement("tr");
   tr.appendChild(makeTd(row.full_name));
   tr.appendChild(makeTd(classNameById(row.class_id)));
+  tr.appendChild(makeTd(row.date_of_birth));
+  tr.appendChild(makeTd(row.phone_number));
   tr.appendChild(makeTd(row.username));
   tr.appendChild(makeTd(row.start_date));
   tr.appendChild(makeTd(row.expiry_date));
@@ -204,6 +229,17 @@ function buildStudentEditRow(row) {
   classTd.appendChild(classSelect);
   tr.appendChild(classTd);
 
+  var dobTd = document.createElement("td");
+  var dobInput = document.createElement("input");
+  dobInput.type = "date";
+  dobInput.className = "admin-inline-input";
+  dobInput.value = row.date_of_birth || "";
+  dobTd.appendChild(dobInput);
+  tr.appendChild(dobTd);
+
+  var phoneTd = makeInlineInputTd(row.phone_number);
+  tr.appendChild(phoneTd);
+
   var usernameTd = makeInlineInputTd(row.username);
   tr.appendChild(usernameTd);
 
@@ -234,6 +270,8 @@ function buildStudentEditRow(row) {
     var newUsername = usernameTd.inputEl.value.trim();
     var newPin = pinTd.inputEl.value.trim();
     var newClassId = classSelect.value;
+    var newDob = dobInput.value || null;
+    var newPhone = phoneTd.inputEl.value.trim() || null;
 
     if (!newName || !newUsername || !newPin) {
       window.alert("Họ tên, Tài khoản, Mã PIN không được để trống");
@@ -249,6 +287,8 @@ function buildStudentEditRow(row) {
       .update({
         full_name: newName,
         class_id: newClassId,
+        date_of_birth: newDob,
+        phone_number: newPhone,
         username: newUsername,
         pin: newPin
       })
@@ -307,6 +347,8 @@ async function handleAddStudent(e) {
 
   var fullName = document.getElementById("newStudentName").value.trim();
   var classId = document.getElementById("studentClassSelect").value;
+  var dob = document.getElementById("newStudentDob").value || null;
+  var phone = document.getElementById("newStudentPhone").value.trim() || null;
   var username = document.getElementById("newStudentUsername").value.trim();
   var pin = document.getElementById("newStudentPin").value.trim();
 
@@ -321,6 +363,8 @@ async function handleAddStudent(e) {
   var result = await supabaseClient.from("game_students").insert({
     full_name: fullName,
     class_id: classId,
+    date_of_birth: dob,
+    phone_number: phone,
     username: username,
     pin: pin,
     start_date: start,

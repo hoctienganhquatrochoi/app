@@ -276,6 +276,14 @@ What's this? | It's a pen."></textarea>
           <select id="studentClassSelect"></select>
         </div>
         <div class="admin-field">
+          <label>Ngày sinh (không bắt buộc)</label>
+          <input type="date" id="newStudentDob">
+        </div>
+        <div class="admin-field">
+          <label>SĐT (không bắt buộc)</label>
+          <input type="text" id="newStudentPhone" placeholder="0912345678">
+        </div>
+        <div class="admin-field">
           <label>Tài khoản đăng nhập</label>
           <input type="text" id="newStudentUsername" placeholder="vana01">
         </div>
@@ -289,7 +297,39 @@ What's this? | It's a pen."></textarea>
       </div>
     </form>
 
+    <label class="admin-label" for="studentsClassFilter">Lọc theo Lớp</label>
+    <select class="admin-select" id="studentsClassFilter"></select>
+
     <div id="studentsTableWrap"></div>
+
+    <div class="admin-form" id="assignmentBox" style="margin-top:24px;">
+      <h3>Giao bài kiểm tra cho lớp này</h3>
+      <p class="admin-hint">Chọn Unit + Dạng bài + hạn nộp cho Lớp đang lọc ở trên. Sau khi giao, vào tab "Kết quả" và chọn đúng Lớp/Unit/Dạng bài để xem bảng xếp hạng của riêng lớp đó.</p>
+      <div class="admin-form-row">
+        <div class="admin-field">
+          <label>Unit</label>
+          <select id="assignmentUnitSelect"></select>
+        </div>
+        <div class="admin-field">
+          <label>Dạng bài</label>
+          <select id="assignmentActivitySelect">
+            <option value="quiz">Quiz</option>
+            <option value="missing-letter">Khuyết chữ cái</option>
+            <option value="typing-hint">Đánh máy có gợi ý</option>
+            <option value="typing-blank">Đánh máy không gợi ý</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label>Hạn nộp</label>
+          <input type="datetime-local" id="assignmentDueAt">
+        </div>
+        <div class="admin-field admin-field-btn">
+          <button type="button" class="admin-btn-primary" id="addAssignmentBtn">Giao bài</button>
+        </div>
+      </div>
+      <div class="admin-status" id="assignmentStatus"></div>
+      <div id="assignmentListWrap"></div>
+    </div>
   </section>
 
   <section class="admin-panel" id="resultsPanel" style="display:none">
@@ -307,6 +347,12 @@ What's this? | It's a pen."></textarea>
           <option value="missing-letter">Khuyết chữ cái</option>
           <option value="typing-hint">Đánh máy có gợi ý</option>
           <option value="typing-blank">Đánh máy không gợi ý</option>
+        </select>
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="resultsClassFilter">Lớp (không bắt buộc)</label>
+        <select class="admin-select" id="resultsClassFilter" style="margin-bottom: 0;">
+          <option value="">Tất cả</option>
         </select>
       </div>
     </div>
@@ -330,6 +376,7 @@ What's this? | It's a pen."></textarea>
 <script src="js/content-admin.js"></script>
 <script src="js/speaking-admin.js"></script>
 <script src="js/students-admin.js"></script>
+<script src="js/assignments-admin.js"></script>
 <script src="js/results-admin.js"></script>
 <script src="js/activity-toggles-admin.js"></script>
 <script src="js/curriculum-admin.js"></script>
