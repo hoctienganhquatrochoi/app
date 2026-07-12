@@ -288,13 +288,13 @@ async function renderMainContent() {
     speakingLoading.textContent = "Đang tải nội dung...";
     main.appendChild(speakingLoading);
 
-    var speakingItems = await loadSpeakingForUnit(unit.id);
+    var testNames = await loadSpeakingTestNames(unit.id);
 
     if (!state.selectedActivity || state.selectedActivity.unit.id !== unit.id || state.selectedActivity.activity.id !== activity.id) {
       return;
     }
 
-    if (!speakingItems.length) {
+    if (!testNames.length) {
       main.innerHTML = "";
       var speakingEmpty = document.createElement("div");
       speakingEmpty.className = "placeholder";
@@ -303,8 +303,18 @@ async function renderMainContent() {
       return;
     }
 
+    if (testNames.length === 1) {
+      var soloItems = await loadSpeakingForUnit(unit.id, testNames[0]);
+      if (!state.selectedActivity || state.selectedActivity.unit.id !== unit.id || state.selectedActivity.activity.id !== activity.id) {
+        return;
+      }
+      main.innerHTML = "";
+      renderSpeaking(main, breadcrumbText, soloItems);
+      return;
+    }
+
     main.innerHTML = "";
-    renderSpeaking(main, breadcrumbText, speakingItems);
+    renderSpeakingTestPicker(main, breadcrumbText, unit.id, testNames);
     return;
   }
 

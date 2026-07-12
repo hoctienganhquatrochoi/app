@@ -2,15 +2,160 @@ function setBulkSpeakingStatus(text) {
   document.getElementById("bulkSpeakingStatus").textContent = text;
 }
 
+function setSpeakingTestStatus(text) {
+  document.getElementById("speakingTestStatus").textContent = text || "";
+}
+
+var currentSpeakingTestNames = [];
+
+async function loadSpeakingTestList() {
+  var unitId = document.getElementById("unitSelect").value;
+  var wrap = document.getElementById("speakingTestListWrap");
+  wrap.textContent = "Đang tải...";
+
+  var result = await supabaseClient
+    .from("game_speaking_questions")
+    .select("test_name")
+    .eq("unit_id", unitId);
+
+  if (result.error) {
+    wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
+    return;
+  }
+
+  var counts = {};
+  var order = [];
+  result.data.forEach(function (row) {
+    if (!counts[row.test_name]) {
+      counts[row.test_name] = 0;
+      order.push(row.test_name);
+    }
+    counts[row.test_name]++;
+  });
+
+  currentSpeakingTestNames = order;
+  renderSpeakingTestList(order, counts);
+  populateSpeakingTestSelect();
+}
+
+function renderSpeakingTestList(names, counts) {
+  var wrap = document.getElementById("speakingTestListWrap");
+  wrap.innerHTML = "";
+
+  if (!names.length) {
+    var empty = document.createElement("div");
+    empty.className = "admin-status";
+    empty.textContent = "Unit này chưa có đề nào, tạo đề mới bên dưới.";
+    wrap.appendChild(empty);
+    return;
+  }
+
+  var table = document.createElement("table");
+  table.className = "admin-table";
+  var tbody = document.createElement("tbody");
+
+  names.forEach(function (name) {
+    var tr = document.createElement("tr");
+
+    var nameTd = document.createElement("td");
+    nameTd.textContent = name;
+    tr.appendChild(nameTd);
+
+    var countTd = document.createElement("td");
+    countTd.textContent = counts[name] + " câu";
+    tr.appendChild(countTd);
+
+    var actionsTd = document.createElement("td");
+    var delBtn = document.createElement("button");
+    delBtn.className = "admin-btn-danger";
+    delBtn.type = "button";
+    delBtn.textContent = "Xóa đề";
+    delBtn.addEventListener("click", function () {
+      deleteSpeakingTest(name, counts[name]);
+    });
+    actionsTd.appendChild(delBtn);
+    tr.appendChild(actionsTd);
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+}
+
+function populateSpeakingTestSelect() {
+  var select = document.getElementById("speakingTestSelect");
+  var previous = select.value;
+  select.innerHTML = "";
+
+  currentSpeakingTestNames.forEach(function (name) {
+    var opt = document.createElement("option");
+    opt.value = name;
+    opt.text = name;
+    select.appendChild(opt);
+  });
+
+  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
+    select.value = previous;
+  }
+}
+
+function handleAddSpeakingTest() {
+  var input = document.getElementById("newSpeakingTestName");
+  var name = input.value.trim();
+
+  if (!name) {
+    window.alert("Nhập tên đề");
+    return;
+  }
+
+  if (currentSpeakingTestNames.indexOf(name) !== -1) {
+    document.getElementById("speakingTestSelect").value = name;
+    loadSpeakingTable();
+    setSpeakingTestStatus("Đề \"" + name + "\" đã có sẵn, đã chuyển sang đề này.");
+    input.value = "";
+    return;
+  }
+
+  currentSpeakingTestNames.push(name);
+  populateSpeakingTestSelect();
+  document.getElementById("speakingTestSelect").value = name;
+  loadSpeakingTable();
+  input.value = "";
+  setSpeakingTestStatus("Đã tạo đề \"" + name + "\" — nhập câu hỏi bên dưới để lưu.");
+}
+
+async function deleteSpeakingTest(name, count) {
+  if (!window.confirm("Xóa đề \"" + name + "\" cùng toàn bộ " + count + " câu hỏi trong đề này?")) {
+    return;
+  }
+  var unitId = document.getElementById("unitSelect").value;
+  var result = await supabaseClient.from("game_speaking_questions").delete().eq("unit_id", unitId).eq("test_name", name);
+  if (result.error) {
+    window.alert("Lỗi xóa: " + result.error.message);
+    return;
+  }
+  await loadSpeakingTestList();
+  loadSpeakingTable();
+}
+
 async function loadSpeakingTable() {
   var unitId = document.getElementById("unitSelect").value;
+  var testName = document.getElementById("speakingTestSelect").value;
   var wrap = document.getElementById("speakingTableWrap");
+
+  if (!testName) {
+    wrap.innerHTML = "";
+    return;
+  }
+
   wrap.textContent = "Đang tải...";
 
   var result = await supabaseClient
     .from("game_speaking_questions")
     .select("*")
     .eq("unit_id", unitId)
+    .eq("test_name", testName)
     .order("sort_order", { ascending: true });
 
   if (result.error) {
@@ -59,7 +204,7 @@ function renderSpeakingTable(rows) {
   if (!rows.length) {
     var empty = document.createElement("div");
     empty.className = "admin-status";
-    empty.textContent = "Unit này chưa có câu hỏi kiểm tra nói nào.";
+    empty.textContent = "Đề này chưa có câu hỏi kiểm tra nói nào.";
     wrap.appendChild(empty);
     return;
   }
@@ -204,6 +349,7 @@ async function deleteSpeaking(id) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
+  loadSpeakingTestList();
   loadSpeakingTable();
 }
 
@@ -232,8 +378,14 @@ async function handleBulkAddSpeaking(e) {
   e.preventDefault();
 
   var unitId = document.getElementById("unitSelect").value;
+  var testName = document.getElementById("speakingTestSelect").value;
   var text = document.getElementById("bulkSpeakingTextarea").value;
   var items = parseSpeakingBulkText(text);
+
+  if (!testName) {
+    window.alert("Chưa có đề nào — tạo đề ở mục \"Quản lý Đề\" bên trên trước");
+    return;
+  }
 
   if (!items.length) {
     window.alert("Chưa dán dữ liệu nào.");
@@ -263,6 +415,7 @@ async function handleBulkAddSpeaking(e) {
       .from("game_speaking_questions")
       .insert({
         unit_id: unitId,
+        test_name: testName,
         sort_order: nextSortOrder + i,
         question_en: item.question_en,
         answer_en: item.answer_en
@@ -296,4 +449,5 @@ async function handleBulkAddSpeaking(e) {
 
   document.getElementById("bulkSpeakingTextarea").value = "";
   loadSpeakingTable();
+  loadSpeakingTestList();
 }

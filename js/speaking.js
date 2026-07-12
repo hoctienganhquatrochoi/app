@@ -1,4 +1,36 @@
-function renderSpeaking(container, breadcrumbText, items) {
+function renderSpeakingTestPicker(container, breadcrumbText, unitId, testNames) {
+  container.innerHTML = "";
+
+  var wrap = document.createElement("div");
+  wrap.className = "fc-wrap";
+
+  var title = document.createElement("div");
+  title.className = "fc-progress";
+  title.textContent = "Chọn đề để luyện nói";
+  wrap.appendChild(title);
+
+  var list = document.createElement("div");
+  list.className = "speaking-test-list";
+
+  testNames.forEach(function (name) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "speaking-test-card";
+    btn.textContent = name;
+    btn.addEventListener("click", async function () {
+      var items = await loadSpeakingForUnit(unitId, name);
+      renderSpeaking(container, breadcrumbText, items, function () {
+        renderSpeakingTestPicker(container, breadcrumbText, unitId, testNames);
+      });
+    });
+    list.appendChild(btn);
+  });
+
+  wrap.appendChild(list);
+  container.appendChild(wrap);
+}
+
+function renderSpeaking(container, breadcrumbText, items, onBack) {
   var index = 0;
 
   function draw() {
@@ -6,6 +38,18 @@ function renderSpeaking(container, breadcrumbText, items) {
 
     var wrap = document.createElement("div");
     wrap.className = "fc-wrap";
+
+    if (onBack) {
+      var backBtn = document.createElement("button");
+      backBtn.type = "button";
+      backBtn.className = "speaking-back-btn";
+      backBtn.textContent = "← Chọn đề khác";
+      backBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        onBack();
+      });
+      wrap.appendChild(backBtn);
+    }
 
     var progress = document.createElement("div");
     progress.className = "fc-progress";

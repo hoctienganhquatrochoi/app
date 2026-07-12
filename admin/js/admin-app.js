@@ -26,14 +26,16 @@ document.addEventListener("DOMContentLoaded", async function () {
   populateResultsUnitSelect();
   populateAssignmentUnitSelect();
   loadVocabTable();
-  loadSpeakingTable();
+  loadSpeakingTestList().then(loadSpeakingTable);
   loadStudents();
   loadActivityToggles();
   initCurriculumManage();
   renderTeachingGroupList();
 
   document.getElementById("unitSelect").addEventListener("change", loadVocabTable);
-  document.getElementById("unitSelect").addEventListener("change", loadSpeakingTable);
+  document.getElementById("unitSelect").addEventListener("change", function () {
+    loadSpeakingTestList().then(loadSpeakingTable);
+  });
   document.getElementById("unitSelect").addEventListener("change", loadActivityToggles);
   document.getElementById("bulkAddForm").addEventListener("submit", handleBulkAdd);
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);

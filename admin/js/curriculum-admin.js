@@ -690,7 +690,7 @@ function selectUnitForComposing(unitId) {
   updateComposeBreadcrumb();
   updateComposeAreaVisibility();
   loadVocabTable();
-  loadSpeakingTable();
+  loadSpeakingTestList().then(loadSpeakingTable);
   loadActivityToggles();
   showUnitsComposeView();
 }
@@ -702,8 +702,22 @@ function updateComposeAreaVisibility() {
 
   document.getElementById("bulkAddForm").style.display = isVocab ? "" : "none";
   document.getElementById("vocabTableWrap").style.display = isVocab ? "" : "none";
-  document.getElementById("speakingSection").style.display = isVocab ? "" : "none";
+  document.getElementById("composeSubTabs").style.display = isVocab ? "" : "none";
   document.getElementById("grammarComposeMsg").style.display = isVocab ? "none" : "block";
+
+  if (isVocab) {
+    switchComposeSubTab("vocab");
+  }
+}
+
+function switchComposeSubTab(target) {
+  var tabs = document.querySelectorAll("#composeSubTabs .admin-subtab");
+  var i;
+  for (i = 0; i < tabs.length; i++) {
+    tabs[i].className = tabs[i].getAttribute("data-composesubtab") === target ? "admin-subtab active" : "admin-subtab";
+  }
+  document.getElementById("vocabComposeSubPanel").style.display = target === "vocab" ? "" : "none";
+  document.getElementById("speakingComposeSubPanel").style.display = target === "speaking" ? "" : "none";
 }
 
 async function handleAddUnit() {
@@ -795,7 +809,7 @@ async function refreshCurriculumEverywhere(opts) {
   }
   updateComposeAreaVisibility();
   loadVocabTable();
-  loadSpeakingTable();
+  loadSpeakingTestList().then(loadSpeakingTable);
   loadActivityToggles();
 }
 
@@ -834,4 +848,14 @@ function initCurriculumManage() {
       switchCurriculumSubTab(this.getAttribute("data-subtab"));
     });
   }
+
+  var composeSubTabs = document.querySelectorAll("#composeSubTabs .admin-subtab");
+  for (i = 0; i < composeSubTabs.length; i++) {
+    composeSubTabs[i].addEventListener("click", function () {
+      switchComposeSubTab(this.getAttribute("data-composesubtab"));
+    });
+  }
+
+  document.getElementById("addSpeakingTestBtn").addEventListener("click", handleAddSpeakingTest);
+  document.getElementById("speakingTestSelect").addEventListener("change", loadSpeakingTable);
 }

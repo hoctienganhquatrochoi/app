@@ -197,27 +197,51 @@
               <div class="admin-status" id="activityToggleStatus"></div>
             </div>
 
-            <form class="admin-form" id="bulkAddForm">
-              <h3>Nhập hàng loạt</h3>
-              <p class="admin-hint">
-                Định dạng chuẩn mỗi dòng: <code>từ tiếng Anh /phiên âm/ nghĩa tiếng Việt</code> — có sẵn danh sách
-                dạng này thì dán thẳng vào là xong, không cần chờ tự tra cứu. Chỉ có 1 từ tiếng Anh thì gõ mỗi
-                dòng 1 từ (VD <code>book</code>), hệ thống tự tra phiên âm và tự dịch nghĩa. Cũng chấp nhận định
-                dạng cũ <code>từ tiếng Anh | phiên âm | nghĩa tiếng Việt</code> nếu quen dùng. Không dùng emoji
-                nữa — bài không có ảnh sẽ hiện chữ to hơn thay vì khung trống.
-              </p>
-              <textarea class="admin-textarea" id="bulkTextarea" rows="8" placeholder="dish /dɪʃ/ món ăn
+            <nav class="admin-tabs" id="composeSubTabs">
+              <button class="admin-subtab active" type="button" data-composesubtab="vocab">Từ vựng</button>
+              <button class="admin-subtab" type="button" data-composesubtab="speaking">Kiểm tra nói</button>
+            </nav>
+
+            <div id="vocabComposeSubPanel">
+              <form class="admin-form" id="bulkAddForm">
+                <h3>Nhập hàng loạt</h3>
+                <p class="admin-hint">
+                  Định dạng chuẩn mỗi dòng: <code>từ tiếng Anh /phiên âm/ nghĩa tiếng Việt</code> — có sẵn danh sách
+                  dạng này thì dán thẳng vào là xong, không cần chờ tự tra cứu. Chỉ có 1 từ tiếng Anh thì gõ mỗi
+                  dòng 1 từ (VD <code>book</code>), hệ thống tự tra phiên âm và tự dịch nghĩa. Cũng chấp nhận định
+                  dạng cũ <code>từ tiếng Anh | phiên âm | nghĩa tiếng Việt</code> nếu quen dùng. Không dùng emoji
+                  nữa — bài không có ảnh sẽ hiện chữ to hơn thay vì khung trống.
+                </p>
+                <textarea class="admin-textarea" id="bulkTextarea" rows="8" placeholder="dish /dɪʃ/ món ăn
 book
 school bag /ˈskuːl bæɡ/ cặp đi học"></textarea>
-              <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả + tạo âm thanh</button>
-              <div class="admin-status" id="bulkStatus"></div>
-            </form>
+                <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả + tạo âm thanh</button>
+                <div class="admin-status" id="bulkStatus"></div>
+              </form>
 
-            <div id="vocabTableWrap"></div>
+              <div id="vocabTableWrap"></div>
+            </div>
 
-            <div id="speakingSection" style="margin-top:32px;">
-              <h3>Kiểm tra nói</h3>
-              <p class="admin-hint">Câu hỏi sẽ tạo âm thanh cho học sinh nghe, câu trả lời mẫu chỉ hiển thị trên màn hình (không tạo âm thanh). Dạng bài này hiện ở cuối danh sách "Dạng bài áp dụng cho Unit này", có thể bật/tắt như các dạng bài khác.</p>
+            <div id="speakingComposeSubPanel" style="display:none">
+              <p class="admin-hint">Câu hỏi sẽ tạo âm thanh cho học sinh nghe, câu trả lời mẫu chỉ hiển thị trên màn hình (không tạo âm thanh). Mỗi Unit có thể có nhiều Đề (VD "What animal is this?", "Do you like...?") để luyện từng mẫu câu riêng — học sinh sẽ chọn Đề trước khi làm nếu Unit có nhiều hơn 1 đề.</p>
+
+              <div class="admin-form" id="speakingTestManageBox">
+                <h3>Quản lý Đề</h3>
+                <div id="speakingTestListWrap"></div>
+                <div class="admin-form-row">
+                  <div class="admin-field">
+                    <label>Tên đề mới</label>
+                    <input type="text" id="newSpeakingTestName" placeholder="VD: Do you like...?">
+                  </div>
+                  <div class="admin-field admin-field-btn">
+                    <button type="button" class="admin-btn-primary" id="addSpeakingTestBtn">+ Thêm đề</button>
+                  </div>
+                </div>
+                <div class="admin-status" id="speakingTestStatus"></div>
+              </div>
+
+              <label class="admin-label" for="speakingTestSelect">Đang soạn câu hỏi cho đề</label>
+              <select class="admin-select" id="speakingTestSelect"></select>
 
               <form class="admin-form" id="bulkAddSpeakingForm">
                 <h3>Nhập hàng loạt</h3>

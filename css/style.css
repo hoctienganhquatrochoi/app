@@ -508,6 +508,17 @@ html, body {
   margin-bottom: 10px;
 }
 
+.fc-auto-read-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #556355;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
 .fc-card {
   background: #FFFFFF;
   border: 1px solid #E5E0D5;
@@ -631,6 +642,47 @@ html, body {
   border: none;
   font-size: 14px;
   cursor: pointer;
+}
+
+.speaking-test-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.speaking-test-card {
+  padding: 18px 20px;
+  border-radius: 14px;
+  border: 2px solid #E5E0D5;
+  background: #FFFFFF;
+  color: #1B4332;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.speaking-test-card:hover {
+  border-color: #2D6A4F;
+  background: #F1F5F2;
+}
+
+.speaking-back-btn {
+  display: block;
+  margin: 0 auto 10px;
+  padding: 6px 14px;
+  border-radius: 16px;
+  border: none;
+  background: #F1F5F2;
+  color: #1B4332;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.speaking-back-btn:hover {
+  background: #E0EAE4;
 }
 
 /* ---------- Quiz ---------- */
