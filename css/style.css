@@ -500,6 +500,13 @@ html, body {
   font-size: 140px;
 }
 
+.fc-emoji:has(.vocab-image) {
+  max-width: 320px;
+  max-height: 280px;
+  width: auto;
+  height: auto;
+}
+
 .fc-word {
   font-size: 30px;
   font-weight: bold;
@@ -612,9 +619,9 @@ html, body {
 .quiz-header {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 16px;
   color: #7A8B82;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .activity-timer {
@@ -646,16 +653,20 @@ html, body {
 .vocab-visual-frame {
   overflow: hidden;
   border-radius: 16px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto;
   background: #FFFFFF;
+  width: auto;
+  height: auto;
 }
 
 .vocab-visual-frame .vocab-image {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
   display: block;
 }
@@ -670,6 +681,13 @@ html, body {
   height: 220px;
   font-size: 140px;
   margin-top: 4px;
+}
+
+.quiz-emoji:has(.vocab-image) {
+  max-width: 300px;
+  max-height: 260px;
+  width: auto;
+  height: auto;
 }
 
 .quiz-question-word {
@@ -826,6 +844,13 @@ html, body {
   font-size: 130px;
 }
 
+.ty-emoji:has(.vocab-image) {
+  max-width: 280px;
+  max-height: 240px;
+  width: auto;
+  height: auto;
+}
+
 .ty-meaning {
   font-size: 30px;
   font-weight: bold;
@@ -888,17 +913,22 @@ html, body {
   width: 48px;
   height: 48px;
   border-radius: 10px;
-  border: 2px solid #E5E0D5;
+  border: none;
   background: #FFFFFF;
   font-size: 22px;
-  font-weight: bold;
+  font-weight: 700;
   text-transform: lowercase;
-  color: #1B4332;
+  color: #FFFFFF;
   cursor: pointer;
 }
 
+.ty-tile:nth-child(4n+1) { background: #4A90D2; }
+.ty-tile:nth-child(4n+2) { background: #E1566A; }
+.ty-tile:nth-child(4n+3) { background: #F0973D; }
+.ty-tile:nth-child(4n+4) { background: #4FAE6D; }
+
 .ty-tile:hover:not(:disabled) {
-  border-color: #2D6A4F;
+  filter: brightness(1.08);
 }
 
 .ty-tile.used {
@@ -964,6 +994,13 @@ html, body {
   height: 220px;
   margin: 0 auto;
   font-size: 140px;
+}
+
+.ml-emoji:has(.vocab-image) {
+  max-width: 280px;
+  max-height: 240px;
+  width: auto;
+  height: auto;
 }
 
 .ml-meaning {

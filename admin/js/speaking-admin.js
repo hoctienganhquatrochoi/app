@@ -251,6 +251,9 @@ async function handleBulkAddSpeaking(e) {
     }
   }
 
+  var existingCountResult = await supabaseClient.from("game_speaking_questions").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var nextSortOrder = existingCountResult.count || 0;
+
   var successCount = 0;
   for (i = 0; i < validItems.length; i++) {
     var item = validItems[i];
@@ -260,6 +263,7 @@ async function handleBulkAddSpeaking(e) {
       .from("game_speaking_questions")
       .insert({
         unit_id: unitId,
+        sort_order: nextSortOrder + i,
         question_en: item.question_en,
         answer_en: item.answer_en
       })

@@ -622,6 +622,9 @@ async function handleBulkAdd(e) {
     }
   }
 
+  var existingCountResult = await supabaseClient.from("game_vocab").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var nextSortOrder = existingCountResult.count || 0;
+
   var successCount = 0;
   for (i = 0; i < validItems.length; i++) {
     var item = validItems[i];
@@ -638,6 +641,7 @@ async function handleBulkAdd(e) {
       .from("game_vocab")
       .insert({
         unit_id: unitId,
+        sort_order: nextSortOrder + i,
         word_en: item.word_en,
         phonetic: item.phonetic,
         meaning_vi: item.meaning_vi
