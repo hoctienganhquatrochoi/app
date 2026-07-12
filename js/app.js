@@ -5,6 +5,15 @@ var state = {
   selectedActivity: null
 };
 
+function buildBreadcrumbText(cls, unit, activity) {
+  var parts = [cls.name];
+  if (unit.name) {
+    parts.push(unit.name);
+  }
+  parts.push(activity.name);
+  return parts.join(" › ");
+}
+
 function getSelectedClass() {
   var i;
   for (i = 0; i < DATA.classes.length; i++) {
@@ -109,12 +118,36 @@ function buildSubjectItem(subject) {
     unitList.className = "unit-list";
     var i;
     for (i = 0; i < subject.units.length; i++) {
-      unitList.appendChild(buildUnitItem(subject.units[i]));
+      var unit = subject.units[i];
+      if (unit.name) {
+        unitList.appendChild(buildUnitItem(unit));
+      } else {
+        unitList.appendChild(buildFlattenedUnitActivities(unit));
+      }
     }
     wrap.appendChild(unitList);
   }
 
   return wrap;
+}
+
+function buildFlattenedUnitActivities(unit) {
+  if (unitDisabledActivities[unit.id] === undefined) {
+    loadUnitDisabledActivities(unit.id);
+  }
+
+  var list = document.createElement("div");
+  list.className = "activity-list activity-list-flat";
+  var disabledIds = unitDisabledActivities[unit.id] || [];
+  var activities = orderedActivitiesForUnit(unit);
+  var i;
+  for (i = 0; i < activities.length; i++) {
+    if (disabledIds.indexOf(activities[i].id) !== -1) {
+      continue;
+    }
+    list.appendChild(buildActivityItem(unit, activities[i]));
+  }
+  return list;
 }
 
 var unitDisabledActivities = {};
@@ -266,7 +299,7 @@ async function renderMainContent() {
   var isMamNon = cls.level === "mamnon";
   var unit = state.selectedActivity.unit;
   var activity = state.selectedActivity.activity;
-  var breadcrumbText = cls.name + " › " + unit.name + " › " + activity.name;
+  var breadcrumbText = buildBreadcrumbText(cls, unit, activity);
 
   if (vocabActivityTypes.indexOf(activity.type) !== -1) {
     var loading = document.createElement("div");
@@ -350,7 +383,7 @@ async function renderMainContent() {
 
   var breadcrumb = document.createElement("div");
   breadcrumb.className = "breadcrumb";
-  breadcrumb.textContent = cls.name + " › " + unit.name + " › " + activity.name;
+  breadcrumb.textContent = buildBreadcrumbText(cls, unit, activity);
   screen.appendChild(breadcrumb);
 
   var title = document.createElement("h2");

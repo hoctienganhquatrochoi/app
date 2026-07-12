@@ -2,6 +2,10 @@ function genId(prefix) {
   return prefix + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
+function unitDisplayName(unit) {
+  return unit.name || ("(Không đặt tên #" + unit.id.slice(-4) + ")");
+}
+
 function setCurriculumStatus(text) {
   document.getElementById("curriculumStatus").textContent = text || "";
 }
@@ -520,7 +524,7 @@ function buildUnitRow(unit, pathLabel, idx, total) {
   var tr = document.createElement("tr");
 
   var nameTd = document.createElement("td");
-  nameTd.textContent = pathLabel ? pathLabel + " › " + unit.name : unit.name;
+  nameTd.textContent = pathLabel ? pathLabel + " › " + unitDisplayName(unit) : unitDisplayName(unit);
   tr.appendChild(nameTd);
 
   var badgeTd = document.createElement("td");
@@ -679,7 +683,7 @@ function updateComposeBreadcrumb() {
     parts.push(subject.name);
   }
   if (unit) {
-    parts.push(unit.name);
+    parts.push(unitDisplayName(unit));
   }
   document.getElementById("composeBreadcrumb").textContent = "Đang soạn: " + parts.join(" › ");
 }
@@ -730,10 +734,6 @@ async function handleAddUnit() {
     window.alert("Chưa có Môn học nào, hãy tạo Môn học trước");
     return;
   }
-  if (!name) {
-    window.alert("Cần nhập tên bài");
-    return;
-  }
 
   setCurriculumStatus("Đang tạo bài học...");
   var newId = genId("u");
@@ -746,7 +746,7 @@ async function handleAddUnit() {
   }
 
   document.getElementById("newUnitName").value = "";
-  setCurriculumStatus("Đã tạo bài học \"" + name + "\".");
+  setCurriculumStatus(name ? "Đã tạo bài học \"" + name + "\"." : "Đã tạo bài học không tên — nội dung sẽ hiện thẳng dưới Môn học cho học sinh.");
   await refreshCurriculumEverywhere({ selectUnitId: newId });
   switchCurriculumSubTab("manageContent");
   selectUnitForComposing(newId);

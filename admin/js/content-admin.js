@@ -12,7 +12,7 @@ function populateUnitSelect(selectId) {
         var unit = subj.units[u];
         var opt = document.createElement("option");
         opt.value = unit.id;
-        opt.text = cls.name + " › " + subj.name + " › " + unit.name;
+        opt.text = cls.name + " › " + subj.name + " › " + unitDisplayName(unit);
         select.appendChild(opt);
       }
     }

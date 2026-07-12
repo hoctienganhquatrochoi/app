@@ -18,7 +18,7 @@ function buildAllUnitsFlat() {
         var unit = subjects[s].units[u];
         ALL_UNITS_FLAT.push({
           id: unit.id,
-          label: cls.name + " › " + subjects[s].name + " › " + unit.name
+          label: cls.name + " › " + subjects[s].name + " › " + unitDisplayName(unit)
         });
       }
     }
