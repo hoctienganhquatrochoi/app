@@ -689,6 +689,9 @@ function selectUnitForComposing(unitId) {
   select.value = unitId;
   updateComposeBreadcrumb();
   updateComposeAreaVisibility();
+  if (findUnitById(unitId) && findUnitById(unitId).content_type === "vocab") {
+    switchComposeSubTab("vocab");
+  }
   loadVocabTable();
   loadSpeakingTestList().then(loadSpeakingTable);
   loadWordwallList();
@@ -705,10 +708,6 @@ function updateComposeAreaVisibility() {
   document.getElementById("vocabTableWrap").style.display = isVocab ? "" : "none";
   document.getElementById("composeSubTabs").style.display = isVocab ? "" : "none";
   document.getElementById("grammarComposeMsg").style.display = isVocab ? "none" : "block";
-
-  if (isVocab) {
-    switchComposeSubTab("vocab");
-  }
 }
 
 function switchComposeSubTab(target) {

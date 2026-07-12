@@ -1,5 +1,6 @@
 function populateUnitSelect(selectId) {
   var select = document.getElementById(selectId || "unitSelect");
+  var previous = select.value;
   select.innerHTML = "";
   var c, s, u;
   for (c = 0; c < DATA.classes.length; c++) {
@@ -15,6 +16,9 @@ function populateUnitSelect(selectId) {
         select.appendChild(opt);
       }
     }
+  }
+  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
+    select.value = previous;
   }
 }
 
