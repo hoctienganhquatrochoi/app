@@ -365,3 +365,121 @@ tr.editing-row {
     overflow-x: auto;
   }
 }
+
+.wordwall-template-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.wordwall-template-quick-btn {
+  background: #EDE7F6;
+  color: #4A2E8A;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.wordwall-template-quick-btn:hover {
+  background: #DCD0F0;
+}
+
+.wordwall-template-manage-btn {
+  background: #F1F5F2;
+  color: #1B4332;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 18px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.wordwall-pending-link {
+  color: #C77700;
+  font-style: italic;
+}
+
+.wordwall-template-modal {
+  width: 520px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.wordwall-template-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.wordwall-template-modal-header h3 {
+  margin: 0;
+}
+
+.wordwall-template-modal-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: #7A8B82;
+}
+
+.wordwall-template-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.wordwall-template-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #F1F5F2;
+  border-radius: 18px;
+  padding: 6px 6px 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1B4332;
+}
+
+.wordwall-template-tab.active {
+  background: #1B4332;
+  color: #FFFFFF;
+}
+
+.wordwall-template-tab-name {
+  cursor: pointer;
+}
+
+.wordwall-template-tab button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  color: inherit;
+  opacity: 0.75;
+}
+
+.wordwall-template-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #F1F5F2;
+}
+
+.wordwall-template-item-row input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #E5E0D5;
+  border-radius: 8px;
+  font-size: 13px;
+}

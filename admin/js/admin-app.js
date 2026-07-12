@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   loadVocabTable();
   loadSpeakingTestList().then(loadSpeakingTable);
   loadWordwallList();
+  loadWordwallTemplates();
   loadStudents();
   loadActivityToggles();
   initCurriculumManage();
@@ -52,6 +53,14 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("resultsGroupFilter").addEventListener("change", loadResults);
   document.getElementById("addAssignmentBtn").addEventListener("click", handleAddAssignment);
   document.getElementById("assignmentUnitSearch").addEventListener("input", populateAssignmentUnitSelect);
+  document.getElementById("closeWordwallTemplateModalBtn").addEventListener("click", closeWordwallTemplateModal);
+  document.getElementById("addWordwallTemplateBtn").addEventListener("click", handleAddWordwallTemplate);
+  document.getElementById("addWordwallTemplateItemBtn").addEventListener("click", handleAddWordwallTemplateItem);
+  document.getElementById("wordwallTemplateModalOverlay").addEventListener("click", function (e) {
+    if (e.target === this) {
+      closeWordwallTemplateModal();
+    }
+  });
 
   var tabs = document.querySelectorAll(".admin-tab");
   var i;

@@ -72,6 +72,39 @@
   </div>
 </div>
 
+<div class="login-modal-overlay" id="wordwallTemplateModalOverlay" style="display:none">
+  <div class="login-modal wordwall-template-modal">
+    <div class="wordwall-template-modal-header">
+      <h3>⚙ Quản lý template nút</h3>
+      <button type="button" class="wordwall-template-modal-close" id="closeWordwallTemplateModalBtn">×</button>
+    </div>
+
+    <div id="wordwallTemplateTabsWrap" class="wordwall-template-tabs"></div>
+
+    <div class="admin-form-row">
+      <div class="admin-field">
+        <input type="text" id="newWordwallTemplateName" placeholder="Tên template mới VD: Toán, Tiếng Việt...">
+      </div>
+      <div class="admin-field admin-field-btn">
+        <button type="button" class="admin-btn-primary" id="addWordwallTemplateBtn">+</button>
+      </div>
+    </div>
+
+    <div id="wordwallTemplateItemsWrap"></div>
+
+    <div class="admin-form-row">
+      <div class="admin-field">
+        <input type="text" id="newWordwallTemplateItemName" placeholder="Tên bài mới">
+      </div>
+      <div class="admin-field admin-field-btn">
+        <button type="button" class="admin-btn-secondary" id="addWordwallTemplateItemBtn">+ Thêm nút link</button>
+      </div>
+    </div>
+
+    <div class="admin-status" id="wordwallTemplateStatus"></div>
+  </div>
+</div>
+
 <div class="admin-body" id="adminBody" style="display:none">
   <nav class="admin-tabs">
     <button class="admin-tab active" type="button" data-tab="content">Nội dung bài học</button>
@@ -258,7 +291,12 @@ What's this? | It's a pen."></textarea>
             </div>
 
             <div id="wordwallComposeSubPanel" style="display:none">
-              <p class="admin-hint">Dán mã nhúng (Embed) lấy từ Wordwall — vào bài trên Wordwall, bấm chia sẻ, chọn "Embed on your own website", copy nguyên đoạn mã HTML rồi dán vào ô bên dưới (không cần tách link, hệ thống tự nhận). Mỗi bài thêm vào sẽ hiện thành 1 mục riêng trong "Dạng bài áp dụng cho Unit này" ở trên.</p>
+              <p class="admin-hint">Dán mã nhúng (Embed) lấy từ Wordwall — vào bài trên Wordwall, bấm chia sẻ, chọn "Embed on your own website", copy nguyên đoạn mã HTML rồi dán vào ô bên dưới (không cần tách link, hệ thống tự nhận). Mỗi bài thêm vào sẽ hiện thành 1 mục riêng trong "Dạng bài áp dụng cho Unit này" ở trên. Bài chưa dán link sẽ tự ẩn khỏi học sinh cho tới khi có link.</p>
+
+              <div class="admin-form" id="wordwallQuickApplyBox">
+                <strong>⚡ Chọn nhanh theo cấp độ:</strong>
+                <div id="wordwallTemplateButtonsWrap" class="wordwall-template-btn-row"></div>
+              </div>
 
               <div id="wordwallListWrap"></div>
 
@@ -434,6 +472,7 @@ What's this? | It's a pen."></textarea>
 <script src="js/content-admin.js"></script>
 <script src="js/speaking-admin.js"></script>
 <script src="js/wordwall-admin.js"></script>
+<script src="js/wordwall-templates-admin.js"></script>
 <script src="js/groups-admin.js"></script>
 <script src="js/students-admin.js"></script>
 <script src="js/assignments-admin.js"></script>

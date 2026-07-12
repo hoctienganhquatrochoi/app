@@ -21,6 +21,9 @@ function buildActivitiesForUnit(unit) {
 function buildWordwallActivities(rows) {
   var byUnit = {};
   rows.forEach(function (row) {
+    if (!row.embed_url) {
+      return;
+    }
     if (!byUnit[row.unit_id]) {
       byUnit[row.unit_id] = [];
     }

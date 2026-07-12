@@ -66,7 +66,12 @@ function buildWordwallRow(row, idx, total) {
   tr.appendChild(nameTd);
 
   var urlTd = document.createElement("td");
-  urlTd.textContent = row.embed_url;
+  if (row.embed_url) {
+    urlTd.textContent = row.embed_url;
+  } else {
+    urlTd.textContent = "(chưa có link — đang ẩn khỏi học sinh)";
+    urlTd.className = "wordwall-pending-link";
+  }
   urlTd.style.maxWidth = "260px";
   urlTd.style.overflow = "hidden";
   urlTd.style.textOverflow = "ellipsis";
@@ -96,13 +101,15 @@ function buildWordwallRow(row, idx, total) {
 
   var actionsTd = document.createElement("td");
 
-  var previewLink = document.createElement("a");
-  previewLink.className = "admin-btn-secondary";
-  previewLink.textContent = "Xem trước";
-  previewLink.href = row.embed_url;
-  previewLink.target = "_blank";
-  previewLink.rel = "noopener noreferrer";
-  actionsTd.appendChild(previewLink);
+  if (row.embed_url) {
+    var previewLink = document.createElement("a");
+    previewLink.className = "admin-btn-secondary";
+    previewLink.textContent = "Xem trước";
+    previewLink.href = row.embed_url;
+    previewLink.target = "_blank";
+    previewLink.rel = "noopener noreferrer";
+    actionsTd.appendChild(previewLink);
+  }
 
   var editBtn = document.createElement("button");
   editBtn.className = "admin-btn-secondary";
@@ -144,7 +151,8 @@ function buildWordwallEditRow(row) {
   var urlInput = document.createElement("input");
   urlInput.type = "text";
   urlInput.className = "admin-inline-input";
-  urlInput.value = row.embed_url;
+  urlInput.value = row.embed_url || "";
+  urlInput.placeholder = "<iframe src=\"https://wordwall.net/embed/...\"...>";
   urlTd.appendChild(urlInput);
   tr.appendChild(urlTd);
 
@@ -160,14 +168,14 @@ function buildWordwallEditRow(row) {
     var newName = nameInput.value.trim();
     var newRaw = urlInput.value.trim();
 
-    if (!newName || !newRaw) {
-      window.alert("Tên bài và Link không được để trống");
+    if (!newName) {
+      window.alert("Tên bài không được để trống");
       return;
     }
 
     var result = await supabaseClient
       .from("game_wordwall_activities")
-      .update({ name: newName, embed_url: extractWordwallEmbedUrl(newRaw) })
+      .update({ name: newName, embed_url: newRaw ? extractWordwallEmbedUrl(newRaw) : null })
       .eq("id", row.id);
 
     if (result.error) {
