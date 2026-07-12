@@ -267,7 +267,18 @@ What's this? | It's a pen."></textarea>
                 <div class="admin-form-row">
                   <div class="admin-field">
                     <label>Tên bài</label>
-                    <input type="text" id="newWordwallName" placeholder="VD: Ôn tập Unit 5">
+                    <input type="text" id="newWordwallName" placeholder="VD: Ôn tập Unit 5" list="wordwallNameSuggestions">
+                    <datalist id="wordwallNameSuggestions">
+                      <option value="Thẻ đọc">
+                      <option value="Nghe từ, chọn hình">
+                      <option value="Nhìn hình, chọn từ">
+                      <option value="Chỉ nhìn hình, đoán từ">
+                      <option value="Nghe từ, chọn nghĩa">
+                      <option value="Đánh máy có gợi ý">
+                      <option value="Đánh máy không gợi ý">
+                      <option value="Khuyết chữ cái">
+                      <option value="Kiểm tra nói">
+                    </datalist>
                   </div>
                   <div class="admin-field">
                     <label>Mã nhúng hoặc link Wordwall</label>

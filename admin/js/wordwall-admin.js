@@ -12,6 +12,7 @@ function setWordwallStatus(text) {
 }
 
 var currentWordwallRows = [];
+var editingWordwallId = null;
 
 async function loadWordwallList() {
   var unitId = document.getElementById("unitSelect").value;
@@ -50,57 +51,148 @@ function renderWordwallList(rows) {
   var tbody = document.createElement("tbody");
 
   rows.forEach(function (row, idx) {
-    var tr = document.createElement("tr");
-
-    var nameTd = document.createElement("td");
-    nameTd.textContent = row.name;
-    tr.appendChild(nameTd);
-
-    var urlTd = document.createElement("td");
-    urlTd.textContent = row.embed_url;
-    urlTd.style.maxWidth = "260px";
-    urlTd.style.overflow = "hidden";
-    urlTd.style.textOverflow = "ellipsis";
-    urlTd.style.whiteSpace = "nowrap";
-    tr.appendChild(urlTd);
-
-    var moveTd = document.createElement("td");
-    var upBtn = document.createElement("button");
-    upBtn.type = "button";
-    upBtn.className = "admin-btn-secondary";
-    upBtn.textContent = "↑";
-    upBtn.disabled = idx === 0;
-    upBtn.addEventListener("click", function () {
-      moveWordwall(row.id, -1);
-    });
-    var downBtn = document.createElement("button");
-    downBtn.type = "button";
-    downBtn.className = "admin-btn-secondary";
-    downBtn.textContent = "↓";
-    downBtn.disabled = idx === rows.length - 1;
-    downBtn.addEventListener("click", function () {
-      moveWordwall(row.id, 1);
-    });
-    moveTd.appendChild(upBtn);
-    moveTd.appendChild(downBtn);
-    tr.appendChild(moveTd);
-
-    var actionsTd = document.createElement("td");
-    var delBtn = document.createElement("button");
-    delBtn.className = "admin-btn-danger";
-    delBtn.type = "button";
-    delBtn.textContent = "Xóa";
-    delBtn.addEventListener("click", function () {
-      deleteWordwall(row.id);
-    });
-    actionsTd.appendChild(delBtn);
-    tr.appendChild(actionsTd);
-
-    tbody.appendChild(tr);
+    tbody.appendChild(editingWordwallId === row.id ? buildWordwallEditRow(row) : buildWordwallRow(row, idx, rows.length));
   });
 
   table.appendChild(tbody);
   wrap.appendChild(table);
+}
+
+function buildWordwallRow(row, idx, total) {
+  var tr = document.createElement("tr");
+
+  var nameTd = document.createElement("td");
+  nameTd.textContent = row.name;
+  tr.appendChild(nameTd);
+
+  var urlTd = document.createElement("td");
+  urlTd.textContent = row.embed_url;
+  urlTd.style.maxWidth = "260px";
+  urlTd.style.overflow = "hidden";
+  urlTd.style.textOverflow = "ellipsis";
+  urlTd.style.whiteSpace = "nowrap";
+  tr.appendChild(urlTd);
+
+  var moveTd = document.createElement("td");
+  var upBtn = document.createElement("button");
+  upBtn.type = "button";
+  upBtn.className = "admin-btn-secondary";
+  upBtn.textContent = "↑";
+  upBtn.disabled = idx === 0;
+  upBtn.addEventListener("click", function () {
+    moveWordwall(row.id, -1);
+  });
+  var downBtn = document.createElement("button");
+  downBtn.type = "button";
+  downBtn.className = "admin-btn-secondary";
+  downBtn.textContent = "↓";
+  downBtn.disabled = idx === total - 1;
+  downBtn.addEventListener("click", function () {
+    moveWordwall(row.id, 1);
+  });
+  moveTd.appendChild(upBtn);
+  moveTd.appendChild(downBtn);
+  tr.appendChild(moveTd);
+
+  var actionsTd = document.createElement("td");
+
+  var previewLink = document.createElement("a");
+  previewLink.className = "admin-btn-secondary";
+  previewLink.textContent = "Xem trước";
+  previewLink.href = row.embed_url;
+  previewLink.target = "_blank";
+  previewLink.rel = "noopener noreferrer";
+  actionsTd.appendChild(previewLink);
+
+  var editBtn = document.createElement("button");
+  editBtn.className = "admin-btn-secondary";
+  editBtn.type = "button";
+  editBtn.textContent = "Sửa";
+  editBtn.addEventListener("click", function () {
+    editingWordwallId = row.id;
+    renderWordwallList(currentWordwallRows);
+  });
+  actionsTd.appendChild(editBtn);
+
+  var delBtn = document.createElement("button");
+  delBtn.className = "admin-btn-danger";
+  delBtn.type = "button";
+  delBtn.textContent = "Xóa";
+  delBtn.addEventListener("click", function () {
+    deleteWordwall(row.id);
+  });
+  actionsTd.appendChild(delBtn);
+  tr.appendChild(actionsTd);
+
+  return tr;
+}
+
+function buildWordwallEditRow(row) {
+  var tr = document.createElement("tr");
+  tr.className = "editing-row";
+
+  var nameTd = document.createElement("td");
+  var nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.className = "admin-inline-input";
+  nameInput.value = row.name;
+  nameInput.setAttribute("list", "wordwallNameSuggestions");
+  nameTd.appendChild(nameInput);
+  tr.appendChild(nameTd);
+
+  var urlTd = document.createElement("td");
+  var urlInput = document.createElement("input");
+  urlInput.type = "text";
+  urlInput.className = "admin-inline-input";
+  urlInput.value = row.embed_url;
+  urlTd.appendChild(urlInput);
+  tr.appendChild(urlTd);
+
+  tr.appendChild(document.createElement("td"));
+
+  var actionsTd = document.createElement("td");
+
+  var saveBtn = document.createElement("button");
+  saveBtn.className = "admin-btn-primary";
+  saveBtn.type = "button";
+  saveBtn.textContent = "Lưu";
+  saveBtn.addEventListener("click", async function () {
+    var newName = nameInput.value.trim();
+    var newRaw = urlInput.value.trim();
+
+    if (!newName || !newRaw) {
+      window.alert("Tên bài và Link không được để trống");
+      return;
+    }
+
+    var result = await supabaseClient
+      .from("game_wordwall_activities")
+      .update({ name: newName, embed_url: extractWordwallEmbedUrl(newRaw) })
+      .eq("id", row.id);
+
+    if (result.error) {
+      window.alert("Lỗi lưu: " + result.error.message);
+      return;
+    }
+
+    editingWordwallId = null;
+    await refreshCurriculumEverywhere();
+  });
+  actionsTd.appendChild(saveBtn);
+
+  var cancelBtn = document.createElement("button");
+  cancelBtn.className = "admin-btn-danger";
+  cancelBtn.type = "button";
+  cancelBtn.textContent = "Hủy";
+  cancelBtn.addEventListener("click", function () {
+    editingWordwallId = null;
+    renderWordwallList(currentWordwallRows);
+  });
+  actionsTd.appendChild(cancelBtn);
+
+  tr.appendChild(actionsTd);
+
+  return tr;
 }
 
 async function moveWordwall(id, direction) {
