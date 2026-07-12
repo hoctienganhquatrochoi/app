@@ -249,6 +249,35 @@ html, body {
   padding: 24px;
 }
 
+.main-content:fullscreen {
+  background: #FFFFFF;
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.fullscreen-toggle-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #1B4332;
+  color: #F4E9CB;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(27, 67, 50, 0.25);
+}
+
+.fullscreen-toggle-btn:hover {
+  background: #2D6A4F;
+}
+
 .placeholder {
   color: #2D6A4F;
   font-size: 22px;

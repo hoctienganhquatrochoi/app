@@ -452,4 +452,21 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("refreshBtn").addEventListener("click", function () {
     window.location.href = window.location.pathname + "?refresh=" + Date.now();
   });
+
+  document.getElementById("fullscreenToggleBtn").addEventListener("click", function () {
+    var mainEl = document.getElementById("mainContent");
+    if (!document.fullscreenElement) {
+      if (mainEl.requestFullscreen) {
+        mainEl.requestFullscreen();
+      }
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  });
+
+  document.addEventListener("fullscreenchange", function () {
+    var btn = document.getElementById("fullscreenToggleBtn");
+    btn.textContent = document.fullscreenElement ? "⤢" : "⛶";
+    btn.title = document.fullscreenElement ? "Thu nhỏ lại" : "Phóng to toàn màn hình";
+  });
 });

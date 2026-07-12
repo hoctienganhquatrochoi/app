@@ -135,7 +135,7 @@ async function uploadVocabImage(file, unitId, vocabId) {
   }
 
   var publicUrlResult = supabaseClient.storage.from("vocab-images").getPublicUrl(path);
-  return publicUrlResult.data.publicUrl;
+  return publicUrlResult.data.publicUrl + "?v=" + Date.now();
 }
 
 async function uploadAndSetVocabImage(vocabId, unitId, file) {
