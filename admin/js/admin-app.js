@@ -19,18 +19,18 @@ function switchTab(target) {
 
 document.addEventListener("DOMContentLoaded", async function () {
   await loadCurriculumData();
+  await loadTeachingGroups();
 
   populateUnitSelect();
-  populateClassSelect();
-  populateStudentsClassFilter();
+  populateAllGroupSelects();
   populateResultsUnitSelect();
-  populateResultsClassFilter();
   populateAssignmentUnitSelect();
   loadVocabTable();
   loadSpeakingTable();
   loadStudents();
   loadActivityToggles();
   initCurriculumManage();
+  renderTeachingGroupList();
 
   document.getElementById("unitSelect").addEventListener("change", loadVocabTable);
   document.getElementById("unitSelect").addEventListener("change", loadSpeakingTable);
@@ -39,14 +39,16 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("addSpeakingForm").addEventListener("submit", handleAddSpeaking);
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);
   document.getElementById("addStudentForm").addEventListener("submit", handleAddStudent);
-  document.getElementById("studentsClassFilter").addEventListener("change", function () {
+  document.getElementById("addTeachingGroupBtn").addEventListener("click", handleAddTeachingGroup);
+  document.getElementById("studentsGroupFilter").addEventListener("change", function () {
     loadStudents();
     populateAssignmentUnitSelect();
   });
   document.getElementById("resultsUnitSelect").addEventListener("change", loadResults);
   document.getElementById("resultsActivitySelect").addEventListener("change", loadResults);
-  document.getElementById("resultsClassFilter").addEventListener("change", loadResults);
+  document.getElementById("resultsGroupFilter").addEventListener("change", loadResults);
   document.getElementById("addAssignmentBtn").addEventListener("click", handleAddAssignment);
+  document.getElementById("assignmentUnitSearch").addEventListener("input", populateAssignmentUnitSelect);
 
   initNewSpeakingImagePicker();
 

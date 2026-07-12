@@ -2,26 +2,6 @@ function populateResultsUnitSelect() {
   populateUnitSelect("resultsUnitSelect");
 }
 
-function populateResultsClassFilter() {
-  var select = document.getElementById("resultsClassFilter");
-  var previous = select.value;
-  select.innerHTML = "";
-  var allOpt = document.createElement("option");
-  allOpt.value = "";
-  allOpt.text = "Tất cả";
-  select.appendChild(allOpt);
-  var i;
-  for (i = 0; i < DATA.classes.length; i++) {
-    var opt = document.createElement("option");
-    opt.value = DATA.classes[i].id;
-    opt.text = DATA.classes[i].name;
-    select.appendChild(opt);
-  }
-  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
-    select.value = previous;
-  }
-}
-
 function formatDateTime(iso) {
   var d = new Date(iso);
   var dd = d.getDate() < 10 ? "0" + d.getDate() : "" + d.getDate();
@@ -46,7 +26,7 @@ function formatDuration(startedAtIso, submittedAtIso) {
 async function loadResults() {
   var unitId = document.getElementById("resultsUnitSelect").value;
   var activityType = document.getElementById("resultsActivitySelect").value;
-  var classFilter = document.getElementById("resultsClassFilter").value;
+  var groupFilter = document.getElementById("resultsGroupFilter").value;
 
   var leaderboardWrap = document.getElementById("resultsLeaderboardWrap");
   var studentWrap = document.getElementById("resultsByStudentWrap");
@@ -55,7 +35,7 @@ async function loadResults() {
   studentWrap.textContent = "Đang tải...";
   questionWrap.textContent = "";
 
-  var selectClause = classFilter ? "*, game_students!inner(full_name, class_id)" : "*, game_students(full_name, class_id)";
+  var selectClause = groupFilter ? "*, game_students!inner(full_name, group_id)" : "*, game_students(full_name, group_id)";
   var query = supabaseClient
     .from("game_quiz_attempts")
     .select(selectClause)
@@ -63,8 +43,8 @@ async function loadResults() {
     .eq("activity_type", activityType)
     .order("submitted_at", { ascending: false });
 
-  if (classFilter) {
-    query = query.eq("game_students.class_id", classFilter);
+  if (groupFilter) {
+    query = query.eq("game_students.group_id", groupFilter);
   }
 
   var result = await query;

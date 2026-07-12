@@ -264,6 +264,22 @@ What's this? | It's a pen."></textarea>
   <section class="admin-panel" id="studentsPanel" style="display:none">
     <h2>Học sinh</h2>
 
+    <div class="admin-form" id="teachingGroupBox">
+      <h3>Nhóm học sinh (lớp bạn dạy tại trung tâm)</h3>
+      <p class="admin-hint">Khác với "Lớp" ở tab Nội dung bài học (đó là khối lớp để phân loại nội dung, VD Lớp 3/Lớp 6/Từ vựng). Nhóm học sinh ở đây là lớp thật bạn dạy, có thể học nội dung của bất kỳ khối lớp nào.</p>
+      <div id="teachingGroupListWrap"></div>
+      <div class="admin-form-row">
+        <div class="admin-field">
+          <label>Tên nhóm học sinh mới</label>
+          <input type="text" id="newTeachingGroupName" placeholder="Nhóm Anh Việt tối 3-5">
+        </div>
+        <div class="admin-field admin-field-btn">
+          <button type="button" class="admin-btn-primary" id="addTeachingGroupBtn">+ Thêm nhóm</button>
+        </div>
+      </div>
+      <div class="admin-status" id="teachingGroupStatus"></div>
+    </div>
+
     <form class="admin-form" id="addStudentForm">
       <h3>Tạo tài khoản học sinh mới</h3>
       <div class="admin-form-row">
@@ -272,8 +288,8 @@ What's this? | It's a pen."></textarea>
           <input type="text" id="newStudentName" placeholder="Nguyễn Văn A">
         </div>
         <div class="admin-field">
-          <label>Lớp</label>
-          <select id="studentClassSelect"></select>
+          <label>Nhóm học sinh</label>
+          <select id="newStudentGroupSelect"></select>
         </div>
         <div class="admin-field">
           <label>Ngày sinh (không bắt buộc)</label>
@@ -297,15 +313,19 @@ What's this? | It's a pen."></textarea>
       </div>
     </form>
 
-    <label class="admin-label" for="studentsClassFilter">Lọc theo Lớp</label>
-    <select class="admin-select" id="studentsClassFilter"></select>
+    <label class="admin-label" for="studentsGroupFilter">Lọc theo Nhóm học sinh</label>
+    <select class="admin-select" id="studentsGroupFilter"></select>
 
     <div id="studentsTableWrap"></div>
 
     <div class="admin-form" id="assignmentBox" style="margin-top:24px;">
-      <h3>Giao bài kiểm tra cho lớp này</h3>
-      <p class="admin-hint">Chọn Unit + Dạng bài + hạn nộp cho Lớp đang lọc ở trên. Sau khi giao, vào tab "Kết quả" và chọn đúng Lớp/Unit/Dạng bài để xem bảng xếp hạng của riêng lớp đó.</p>
+      <h3>Giao bài kiểm tra cho nhóm này</h3>
+      <p class="admin-hint">Chọn Unit (từ bất kỳ khối lớp nào) + Dạng bài + hạn nộp cho Nhóm học sinh đang lọc ở trên. Sau khi giao, vào tab "Kết quả" và chọn đúng Nhóm/Unit/Dạng bài để xem bảng xếp hạng của riêng nhóm đó.</p>
       <div class="admin-form-row">
+        <div class="admin-field">
+          <label>Tìm Unit theo tên</label>
+          <input type="text" id="assignmentUnitSearch" placeholder="VD: Fruits">
+        </div>
         <div class="admin-field">
           <label>Unit</label>
           <select id="assignmentUnitSelect"></select>
@@ -350,8 +370,8 @@ What's this? | It's a pen."></textarea>
         </select>
       </div>
       <div class="admin-field">
-        <label class="admin-label" for="resultsClassFilter">Lớp (không bắt buộc)</label>
-        <select class="admin-select" id="resultsClassFilter" style="margin-bottom: 0;">
+        <label class="admin-label" for="resultsGroupFilter">Nhóm học sinh (không bắt buộc)</label>
+        <select class="admin-select" id="resultsGroupFilter" style="margin-bottom: 0;">
           <option value="">Tất cả</option>
         </select>
       </div>
@@ -375,6 +395,7 @@ What's this? | It's a pen."></textarea>
 <script src="../js/curriculum-data.js"></script>
 <script src="js/content-admin.js"></script>
 <script src="js/speaking-admin.js"></script>
+<script src="js/groups-admin.js"></script>
 <script src="js/students-admin.js"></script>
 <script src="js/assignments-admin.js"></script>
 <script src="js/results-admin.js"></script>

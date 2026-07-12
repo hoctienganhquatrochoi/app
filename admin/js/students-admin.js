@@ -1,45 +1,3 @@
-function populateClassSelect(selectId) {
-  var select = document.getElementById(selectId || "studentClassSelect");
-  select.innerHTML = "";
-  var i;
-  for (i = 0; i < DATA.classes.length; i++) {
-    var opt = document.createElement("option");
-    opt.value = DATA.classes[i].id;
-    opt.text = DATA.classes[i].name;
-    select.appendChild(opt);
-  }
-}
-
-function populateStudentsClassFilter() {
-  var select = document.getElementById("studentsClassFilter");
-  var previous = select.value;
-  select.innerHTML = "";
-  var allOpt = document.createElement("option");
-  allOpt.value = "";
-  allOpt.text = "Tất cả";
-  select.appendChild(allOpt);
-  var i;
-  for (i = 0; i < DATA.classes.length; i++) {
-    var opt = document.createElement("option");
-    opt.value = DATA.classes[i].id;
-    opt.text = DATA.classes[i].name;
-    select.appendChild(opt);
-  }
-  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
-    select.value = previous;
-  }
-}
-
-function classNameById(classId) {
-  var i;
-  for (i = 0; i < DATA.classes.length; i++) {
-    if (DATA.classes[i].id === classId) {
-      return DATA.classes[i].name;
-    }
-  }
-  return classId;
-}
-
 function parseISODate(dateStr) {
   var parts = dateStr.split("-");
   return { y: parseInt(parts[0], 10), m: parseInt(parts[1], 10), d: parseInt(parts[2], 10) };
@@ -75,10 +33,10 @@ async function loadStudents() {
   var wrap = document.getElementById("studentsTableWrap");
   wrap.textContent = "Đang tải...";
 
-  var classFilter = document.getElementById("studentsClassFilter").value;
+  var groupFilter = document.getElementById("studentsGroupFilter").value;
   var query = supabaseClient.from("game_students").select("*").order("expiry_date", { ascending: true });
-  if (classFilter) {
-    query = query.eq("class_id", classFilter);
+  if (groupFilter) {
+    query = query.eq("group_id", groupFilter);
   }
   var result = await query;
 
@@ -112,7 +70,7 @@ function renderStudentsTable(rows) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  var headers = ["Tên", "Lớp", "Ngày sinh", "SĐT", "Tài khoản", "Ngày bắt đầu", "Hạn dùng", "Trạng thái", ""];
+  var headers = ["Tên", "Nhóm học sinh", "Ngày sinh", "SĐT", "Tài khoản", "Ngày bắt đầu", "Hạn dùng", "Trạng thái", ""];
   var i;
   for (i = 0; i < headers.length; i++) {
     var th = document.createElement("th");
@@ -138,7 +96,7 @@ function buildStudentRow(row) {
 
   var tr = document.createElement("tr");
   tr.appendChild(makeTd(row.full_name));
-  tr.appendChild(makeTd(classNameById(row.class_id)));
+  tr.appendChild(makeTd(groupNameById(row.group_id)));
   tr.appendChild(makeTd(row.date_of_birth));
   tr.appendChild(makeTd(row.phone_number));
   tr.appendChild(makeTd(row.username));
@@ -213,21 +171,21 @@ function buildStudentEditRow(row) {
   var nameTd = makeInlineInputTd(row.full_name);
   tr.appendChild(nameTd);
 
-  var classTd = document.createElement("td");
-  var classSelect = document.createElement("select");
-  classSelect.className = "admin-inline-input";
+  var groupTd = document.createElement("td");
+  var groupSelect = document.createElement("select");
+  groupSelect.className = "admin-inline-input";
   var i;
-  for (i = 0; i < DATA.classes.length; i++) {
+  for (i = 0; i < TEACHING_GROUPS.length; i++) {
     var opt = document.createElement("option");
-    opt.value = DATA.classes[i].id;
-    opt.text = DATA.classes[i].name;
-    if (DATA.classes[i].id === row.class_id) {
+    opt.value = TEACHING_GROUPS[i].id;
+    opt.text = TEACHING_GROUPS[i].name;
+    if (TEACHING_GROUPS[i].id === row.group_id) {
       opt.selected = true;
     }
-    classSelect.appendChild(opt);
+    groupSelect.appendChild(opt);
   }
-  classTd.appendChild(classSelect);
-  tr.appendChild(classTd);
+  groupTd.appendChild(groupSelect);
+  tr.appendChild(groupTd);
 
   var dobTd = document.createElement("td");
   var dobInput = document.createElement("input");
@@ -269,7 +227,7 @@ function buildStudentEditRow(row) {
     var newName = nameTd.inputEl.value.trim();
     var newUsername = usernameTd.inputEl.value.trim();
     var newPin = pinTd.inputEl.value.trim();
-    var newClassId = classSelect.value;
+    var newGroupId = groupSelect.value;
     var newDob = dobInput.value || null;
     var newPhone = phoneTd.inputEl.value.trim() || null;
 
@@ -286,7 +244,7 @@ function buildStudentEditRow(row) {
       .from("game_students")
       .update({
         full_name: newName,
-        class_id: newClassId,
+        group_id: newGroupId,
         date_of_birth: newDob,
         phone_number: newPhone,
         username: newUsername,
@@ -346,7 +304,7 @@ async function handleAddStudent(e) {
   e.preventDefault();
 
   var fullName = document.getElementById("newStudentName").value.trim();
-  var classId = document.getElementById("studentClassSelect").value;
+  var groupId = document.getElementById("newStudentGroupSelect").value;
   var dob = document.getElementById("newStudentDob").value || null;
   var phone = document.getElementById("newStudentPhone").value.trim() || null;
   var username = document.getElementById("newStudentUsername").value.trim();
@@ -357,12 +315,17 @@ async function handleAddStudent(e) {
     return;
   }
 
+  if (!groupId) {
+    window.alert("Cần tạo ít nhất 1 Nhóm học sinh trước (ở phía trên)");
+    return;
+  }
+
   var start = todayStr();
   var expiry = addYears(start, 1);
 
   var result = await supabaseClient.from("game_students").insert({
     full_name: fullName,
-    class_id: classId,
+    group_id: groupId,
     date_of_birth: dob,
     phone_number: phone,
     username: username,

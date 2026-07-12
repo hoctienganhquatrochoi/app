@@ -105,7 +105,7 @@ async function handleLoginSubmit() {
     return;
   }
 
-  currentStudent = { id: student.id, full_name: student.full_name, class_id: student.class_id };
+  currentStudent = { id: student.id, full_name: student.full_name, group_id: student.group_id };
   storeStudent(currentStudent);
   closeLoginModal();
   renderAuthArea();

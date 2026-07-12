@@ -5,30 +5,52 @@ var ASSIGNMENT_ACTIVITY_LABELS = {
   "typing-blank": "Đánh máy không gợi ý"
 };
 
+var ALL_UNITS_FLAT = [];
+
+function buildAllUnitsFlat() {
+  ALL_UNITS_FLAT = [];
+  var c, s, u;
+  for (c = 0; c < DATA.classes.length; c++) {
+    var cls = DATA.classes[c];
+    var subjects = DATA.subjectsByClass[cls.id] || [];
+    for (s = 0; s < subjects.length; s++) {
+      for (u = 0; u < subjects[s].units.length; u++) {
+        var unit = subjects[s].units[u];
+        ALL_UNITS_FLAT.push({
+          id: unit.id,
+          label: cls.name + " › " + subjects[s].name + " › " + unit.name
+        });
+      }
+    }
+  }
+}
+
 function populateAssignmentUnitSelect() {
-  var classId = document.getElementById("studentsClassFilter").value;
+  buildAllUnitsFlat();
+
+  var search = (document.getElementById("assignmentUnitSearch").value || "").trim().toLowerCase();
   var select = document.getElementById("assignmentUnitSelect");
   var previous = select.value;
   select.innerHTML = "";
 
-  if (!classId) {
+  var filtered = search
+    ? ALL_UNITS_FLAT.filter(function (u) { return u.label.toLowerCase().indexOf(search) !== -1; })
+    : ALL_UNITS_FLAT;
+
+  if (!filtered.length) {
     var hint = document.createElement("option");
     hint.value = "";
-    hint.text = "Chọn 1 Lớp cụ thể ở trên trước";
+    hint.text = "Không tìm thấy Unit nào";
     select.appendChild(hint);
     return;
   }
 
-  var subjects = DATA.subjectsByClass[classId] || [];
-  var s, u;
-  for (s = 0; s < subjects.length; s++) {
-    for (u = 0; u < subjects[s].units.length; u++) {
-      var unit = subjects[s].units[u];
-      var opt = document.createElement("option");
-      opt.value = unit.id;
-      opt.text = subjects[s].name + " › " + unit.name;
-      select.appendChild(opt);
-    }
+  var i;
+  for (i = 0; i < filtered.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = filtered[i].id;
+    opt.text = filtered[i].label;
+    select.appendChild(opt);
   }
 
   if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
@@ -50,17 +72,17 @@ function formatDueAt(iso) {
 }
 
 async function handleAddAssignment() {
-  var classId = document.getElementById("studentsClassFilter").value;
+  var groupId = document.getElementById("studentsGroupFilter").value;
   var unitId = document.getElementById("assignmentUnitSelect").value;
   var activityType = document.getElementById("assignmentActivitySelect").value;
   var dueAtLocal = document.getElementById("assignmentDueAt").value;
 
-  if (!classId) {
-    window.alert("Chọn 1 Lớp cụ thể ở ô \"Lọc theo Lớp\" bên trên trước");
+  if (!groupId) {
+    window.alert("Chọn 1 Nhóm học sinh cụ thể ở ô \"Lọc theo Nhóm học sinh\" bên trên trước");
     return;
   }
   if (!unitId) {
-    window.alert("Chưa có Unit nào để giao trong Lớp này");
+    window.alert("Chọn 1 Unit để giao bài");
     return;
   }
   if (!dueAtLocal) {
@@ -74,7 +96,7 @@ async function handleAddAssignment() {
   setAssignmentStatus("Đang giao bài...");
 
   var result = await supabaseClient.from("game_assignments").insert({
-    class_id: classId,
+    group_id: groupId,
     unit_id: unitId,
     activity_type: activityType,
     activity_name: unitLabel + " – " + ASSIGNMENT_ACTIVITY_LABELS[activityType],
@@ -92,10 +114,10 @@ async function handleAddAssignment() {
 }
 
 async function loadAssignmentList() {
-  var classId = document.getElementById("studentsClassFilter").value;
+  var groupId = document.getElementById("studentsGroupFilter").value;
   var wrap = document.getElementById("assignmentListWrap");
 
-  if (!classId) {
+  if (!groupId) {
     wrap.innerHTML = "";
     return;
   }
@@ -105,7 +127,7 @@ async function loadAssignmentList() {
   var result = await supabaseClient
     .from("game_assignments")
     .select("*")
-    .eq("class_id", classId)
+    .eq("group_id", groupId)
     .order("due_at", { ascending: true });
 
   if (result.error) {
@@ -123,7 +145,7 @@ function renderAssignmentList(rows) {
   if (!rows.length) {
     var empty = document.createElement("div");
     empty.className = "admin-status";
-    empty.textContent = "Lớp này chưa được giao bài kiểm tra nào.";
+    empty.textContent = "Nhóm này chưa được giao bài kiểm tra nào.";
     wrap.appendChild(empty);
     return;
   }
@@ -197,7 +219,7 @@ function goToAssignmentResults(assignmentRow) {
   switchTab("results");
   document.getElementById("resultsUnitSelect").value = assignmentRow.unit_id;
   document.getElementById("resultsActivitySelect").value = assignmentRow.activity_type;
-  document.getElementById("resultsClassFilter").value = assignmentRow.class_id;
+  document.getElementById("resultsGroupFilter").value = assignmentRow.group_id;
   loadResults();
 }
 

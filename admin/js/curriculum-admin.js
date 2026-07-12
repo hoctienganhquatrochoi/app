@@ -6,6 +6,22 @@ function setCurriculumStatus(text) {
   document.getElementById("curriculumStatus").textContent = text || "";
 }
 
+function populateClassSelect(selectId) {
+  var select = document.getElementById(selectId);
+  var previous = select.value;
+  select.innerHTML = "";
+  var i;
+  for (i = 0; i < DATA.classes.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = DATA.classes[i].id;
+    opt.text = DATA.classes[i].name;
+    select.appendChild(opt);
+  }
+  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
+    select.value = previous;
+  }
+}
+
 function findClassById(classId) {
   var i;
   for (i = 0; i < DATA.classes.length; i++) {
@@ -268,11 +284,6 @@ async function handleAddClass() {
 }
 
 async function handleDeleteClass(classId) {
-  var studentsResult = await supabaseClient.from("game_students").select("id", { count: "exact", head: true }).eq("class_id", classId);
-  if ((studentsResult.count || 0) > 0) {
-    window.alert("Lớp này còn học sinh, hãy chuyển học sinh sang lớp khác trước khi xóa.");
-    return;
-  }
   if ((DATA.subjectsByClass[classId] || []).length > 0) {
     window.alert("Lớp này còn Môn học, hãy xóa hết Môn học trong lớp trước.");
     return;
@@ -741,7 +752,6 @@ async function refreshCurriculumEverywhere(opts) {
 
   populateUnitSelect();
   populateResultsUnitSelect();
-  populateClassSelect();
   populateClassSelect("subjectClassPicker");
   populateUnitClassPicker("add");
   populateUnitClassPicker("manage");
