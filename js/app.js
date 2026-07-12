@@ -25,6 +25,11 @@ function renderSidebar() {
   var sidebar = document.getElementById("sidebar");
   sidebar.innerHTML = "";
 
+  var sidebarTitle = document.createElement("div");
+  sidebarTitle.className = "sidebar-title";
+  sidebarTitle.textContent = "📚 Chọn bài học";
+  sidebar.appendChild(sidebarTitle);
+
   var select = document.createElement("select");
   select.className = "class-select";
   var i;
@@ -231,7 +236,7 @@ async function renderMainContent() {
   if (!state.selectedActivity) {
     var placeholder = document.createElement("div");
     placeholder.className = "placeholder";
-    placeholder.textContent = "Chọn một dạng bài ở menu bên trái để bắt đầu học";
+    placeholder.textContent = "👈 Chọn một dạng bài ở menu bên trái để bắt đầu học";
     main.appendChild(placeholder);
     return;
   }

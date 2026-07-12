@@ -35,6 +35,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
   var selectedWrongId = null;
   var answersLog = [];
   var startedAt = new Date();
+  var timerIntervalId = startActivityTimer(startedAt);
 
   function showQuestion() {
     draw();
@@ -58,6 +59,8 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     var scoreEl = document.createElement("span");
     scoreEl.textContent = "Đúng: " + score;
     header.appendChild(scoreEl);
+
+    header.appendChild(buildTimerEl(startedAt));
 
     wrap.appendChild(header);
 
@@ -182,6 +185,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
   }
 
   function showResult() {
+    clearInterval(timerIntervalId);
     submitQuizAttempt(unitId, "quiz", score, questions.length, startedAt, answersLog);
 
     container.innerHTML = "";
@@ -214,6 +218,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
       selectedWrongId = null;
       answersLog = [];
       startedAt = new Date();
+      timerIntervalId = startActivityTimer(startedAt);
       showQuestion();
     });
     wrap.appendChild(retryBtn);

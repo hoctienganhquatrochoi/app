@@ -250,10 +250,19 @@ html, body {
 }
 
 .placeholder {
-  color: #7A8B82;
-  font-size: 16px;
+  color: #2D6A4F;
+  font-size: 22px;
+  font-weight: 700;
   text-align: center;
-  margin-top: 60px;
+  margin-top: 80px;
+  line-height: 1.5;
+}
+
+.sidebar-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1B4332;
+  margin-bottom: 10px;
 }
 
 /* ---------- Sidebar: class select ---------- */
@@ -606,6 +615,11 @@ html, body {
   font-size: 14px;
   color: #7A8B82;
   margin-bottom: 18px;
+}
+
+.activity-timer {
+  font-weight: 600;
+  color: #2D6A4F;
 }
 
 .quiz-body {

@@ -74,3 +74,28 @@ function pickQuestionPool(items, maxQuestions) {
   }
   return shuffleArray(items).slice(0, maxQuestions);
 }
+
+function formatElapsed(startedAt) {
+  var elapsedSec = Math.max(0, Math.floor((new Date() - startedAt) / 1000));
+  var mm = Math.floor(elapsedSec / 60);
+  var ss = elapsedSec % 60;
+  return "⏱ " + mm + ":" + (ss < 10 ? "0" : "") + ss;
+}
+
+function buildTimerEl(startedAt) {
+  var el = document.createElement("span");
+  el.className = "activity-timer";
+  el.id = "activity-timer";
+  el.textContent = formatElapsed(startedAt);
+  return el;
+}
+
+function startActivityTimer(startedAt) {
+  return setInterval(function () {
+    var el = document.getElementById("activity-timer");
+    if (!el) {
+      return;
+    }
+    el.textContent = formatElapsed(startedAt);
+  }, 1000);
+}

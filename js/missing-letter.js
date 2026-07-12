@@ -52,6 +52,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
   var selectedWrongLetter = null;
   var answersLog = [];
   var startedAt = new Date();
+  var timerIntervalId = startActivityTimer(startedAt);
 
   function showQuestion() {
     draw();
@@ -75,6 +76,8 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
     var scoreEl = document.createElement("span");
     scoreEl.textContent = "Đúng: " + score;
     header.appendChild(scoreEl);
+
+    header.appendChild(buildTimerEl(startedAt));
 
     wrap.appendChild(header);
 
@@ -177,6 +180,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
   }
 
   function showResult() {
+    clearInterval(timerIntervalId);
     submitQuizAttempt(unitId, "missing-letter", score, questions.length, startedAt, answersLog);
 
     container.innerHTML = "";
@@ -209,6 +213,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
       selectedWrongLetter = null;
       answersLog = [];
       startedAt = new Date();
+      timerIntervalId = startActivityTimer(startedAt);
       showQuestion();
     });
     wrap.appendChild(retryBtn);

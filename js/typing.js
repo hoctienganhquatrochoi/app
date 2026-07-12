@@ -25,6 +25,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
   var activityType = mode === "hint" ? "typing-hint" : "typing-blank";
   var keyInputEl = null;
   var keyboardModeEnabled = false;
+  var timerIntervalId = startActivityTimer(startedAt);
 
   function setupQuestion() {
     var item = pool[qIndex];
@@ -62,6 +63,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
     var scoreEl = document.createElement("span");
     scoreEl.textContent = "Đúng: " + score;
     header.appendChild(scoreEl);
+    header.appendChild(buildTimerEl(startedAt));
     wrap.appendChild(header);
 
     var audioBtn = document.createElement("button");
@@ -290,6 +292,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
   }
 
   function showResult() {
+    clearInterval(timerIntervalId);
     submitQuizAttempt(unitId, activityType, score, pool.length, startedAt, answersLog);
 
     container.innerHTML = "";
@@ -319,6 +322,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
       score = 0;
       answersLog = [];
       startedAt = new Date();
+      timerIntervalId = startActivityTimer(startedAt);
       showQuestion();
     });
     wrap.appendChild(retryBtn);
