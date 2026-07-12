@@ -27,8 +27,10 @@ async function loadResults() {
   var unitId = document.getElementById("resultsUnitSelect").value;
   var activityType = document.getElementById("resultsActivitySelect").value;
 
+  var leaderboardWrap = document.getElementById("resultsLeaderboardWrap");
   var studentWrap = document.getElementById("resultsByStudentWrap");
   var questionWrap = document.getElementById("resultsByQuestionWrap");
+  leaderboardWrap.textContent = "Đang tải...";
   studentWrap.textContent = "Đang tải...";
   questionWrap.textContent = "";
 
@@ -40,12 +42,104 @@ async function loadResults() {
     .order("submitted_at", { ascending: false });
 
   if (result.error) {
-    studentWrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
+    leaderboardWrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
+    studentWrap.textContent = "";
     return;
   }
 
+  renderLeaderboard(result.data);
   renderResultsByStudent(result.data);
   renderResultsByQuestion(result.data);
+}
+
+function attemptDurationMs(attempt) {
+  return new Date(attempt.submitted_at).getTime() - new Date(attempt.started_at).getTime();
+}
+
+function bestAttemptPerStudent(attempts) {
+  var bestByStudent = {};
+  attempts.forEach(function (attempt) {
+    var key = attempt.student_id || attempt.id;
+    var current = bestByStudent[key];
+    if (!current) {
+      bestByStudent[key] = attempt;
+      return;
+    }
+    var rate = attempt.total ? attempt.score / attempt.total : 0;
+    var currentRate = current.total ? current.score / current.total : 0;
+    if (rate > currentRate || (rate === currentRate && attemptDurationMs(attempt) < attemptDurationMs(current))) {
+      bestByStudent[key] = attempt;
+    }
+  });
+  return Object.keys(bestByStudent).map(function (key) {
+    return bestByStudent[key];
+  });
+}
+
+function renderLeaderboard(attempts) {
+  var wrap = document.getElementById("resultsLeaderboardWrap");
+  wrap.innerHTML = "";
+
+  if (!attempts.length) {
+    var empty = document.createElement("div");
+    empty.className = "admin-status";
+    empty.textContent = "Chưa có lượt làm bài nào.";
+    wrap.appendChild(empty);
+    return;
+  }
+
+  var ranked = bestAttemptPerStudent(attempts).sort(function (a, b) {
+    var rateA = a.total ? a.score / a.total : 0;
+    var rateB = b.total ? b.score / b.total : 0;
+    if (rateB !== rateA) {
+      return rateB - rateA;
+    }
+    return attemptDurationMs(a) - attemptDurationMs(b);
+  });
+
+  var medals = ["🥇", "🥈", "🥉"];
+
+  var table = document.createElement("table");
+  table.className = "admin-table";
+
+  var thead = document.createElement("thead");
+  var headRow = document.createElement("tr");
+  var headers = ["Hạng", "Học sinh", "Điểm", "Thời gian làm"];
+  var i;
+  for (i = 0; i < headers.length; i++) {
+    var th = document.createElement("th");
+    th.textContent = headers[i];
+    headRow.appendChild(th);
+  }
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  var tbody = document.createElement("tbody");
+  for (i = 0; i < ranked.length; i++) {
+    var attempt = ranked[i];
+    var tr = document.createElement("tr");
+
+    var rankTd = document.createElement("td");
+    rankTd.textContent = medals[i] || ("#" + (i + 1));
+    tr.appendChild(rankTd);
+
+    var nameTd = document.createElement("td");
+    nameTd.textContent = attempt.game_students ? attempt.game_students.full_name : "(đã xóa tài khoản)";
+    tr.appendChild(nameTd);
+
+    var scoreTd = document.createElement("td");
+    scoreTd.textContent = attempt.score + " / " + attempt.total;
+    tr.appendChild(scoreTd);
+
+    var durationTd = document.createElement("td");
+    durationTd.textContent = formatDuration(attempt.started_at, attempt.submitted_at);
+    tr.appendChild(durationTd);
+
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+
+  wrap.appendChild(table);
 }
 
 function renderResultsByStudent(attempts) {
@@ -65,7 +159,7 @@ function renderResultsByStudent(attempts) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  var headers = ["Học sinh", "Giờ nộp", "Đúng/Tổng", "Thời gian làm"];
+  var headers = ["Học sinh", "Giờ nộp", "Đúng/Tổng", "Thời gian làm", "Câu làm sai"];
   var i;
   for (i = 0; i < headers.length; i++) {
     var th = document.createElement("th");
@@ -95,6 +189,17 @@ function renderResultsByStudent(attempts) {
     var durationTd = document.createElement("td");
     durationTd.textContent = formatDuration(attempt.started_at, attempt.submitted_at);
     tr.appendChild(durationTd);
+
+    var wrongTd = document.createElement("td");
+    var wrongWords = (attempt.answers || [])
+      .filter(function (ans) {
+        return !ans.is_correct;
+      })
+      .map(function (ans) {
+        return ans.word_en;
+      });
+    wrongTd.textContent = wrongWords.length ? wrongWords.join(", ") : "—";
+    tr.appendChild(wrongTd);
 
     tbody.appendChild(tr);
   }
