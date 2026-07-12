@@ -15,6 +15,21 @@ function getSelectedClass() {
   return DATA.classes[0];
 }
 
+function findUnitById(unitId) {
+  var c, s, u;
+  for (c = 0; c < DATA.classes.length; c++) {
+    var subjects = DATA.subjectsByClass[DATA.classes[c].id] || [];
+    for (s = 0; s < subjects.length; s++) {
+      for (u = 0; u < subjects[s].units.length; u++) {
+        if (subjects[s].units[u].id === unitId) {
+          return subjects[s].units[u];
+        }
+      }
+    }
+  }
+  return null;
+}
+
 function autoOpenFirstSubject() {
   var subjects = DATA.subjectsByClass[state.selectedClassId] || [];
   state.openSubjectId = subjects.length ? subjects[0].id : null;
@@ -112,8 +127,14 @@ async function loadUnitDisabledActivities(unitId) {
     .eq("unit_id", unitId)
     .maybeSingle();
 
-  unitDisabledActivities[unitId] = (result.data && result.data.disabled_activity_ids) || [];
-  unitActivityOrder[unitId] = result.data ? result.data.activity_order : null;
+  if (result.data) {
+    unitDisabledActivities[unitId] = result.data.disabled_activity_ids || [];
+    unitActivityOrder[unitId] = result.data.activity_order;
+  } else {
+    var unit = findUnitById(unitId);
+    unitDisabledActivities[unitId] = unit ? unit.activities.map(function (a) { return a.id; }) : [];
+    unitActivityOrder[unitId] = null;
+  }
   renderSidebar();
 }
 
