@@ -6,6 +6,10 @@ function unitDisplayName(unit) {
   return unit.name || ("(Không đặt tên #" + unit.id.slice(-4) + ")");
 }
 
+function subjectDisplayName(subject) {
+  return subject.name || "(Không tên – mặc định)";
+}
+
 var CLASS_LEVEL_OPTIONS = [
   ["mamnon", "Mầm non"],
   ["tieuhoc", "Tiểu học"],
@@ -110,12 +114,21 @@ function populateUnitSubjectPicker(prefix) {
   for (i = 0; i < subjects.length; i++) {
     var opt = document.createElement("option");
     opt.value = subjects[i].id;
-    opt.text = subjects[i].name;
+    opt.text = subjectDisplayName(subjects[i]);
     select.appendChild(opt);
   }
   if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
     select.value = previous;
   }
+  if (prefix === "add") {
+    updateAddUnitSubjectFieldVisibility();
+  }
+}
+
+function updateAddUnitSubjectFieldVisibility() {
+  var classId = document.getElementById("addUnitClassPicker").value;
+  var subjects = DATA.subjectsByClass[classId] || [];
+  document.getElementById("addUnitSubjectField").style.display = subjects.length > 1 ? "" : "none";
 }
 
 /* ---------- small row-builder helpers ---------- */
@@ -362,7 +375,7 @@ function buildSubjectRow(subj, idx, total) {
   var tr = document.createElement("tr");
 
   var nameTd = document.createElement("td");
-  nameTd.textContent = subj.name;
+  nameTd.textContent = subjectDisplayName(subj);
   tr.appendChild(nameTd);
 
   var badgeTd = document.createElement("td");
@@ -472,7 +485,7 @@ async function handleDeleteSubject(subjectId) {
     window.alert("Môn học này còn Unit, hãy xóa hết Unit trong môn trước.");
     return;
   }
-  if (!window.confirm("Xóa môn học \"" + (subject ? subject.name : subjectId) + "\"?")) {
+  if (!window.confirm("Xóa môn học \"" + (subject ? subjectDisplayName(subject) : subjectId) + "\"?")) {
     return;
   }
 
@@ -501,7 +514,7 @@ function renderUnitList() {
     });
     wrap.appendChild(buildTableWrap(matches.length > 0, function (tbody) {
       matches.forEach(function (entry) {
-        var pathLabel = entry.cls.name + " › " + entry.subj.name;
+        var pathLabel = entry.cls.name + " › " + subjectDisplayName(entry.subj);
         tbody.appendChild(editingUnitId === entry.unit.id ? buildUnitEditRow(entry.unit) : buildUnitRow(entry.unit, pathLabel));
       });
     }));
@@ -671,7 +684,7 @@ function updateComposeBreadcrumb() {
     parts.push(cls.name);
   }
   if (subject) {
-    parts.push(subject.name);
+    parts.push(subjectDisplayName(subject));
   }
   if (unit) {
     parts.push(unitDisplayName(unit));
@@ -703,18 +716,30 @@ function switchComposeSubTab(target) {
 }
 
 async function handleAddUnit() {
+  var classId = document.getElementById("addUnitClassPicker").value;
   var subjectId = document.getElementById("addUnitSubjectPicker").value;
   var name = document.getElementById("newUnitName").value.trim();
+  var newSortOrder = 0;
 
   if (!subjectId) {
-    window.alert("Chưa có Môn học nào, hãy tạo Môn học trước");
-    return;
+    if (!classId) {
+      window.alert("Chưa có Lớp nào, hãy tạo Lớp trước");
+      return;
+    }
+    setCurriculumStatus("Đang tạo bài học...");
+    subjectId = genId("s");
+    var subjectResult = await supabaseClient.from("game_subjects").insert({ id: subjectId, class_id: classId, name: "", color: "#2D6A4F", sort_order: 0 });
+    if (subjectResult.error) {
+      setCurriculumStatus("Lỗi tạo bài học: " + subjectResult.error.message);
+      return;
+    }
+  } else {
+    var subjectForOrder = findSubjectById(subjectId);
+    newSortOrder = subjectForOrder ? subjectForOrder.units.length : 0;
   }
 
   setCurriculumStatus("Đang tạo bài học...");
   var newId = genId("u");
-  var subjectForOrder = findSubjectById(subjectId);
-  var newSortOrder = subjectForOrder ? subjectForOrder.units.length : 0;
   var result = await supabaseClient.from("game_units").insert({ id: newId, subject_id: subjectId, name: name, content_type: "vocab", sort_order: newSortOrder });
   if (result.error) {
     setCurriculumStatus("Lỗi tạo bài học: " + result.error.message);

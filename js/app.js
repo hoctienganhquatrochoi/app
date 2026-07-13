@@ -76,8 +76,27 @@ function renderSidebar() {
 
   var subjects = DATA.subjectsByClass[state.selectedClassId] || [];
   for (i = 0; i < subjects.length; i++) {
-    sidebar.appendChild(buildSubjectItem(subjects[i]));
+    if (subjects[i].name) {
+      sidebar.appendChild(buildSubjectItem(subjects[i]));
+    } else {
+      sidebar.appendChild(buildUnitListForSubject(subjects[i]));
+    }
   }
+}
+
+function buildUnitListForSubject(subject) {
+  var unitList = document.createElement("div");
+  unitList.className = "unit-list";
+  var i;
+  for (i = 0; i < subject.units.length; i++) {
+    var unit = subject.units[i];
+    if (unit.name) {
+      unitList.appendChild(buildUnitItem(unit));
+    } else {
+      unitList.appendChild(buildFlattenedUnitActivities(unit));
+    }
+  }
+  return unitList;
 }
 
 function buildSubjectItem(subject) {
@@ -114,18 +133,7 @@ function buildSubjectItem(subject) {
   wrap.appendChild(header);
 
   if (isOpen) {
-    var unitList = document.createElement("div");
-    unitList.className = "unit-list";
-    var i;
-    for (i = 0; i < subject.units.length; i++) {
-      var unit = subject.units[i];
-      if (unit.name) {
-        unitList.appendChild(buildUnitItem(unit));
-      } else {
-        unitList.appendChild(buildFlattenedUnitActivities(unit));
-      }
-    }
-    wrap.appendChild(unitList);
+    wrap.appendChild(buildUnitListForSubject(subject));
   }
 
   return wrap;
