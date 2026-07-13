@@ -20,6 +20,34 @@ function addYears(dateStr, years) {
   return formatISODate(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate());
 }
 
+function parseVNDateToISO(input) {
+  var trimmed = (input || "").trim();
+  if (!trimmed) {
+    return null;
+  }
+  var match = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (!match) {
+    return "invalid";
+  }
+  var d = parseInt(match[1], 10);
+  var m = parseInt(match[2], 10);
+  var y = parseInt(match[3], 10);
+  if (m < 1 || m > 12 || d < 1 || d > 31) {
+    return "invalid";
+  }
+  return formatISODate(y, m, d);
+}
+
+function formatISOToVN(iso) {
+  if (!iso) {
+    return "";
+  }
+  var p = parseISODate(iso);
+  var dd = p.d < 10 ? "0" + p.d : "" + p.d;
+  var mm = p.m < 10 ? "0" + p.m : "" + p.m;
+  return dd + "/" + mm + "/" + p.y;
+}
+
 function daysUntil(dateStr) {
   var now = new Date();
   var todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
@@ -71,7 +99,7 @@ function collectClassAccessChecklist(container) {
 }
 
 function populateNewStudentClassAccess() {
-  buildClassAccessChecklist(document.getElementById("newStudentClassAccessWrap"), []);
+  applyGroupDefaultClassAccess();
 }
 
 async function loadStudents() {
@@ -242,9 +270,10 @@ function buildStudentEditRow(row) {
 
   var dobTd = document.createElement("td");
   var dobInput = document.createElement("input");
-  dobInput.type = "date";
+  dobInput.type = "text";
   dobInput.className = "admin-inline-input";
-  dobInput.value = row.date_of_birth || "";
+  dobInput.placeholder = "dd/mm/yyyy";
+  dobInput.value = formatISOToVN(row.date_of_birth);
   dobTd.appendChild(dobInput);
   tr.appendChild(dobTd);
 
@@ -281,12 +310,17 @@ function buildStudentEditRow(row) {
     var newUsername = usernameTd.inputEl.value.trim();
     var newPin = pinTd.inputEl.value.trim();
     var newGroupId = groupSelect.value;
-    var newDob = dobInput.value || null;
+    var newDob = parseVNDateToISO(dobInput.value);
     var newPhone = phoneTd.inputEl.value.trim() || null;
     var newAllowedClassIds = collectClassAccessChecklist(classAccessWrap);
 
     if (!newName || !newUsername || !newPin) {
       window.alert("Họ tên, Tài khoản, Mã PIN không được để trống");
+      return;
+    }
+
+    if (newDob === "invalid") {
+      window.alert("Ngày sinh không đúng định dạng dd/mm/yyyy");
       return;
     }
 
@@ -360,7 +394,7 @@ async function handleAddStudent(e) {
 
   var fullName = document.getElementById("newStudentName").value.trim();
   var groupId = document.getElementById("newStudentGroupSelect").value;
-  var dob = document.getElementById("newStudentDob").value || null;
+  var dob = parseVNDateToISO(document.getElementById("newStudentDob").value);
   var phone = document.getElementById("newStudentPhone").value.trim() || null;
   var username = document.getElementById("newStudentUsername").value.trim();
   var pin = document.getElementById("newStudentPin").value.trim();
@@ -368,6 +402,11 @@ async function handleAddStudent(e) {
 
   if (!fullName || !username || !pin) {
     window.alert("Cần nhập đủ Họ tên, Tài khoản, Mã PIN");
+    return;
+  }
+
+  if (dob === "invalid") {
+    window.alert("Ngày sinh không đúng định dạng dd/mm/yyyy");
     return;
   }
 

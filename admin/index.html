@@ -345,6 +345,8 @@ What's this? | It's a pen."></textarea>
           <button type="button" class="admin-btn-primary" id="addTeachingGroupBtn">+ Thêm nhóm</button>
         </div>
       </div>
+      <label class="admin-label">Lớp mặc định mở cho học sinh nhóm này (học sinh mới thêm sẽ tự tích sẵn, vẫn sửa được riêng từng em)</label>
+      <div id="newTeachingGroupClassAccessWrap"></div>
       <div class="admin-status" id="teachingGroupStatus"></div>
     </div>
 
@@ -361,7 +363,7 @@ What's this? | It's a pen."></textarea>
         </div>
         <div class="admin-field">
           <label>Ngày sinh (không bắt buộc)</label>
-          <input type="date" id="newStudentDob">
+          <input type="text" id="newStudentDob" placeholder="dd/mm/yyyy">
         </div>
         <div class="admin-field">
           <label>SĐT (không bắt buộc)</label>

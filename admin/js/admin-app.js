@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   loadActivityToggles();
   initCurriculumManage();
   renderTeachingGroupList();
+  populateNewTeachingGroupClassAccess();
 
   document.getElementById("unitSelect").addEventListener("change", loadVocabTable);
   document.getElementById("unitSelect").addEventListener("change", function () {
@@ -44,6 +45,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);
   document.getElementById("addStudentForm").addEventListener("submit", handleAddStudent);
   document.getElementById("addTeachingGroupBtn").addEventListener("click", handleAddTeachingGroup);
+  document.getElementById("newStudentGroupSelect").addEventListener("change", applyGroupDefaultClassAccess);
   document.getElementById("studentsGroupFilter").addEventListener("change", function () {
     loadStudents();
     populateAssignmentUnitSelect();
