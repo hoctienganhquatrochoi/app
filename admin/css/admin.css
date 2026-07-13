@@ -94,6 +94,15 @@
   border-bottom: 1px solid #F0EDE4;
 }
 
+.student-class-access-list {
+  max-height: 160px;
+  min-width: 200px;
+  overflow-y: auto;
+  border: 1px solid #E5E0D5;
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+
 .admin-toggle-item-label {
   display: flex;
   align-items: center;

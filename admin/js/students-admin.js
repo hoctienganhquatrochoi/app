@@ -29,6 +29,51 @@ function daysUntil(dateStr) {
   return Math.round(diffMs / (1000 * 60 * 60 * 24));
 }
 
+function allowedClassNamesLabel(allowedClassIds) {
+  if (!allowedClassIds || !allowedClassIds.length) {
+    return "(chỉ bài demo)";
+  }
+  var names = allowedClassIds.map(function (id) {
+    var cls = findClassById(id);
+    return cls ? cls.name : null;
+  }).filter(function (n) { return !!n; });
+  return names.length ? names.join(", ") : "(chỉ bài demo)";
+}
+
+function buildClassAccessChecklist(container, selectedIds) {
+  container.innerHTML = "";
+  container.className = "student-class-access-list";
+  DATA.classes.forEach(function (cls) {
+    var row = document.createElement("div");
+    row.className = "admin-toggle-item";
+
+    var label = document.createElement("label");
+    label.className = "admin-toggle-item-label";
+
+    var checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = cls.id;
+    checkbox.checked = selectedIds.indexOf(cls.id) !== -1;
+    label.appendChild(checkbox);
+
+    var text = document.createElement("span");
+    text.textContent = cls.name;
+    label.appendChild(text);
+
+    row.appendChild(label);
+    container.appendChild(row);
+  });
+}
+
+function collectClassAccessChecklist(container) {
+  var checkboxes = container.querySelectorAll("input[type=checkbox]:checked");
+  return Array.prototype.map.call(checkboxes, function (cb) { return cb.value; });
+}
+
+function populateNewStudentClassAccess() {
+  buildClassAccessChecklist(document.getElementById("newStudentClassAccessWrap"), []);
+}
+
 async function loadStudents() {
   var wrap = document.getElementById("studentsTableWrap");
   wrap.textContent = "Đang tải...";
@@ -47,6 +92,7 @@ async function loadStudents() {
 
   renderStudentsTable(result.data);
   loadAssignmentList();
+  populateNewStudentClassAccess();
 }
 
 var currentStudentRows = [];
@@ -70,7 +116,7 @@ function renderStudentsTable(rows) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  var headers = ["Tên", "Nhóm học sinh", "Ngày sinh", "SĐT", "Tài khoản", "Ngày bắt đầu", "Hạn dùng", "Trạng thái", ""];
+  var headers = ["Tên", "Nhóm học sinh", "Lớp được học", "Ngày sinh", "SĐT", "Tài khoản", "Ngày bắt đầu", "Hạn dùng", "Trạng thái", ""];
   var i;
   for (i = 0; i < headers.length; i++) {
     var th = document.createElement("th");
@@ -97,6 +143,7 @@ function buildStudentRow(row) {
   var tr = document.createElement("tr");
   tr.appendChild(makeTd(row.full_name));
   tr.appendChild(makeTd(groupNameById(row.group_id)));
+  tr.appendChild(makeTd(allowedClassNamesLabel(row.allowed_class_ids)));
   tr.appendChild(makeTd(row.date_of_birth));
   tr.appendChild(makeTd(row.phone_number));
   tr.appendChild(makeTd(row.username));
@@ -187,6 +234,12 @@ function buildStudentEditRow(row) {
   groupTd.appendChild(groupSelect);
   tr.appendChild(groupTd);
 
+  var classAccessTd = document.createElement("td");
+  var classAccessWrap = document.createElement("div");
+  buildClassAccessChecklist(classAccessWrap, row.allowed_class_ids || []);
+  classAccessTd.appendChild(classAccessWrap);
+  tr.appendChild(classAccessTd);
+
   var dobTd = document.createElement("td");
   var dobInput = document.createElement("input");
   dobInput.type = "date";
@@ -230,6 +283,7 @@ function buildStudentEditRow(row) {
     var newGroupId = groupSelect.value;
     var newDob = dobInput.value || null;
     var newPhone = phoneTd.inputEl.value.trim() || null;
+    var newAllowedClassIds = collectClassAccessChecklist(classAccessWrap);
 
     if (!newName || !newUsername || !newPin) {
       window.alert("Họ tên, Tài khoản, Mã PIN không được để trống");
@@ -248,7 +302,8 @@ function buildStudentEditRow(row) {
         date_of_birth: newDob,
         phone_number: newPhone,
         username: newUsername,
-        pin: newPin
+        pin: newPin,
+        allowed_class_ids: newAllowedClassIds
       })
       .eq("id", row.id);
 
@@ -309,6 +364,7 @@ async function handleAddStudent(e) {
   var phone = document.getElementById("newStudentPhone").value.trim() || null;
   var username = document.getElementById("newStudentUsername").value.trim();
   var pin = document.getElementById("newStudentPin").value.trim();
+  var allowedClassIds = collectClassAccessChecklist(document.getElementById("newStudentClassAccessWrap"));
 
   if (!fullName || !username || !pin) {
     window.alert("Cần nhập đủ Họ tên, Tài khoản, Mã PIN");
@@ -331,7 +387,8 @@ async function handleAddStudent(e) {
     username: username,
     pin: pin,
     start_date: start,
-    expiry_date: expiry
+    expiry_date: expiry,
+    allowed_class_ids: allowedClassIds
   });
 
   if (result.error) {

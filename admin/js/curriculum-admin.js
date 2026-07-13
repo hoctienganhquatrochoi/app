@@ -573,6 +573,14 @@ function buildUnitRow(unit, pathLabel, idx, total) {
   actionTd.appendChild(buildActionBtn("Soạn", "admin-btn-primary", function () {
     selectUnitForComposing(unit.id);
   }));
+  actionTd.appendChild(buildActionBtn(unit.is_demo ? "🎁 Demo (bấm để khóa)" : "🔒 Khóa (bấm để mở demo)", "admin-btn-secondary", async function () {
+    var result = await supabaseClient.from("game_units").update({ is_demo: !unit.is_demo }).eq("id", unit.id);
+    if (result.error) {
+      window.alert("Lỗi lưu: " + result.error.message);
+      return;
+    }
+    await refreshCurriculumEverywhere();
+  }));
   actionTd.appendChild(buildActionBtn("Sửa", "admin-btn-secondary", function () {
     editingUnitId = unit.id;
     renderUnitList();

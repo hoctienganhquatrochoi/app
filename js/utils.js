@@ -1,31 +1,20 @@
-function speak(text, lang, onEnd) {
+function speak(text, lang) {
   if (!("speechSynthesis" in window)) {
-    if (onEnd) {
-      onEnd();
-    }
     return;
   }
   window.speechSynthesis.cancel();
   var utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang;
-  if (onEnd) {
-    utter.onend = onEnd;
-    utter.onerror = onEnd;
-  }
   window.speechSynthesis.speak(utter);
 }
 
-function playAudioUrlOrSpeak(url, text, lang, onEnd) {
+function playAudioUrlOrSpeak(url, text, lang) {
   if (url) {
     var audio = new Audio(url);
-    if (onEnd) {
-      audio.addEventListener("ended", onEnd);
-      audio.addEventListener("error", onEnd);
-    }
     audio.play();
     return;
   }
-  speak(text, lang, onEnd);
+  speak(text, lang);
 }
 
 function shuffleArray(arr) {

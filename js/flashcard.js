@@ -1,28 +1,7 @@
-var FC_AUTO_READ_PAUSE_MS = 2000;
-
 function renderFlashcard(container, breadcrumbText, items) {
   var index = 0;
-  var autoRead = false;
-  var autoAdvanceTimeoutId = null;
-
-  function scheduleAutoAdvance() {
-    if (autoAdvanceTimeoutId) {
-      clearTimeout(autoAdvanceTimeoutId);
-    }
-    autoAdvanceTimeoutId = setTimeout(function () {
-      autoAdvanceTimeoutId = null;
-      if (autoRead) {
-        goNext();
-      }
-    }, FC_AUTO_READ_PAUSE_MS);
-  }
 
   function draw() {
-    if (autoAdvanceTimeoutId) {
-      clearTimeout(autoAdvanceTimeoutId);
-      autoAdvanceTimeoutId = null;
-    }
-
     container.innerHTML = "";
 
     var wrap = document.createElement("div");
@@ -32,24 +11,6 @@ function renderFlashcard(container, breadcrumbText, items) {
     progress.className = "fc-progress";
     progress.textContent = "Thẻ " + (index + 1) + " / " + items.length;
     wrap.appendChild(progress);
-
-    var autoReadLabel = document.createElement("label");
-    autoReadLabel.className = "fc-auto-read-toggle";
-    var autoReadCheckbox = document.createElement("input");
-    autoReadCheckbox.type = "checkbox";
-    autoReadCheckbox.checked = autoRead;
-    autoReadCheckbox.addEventListener("change", function () {
-      autoRead = autoReadCheckbox.checked;
-      if (autoRead) {
-        scheduleAutoAdvance();
-      } else if (autoAdvanceTimeoutId) {
-        clearTimeout(autoAdvanceTimeoutId);
-        autoAdvanceTimeoutId = null;
-      }
-    });
-    autoReadLabel.appendChild(autoReadCheckbox);
-    autoReadLabel.appendChild(document.createTextNode(" Tự động đọc (đọc xong tự chuyển từ mới, dùng khi dạy cả lớp)"));
-    wrap.appendChild(autoReadLabel);
 
     var item = items[index];
 
@@ -107,11 +68,7 @@ function renderFlashcard(container, breadcrumbText, items) {
     wrap.appendChild(nav);
     container.appendChild(wrap);
 
-    playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US", function () {
-      if (autoRead) {
-        scheduleAutoAdvance();
-      }
-    });
+    playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US");
   }
 
   function goNext() {

@@ -72,6 +72,7 @@ function logoutStudent() {
   currentStudent = null;
   storeStudent(null);
   renderAuthArea();
+  renderSidebar();
 }
 
 async function handleLoginSubmit() {
@@ -105,10 +106,11 @@ async function handleLoginSubmit() {
     return;
   }
 
-  currentStudent = { id: student.id, full_name: student.full_name, group_id: student.group_id };
+  currentStudent = { id: student.id, full_name: student.full_name, group_id: student.group_id, allowed_class_ids: student.allowed_class_ids || [] };
   storeStudent(currentStudent);
   closeLoginModal();
   renderAuthArea();
+  renderSidebar();
 }
 
 document.addEventListener("DOMContentLoaded", function () {

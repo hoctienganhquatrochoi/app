@@ -148,12 +148,13 @@ function buildFlattenedUnitActivities(unit) {
   list.className = "activity-list activity-list-flat";
   var disabledIds = unitDisabledActivities[unit.id] || [];
   var activities = orderedActivitiesForUnit(unit);
+  var needsAccess = !unitHasAccess(unit);
   var i;
   for (i = 0; i < activities.length; i++) {
     if (disabledIds.indexOf(activities[i].id) !== -1) {
       continue;
     }
-    list.appendChild(buildActivityItem(unit, activities[i]));
+    list.appendChild(buildActivityItem(unit, activities[i], needsAccess));
   }
   return list;
 }
@@ -217,6 +218,13 @@ function buildUnitItem(unit) {
   name.textContent = unit.name;
   header.appendChild(name);
 
+  if (!unitHasAccess(unit)) {
+    var lockBadge = document.createElement("span");
+    lockBadge.className = "lock-badge";
+    lockBadge.textContent = "🔒";
+    header.appendChild(lockBadge);
+  }
+
   var progress = document.createElement("span");
   progress.className = "unit-progress";
   progress.textContent = unit.progress;
@@ -239,12 +247,13 @@ function buildUnitItem(unit) {
     list.className = "activity-list";
     var disabledIds = unitDisabledActivities[unit.id] || [];
     var activities = orderedActivitiesForUnit(unit);
+    var needsAccess = !unitHasAccess(unit);
     var i;
     for (i = 0; i < activities.length; i++) {
       if (disabledIds.indexOf(activities[i].id) !== -1) {
         continue;
       }
-      list.appendChild(buildActivityItem(unit, activities[i]));
+      list.appendChild(buildActivityItem(unit, activities[i], needsAccess));
     }
     wrap.appendChild(list);
   }
@@ -252,14 +261,31 @@ function buildUnitItem(unit) {
   return wrap;
 }
 
-function buildActivityItem(unit, activity) {
+function unitHasAccess(unit) {
+  if (unit.is_demo) {
+    return true;
+  }
+  return !!(currentStudent && (currentStudent.allowed_class_ids || []).indexOf(unit.class_id) !== -1);
+}
+
+function showAccessNeededMessage() {
+  if (currentStudent) {
+    window.alert("🔒 Bài này chưa nằm trong gói học của em, liên hệ trung tâm để được mở thêm nhé!");
+    return;
+  }
+  openLoginModal();
+  document.getElementById("loginStatus").textContent = "🔒 Bài này cần tài khoản để học. Đăng nhập hoặc liên hệ trung tâm để được cấp tài khoản nhé!";
+}
+
+function buildActivityItem(unit, activity, needsAccess) {
   var item = document.createElement("div");
   var isSelected = state.selectedActivity && state.selectedActivity.unit.id === unit.id && state.selectedActivity.activity.id === activity.id;
+  var isLocked = needsAccess || activity.locked;
   var classes = "activity-item";
   if (isSelected) {
     classes += " selected";
   }
-  if (activity.locked) {
+  if (isLocked) {
     classes += " locked";
   }
   item.className = classes;
@@ -268,7 +294,7 @@ function buildActivityItem(unit, activity) {
   label.textContent = activity.name;
   item.appendChild(label);
 
-  if (activity.locked) {
+  if (isLocked) {
     var badge = document.createElement("span");
     badge.className = "lock-badge";
     badge.textContent = "🔒";
@@ -276,7 +302,10 @@ function buildActivityItem(unit, activity) {
   }
 
   item.addEventListener("click", function () {
-    if (activity.locked) {
+    if (isLocked) {
+      if (needsAccess) {
+        showAccessNeededMessage();
+      }
       return;
     }
     state.selectedActivity = { unit: unit, activity: activity };
@@ -529,22 +558,5 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   document.getElementById("refreshBtn").addEventListener("click", function () {
     window.location.href = window.location.pathname + "?refresh=" + Date.now();
-  });
-
-  document.getElementById("fullscreenToggleBtn").addEventListener("click", function () {
-    var mainEl = document.getElementById("mainContent");
-    if (!document.fullscreenElement) {
-      if (mainEl.requestFullscreen) {
-        mainEl.requestFullscreen();
-      }
-    } else if (document.exitFullscreen) {
-      document.exitFullscreen();
-    }
-  });
-
-  document.addEventListener("fullscreenchange", function () {
-    var btn = document.getElementById("fullscreenToggleBtn");
-    btn.textContent = document.fullscreenElement ? "⤢" : "⛶";
-    btn.title = document.fullscreenElement ? "Thu nhỏ lại" : "Phóng to toàn màn hình";
   });
 });

@@ -1,3 +1,7 @@
+function isAutoTypingChar(ch) {
+  return ch === " " || ch === "-";
+}
+
 function shuffleWordLetters(word) {
   var letters = word.toLowerCase().split("");
   if (letters.length <= 1) {
@@ -30,10 +34,13 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
   function setupQuestion() {
     var item = pool[qIndex];
     var letters = item.en.toLowerCase().split("");
-    blanks = letters.map(function () {
-      return null;
+    blanks = letters.map(function (ch) {
+      return isAutoTypingChar(ch) ? { id: "auto", char: ch, used: true, auto: true } : null;
     });
-    var shuffled = shuffleWordLetters(item.en);
+    var tileChars = letters.filter(function (ch) {
+      return !isAutoTypingChar(ch);
+    }).join("");
+    var shuffled = shuffleWordLetters(tileChars);
     tiles = shuffled.map(function (ch, i) {
       return { id: i, char: ch, used: false };
     });
@@ -181,7 +188,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
   function removeLastFilledBlank() {
     var i;
     for (i = blanks.length - 1; i >= 0; i--) {
-      if (blanks[i]) {
+      if (blanks[i] && !blanks[i].auto) {
         var tileId = blanks[i].id;
         var t;
         for (t = 0; t < tiles.length; t++) {
@@ -197,13 +204,18 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
   }
 
   function buildBlankSlot(index) {
+    var b = blanks[index];
     var slot = document.createElement("button");
-    slot.className = "ty-blank" + (blanks[index] ? " filled" : "");
+    var className = "ty-blank" + (b ? " filled" : "");
+    if (b && b.auto) {
+      className += " auto" + (b.char === " " ? " space" : "");
+    }
+    slot.className = className;
     slot.type = "button";
-    slot.textContent = blanks[index] ? blanks[index].char : "";
-    if (blanks[index]) {
+    slot.textContent = b ? b.char : "";
+    if (b && !b.auto) {
       slot.addEventListener("click", function () {
-        var filledTileId = blanks[index].id;
+        var filledTileId = b.id;
         var i;
         for (i = 0; i < tiles.length; i++) {
           if (tiles[i].id === filledTileId) {

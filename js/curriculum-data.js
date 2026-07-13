@@ -67,7 +67,7 @@ async function loadCurriculumData() {
     if (!subj) {
       continue;
     }
-    var unit = { id: urow.id, subject_id: urow.subject_id, name: urow.name, content_type: urow.content_type, sort_order: urow.sort_order, progress: "" };
+    var unit = { id: urow.id, subject_id: urow.subject_id, class_id: subj.class_id, name: urow.name, content_type: urow.content_type, is_demo: !!urow.is_demo, sort_order: urow.sort_order, progress: "" };
     unit.activities = buildActivitiesForUnit(unit).concat(wordwallByUnit[urow.id] || []);
     subj.units.push(unit);
   }
