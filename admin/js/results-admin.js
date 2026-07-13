@@ -1,5 +1,5 @@
 function populateResultsUnitSelect() {
-  populateUnitSelect("resultsUnitSelect");
+  populateSearchableUnitSelect("resultsUnitSearch", "resultsUnitSelect");
 }
 
 var currentResultsAssignmentId = null;

@@ -52,6 +52,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     populateAssignmentUnitSelect();
     populateAssignmentStudentAccess();
   });
+  document.getElementById("resultsUnitSearch").addEventListener("input", populateResultsUnitSelect);
   document.getElementById("resultsUnitSelect").addEventListener("change", function () {
     currentResultsAssignmentId = null;
     loadResults();

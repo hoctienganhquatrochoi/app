@@ -25,11 +25,11 @@ function buildAllUnitsFlat() {
   }
 }
 
-function populateAssignmentUnitSelect() {
+function populateSearchableUnitSelect(searchInputId, selectId) {
   buildAllUnitsFlat();
 
-  var search = (document.getElementById("assignmentUnitSearch").value || "").trim().toLowerCase();
-  var select = document.getElementById("assignmentUnitSelect");
+  var search = (document.getElementById(searchInputId).value || "").trim().toLowerCase();
+  var select = document.getElementById(selectId);
   var previous = select.value;
   select.innerHTML = "";
 
@@ -56,6 +56,10 @@ function populateAssignmentUnitSelect() {
   if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
     select.value = previous;
   }
+}
+
+function populateAssignmentUnitSelect() {
+  populateSearchableUnitSelect("assignmentUnitSearch", "assignmentUnitSelect");
 }
 
 function setAssignmentStatus(text) {
