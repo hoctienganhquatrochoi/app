@@ -2,6 +2,15 @@ function populateResultsUnitSelect() {
   populateUnitSelect("resultsUnitSelect");
 }
 
+var currentResultsAssignmentId = null;
+
+function renderResultsFilterStatus() {
+  var el = document.getElementById("resultsFilterStatus");
+  el.textContent = currentResultsAssignmentId
+    ? "Đang xem: chỉ kết quả của bài giao này (không tính luyện tự do)."
+    : "";
+}
+
 function formatDateTime(iso) {
   var d = new Date(iso);
   var dd = d.getDate() < 10 ? "0" + d.getDate() : "" + d.getDate();
@@ -46,6 +55,11 @@ async function loadResults() {
   if (groupFilter) {
     query = query.eq("game_students.group_id", groupFilter);
   }
+  if (currentResultsAssignmentId) {
+    query = query.eq("assignment_id", currentResultsAssignmentId);
+  }
+
+  renderResultsFilterStatus();
 
   var result = await query;
 

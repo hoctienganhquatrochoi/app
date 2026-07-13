@@ -52,9 +52,18 @@ document.addEventListener("DOMContentLoaded", async function () {
     populateAssignmentUnitSelect();
     populateAssignmentStudentAccess();
   });
-  document.getElementById("resultsUnitSelect").addEventListener("change", loadResults);
-  document.getElementById("resultsActivitySelect").addEventListener("change", loadResults);
-  document.getElementById("resultsGroupFilter").addEventListener("change", loadResults);
+  document.getElementById("resultsUnitSelect").addEventListener("change", function () {
+    currentResultsAssignmentId = null;
+    loadResults();
+  });
+  document.getElementById("resultsActivitySelect").addEventListener("change", function () {
+    currentResultsAssignmentId = null;
+    loadResults();
+  });
+  document.getElementById("resultsGroupFilter").addEventListener("change", function () {
+    currentResultsAssignmentId = null;
+    loadResults();
+  });
   document.getElementById("addAssignmentBtn").addEventListener("click", handleAddAssignment);
   document.getElementById("assignmentUnitSearch").addEventListener("input", populateAssignmentUnitSelect);
   document.getElementById("closeWordwallTemplateModalBtn").addEventListener("click", closeWordwallTemplateModal);
