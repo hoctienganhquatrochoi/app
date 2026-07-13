@@ -15,6 +15,7 @@ var currentWordwallRows = [];
 var editingWordwallId = null;
 var bulkEditWordwallMode = false;
 var bulkEditWordwallRefs = [];
+var wordwallBulkEditTbody = null;
 
 async function loadWordwallList() {
   var unitId = document.getElementById("unitSelect").value;
@@ -41,6 +42,13 @@ function buildWordwallToolbar() {
   toolbar.className = "admin-table-toolbar";
 
   if (bulkEditWordwallMode) {
+    var addRowBtn = document.createElement("button");
+    addRowBtn.className = "admin-btn-secondary";
+    addRowBtn.type = "button";
+    addRowBtn.textContent = "+ Thêm dòng mới";
+    addRowBtn.addEventListener("click", addBlankBulkEditWordwallRow);
+    toolbar.appendChild(addRowBtn);
+
     var saveAllBtn = document.createElement("button");
     saveAllBtn.className = "admin-btn-primary";
     saveAllBtn.type = "button";
@@ -107,6 +115,10 @@ function renderWordwallList(rows) {
 
   table.appendChild(tbody);
   wrap.appendChild(table);
+
+  wordwallBulkEditTbody = bulkEditWordwallMode ? tbody : null;
+
+  document.getElementById("addWordwallBox").style.display = bulkEditWordwallMode ? "none" : "";
 }
 
 function buildWordwallBulkEditRow(row) {
@@ -117,7 +129,7 @@ function buildWordwallBulkEditRow(row) {
   var nameInput = document.createElement("input");
   nameInput.type = "text";
   nameInput.className = "admin-inline-input";
-  nameInput.value = row.name;
+  nameInput.value = row ? row.name : "";
   nameInput.setAttribute("list", "wordwallNameSuggestions");
   nameTd.appendChild(nameInput);
   tr.appendChild(nameTd);
@@ -126,7 +138,7 @@ function buildWordwallBulkEditRow(row) {
   var urlInput = document.createElement("input");
   urlInput.type = "text";
   urlInput.className = "admin-inline-input";
-  urlInput.value = row.embed_url || "";
+  urlInput.value = row ? (row.embed_url || "") : "";
   urlInput.placeholder = "<iframe src=\"https://wordwall.net/embed/...\"...>";
   urlTd.appendChild(urlInput);
   tr.appendChild(urlTd);
@@ -139,7 +151,15 @@ function buildWordwallBulkEditRow(row) {
   delBtn.type = "button";
   delBtn.textContent = "Xóa";
   delBtn.addEventListener("click", function () {
-    deleteWordwall(row.id);
+    if (row) {
+      deleteWordwall(row.id);
+    } else {
+      var idx = bulkEditWordwallRefs.findIndex(function (r) { return r.nameInput === nameInput; });
+      if (idx !== -1) {
+        bulkEditWordwallRefs.splice(idx, 1);
+      }
+      tr.remove();
+    }
   });
   actionsTd.appendChild(delBtn);
   tr.appendChild(actionsTd);
@@ -149,13 +169,22 @@ function buildWordwallBulkEditRow(row) {
   return tr;
 }
 
+function addBlankBulkEditWordwallRow() {
+  if (!wordwallBulkEditTbody) {
+    return;
+  }
+  wordwallBulkEditTbody.appendChild(buildWordwallBulkEditRow(null));
+}
+
 async function handleSaveAllWordwall() {
+  var unitId = document.getElementById("unitSelect").value;
   var saveBtn = document.getElementById("saveAllWordwallBtn");
   var status = document.getElementById("saveAllWordwallStatus");
   saveBtn.disabled = true;
 
   var i;
   var savedCount = 0;
+  var nextSortOrder = currentWordwallRows.length;
   for (i = 0; i < bulkEditWordwallRefs.length; i++) {
     var ref = bulkEditWordwallRefs[i];
     var newName = ref.nameInput.value.trim();
@@ -166,6 +195,20 @@ async function handleSaveAllWordwall() {
     }
 
     var newEmbedUrl = newRaw ? extractWordwallEmbedUrl(newRaw) : null;
+
+    if (!ref.row) {
+      status.textContent = "Đang lưu " + (savedCount + 1) + "/" + bulkEditWordwallRefs.length + ": " + newName + "...";
+      await supabaseClient.from("game_wordwall_activities").insert({
+        unit_id: unitId,
+        name: newName,
+        embed_url: newEmbedUrl,
+        sort_order: nextSortOrder
+      });
+      nextSortOrder++;
+      savedCount++;
+      continue;
+    }
+
     if (newName === ref.row.name && newEmbedUrl === (ref.row.embed_url || null)) {
       continue;
     }
