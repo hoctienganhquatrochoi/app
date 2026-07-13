@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   populateAllGroupSelects();
   populateResultsUnitSelect();
   populateAssignmentUnitSelect();
+  populateAssignmentStudentAccess();
   loadVocabTable();
   loadSpeakingTestList().then(loadSpeakingTable);
   loadWordwallList();
@@ -49,6 +50,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("studentsGroupFilter").addEventListener("change", function () {
     loadStudents();
     populateAssignmentUnitSelect();
+    populateAssignmentStudentAccess();
   });
   document.getElementById("resultsUnitSelect").addEventListener("change", loadResults);
   document.getElementById("resultsActivitySelect").addEventListener("change", loadResults);

@@ -62,6 +62,43 @@ function setAssignmentStatus(text) {
   document.getElementById("assignmentStatus").textContent = text || "";
 }
 
+async function populateAssignmentStudentAccess() {
+  var groupId = document.getElementById("studentsGroupFilter").value;
+  var wrap = document.getElementById("assignmentStudentAccessWrap");
+  wrap.innerHTML = "";
+
+  if (!groupId) {
+    return;
+  }
+
+  var result = await supabaseClient
+    .from("game_students")
+    .select("id, full_name")
+    .eq("group_id", groupId)
+    .order("full_name", { ascending: true });
+
+  (result.data || []).forEach(function (student) {
+    var row = document.createElement("div");
+    row.className = "admin-toggle-item";
+
+    var label = document.createElement("label");
+    label.className = "admin-toggle-item-label";
+
+    var checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = student.id;
+    checkbox.checked = true;
+    label.appendChild(checkbox);
+
+    var text = document.createElement("span");
+    text.textContent = student.full_name;
+    label.appendChild(text);
+
+    row.appendChild(label);
+    wrap.appendChild(row);
+  });
+}
+
 function formatDueAt(iso) {
   var d = new Date(iso);
   var dd = d.getDate() < 10 ? "0" + d.getDate() : "" + d.getDate();
@@ -92,6 +129,10 @@ async function handleAddAssignment() {
 
   var unitSelect = document.getElementById("assignmentUnitSelect");
   var unitLabel = unitSelect.options[unitSelect.selectedIndex].text;
+  var presentStudentIds = Array.prototype.map.call(
+    document.querySelectorAll("#assignmentStudentAccessWrap input[type=checkbox]:checked"),
+    function (cb) { return cb.value; }
+  );
 
   setAssignmentStatus("Đang giao bài...");
 
@@ -101,14 +142,26 @@ async function handleAddAssignment() {
     activity_type: activityType,
     activity_name: unitLabel + " – " + ASSIGNMENT_ACTIVITY_LABELS[activityType],
     due_at: new Date(dueAtLocal).toISOString()
-  });
+  }).select().single();
 
   if (result.error) {
     setAssignmentStatus("Lỗi giao bài: " + result.error.message);
     return;
   }
 
-  setAssignmentStatus("Đã giao bài.");
+  if (presentStudentIds.length) {
+    var accessRows = presentStudentIds.map(function (studentId) {
+      return { assignment_id: result.data.id, student_id: studentId };
+    });
+    var accessResult = await supabaseClient.from("game_assignment_access").insert(accessRows);
+    if (accessResult.error) {
+      setAssignmentStatus("Đã giao bài nhưng lỗi mở khóa cho học sinh: " + accessResult.error.message);
+      loadAssignmentList();
+      return;
+    }
+  }
+
+  setAssignmentStatus("Đã giao bài và mở bài cho " + presentStudentIds.length + " học sinh có mặt.");
   document.getElementById("assignmentDueAt").value = "";
   loadAssignmentList();
 }

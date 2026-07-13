@@ -68,6 +68,36 @@ function closeLoginModal() {
   document.getElementById("loginModalOverlay").style.display = "none";
 }
 
+async function fetchAssignedUnitIds(studentId) {
+  var result = await supabaseClient
+    .from("game_assignment_access")
+    .select("game_assignments!inner(unit_id, due_at)")
+    .eq("student_id", studentId)
+    .gte("game_assignments.due_at", new Date().toISOString());
+
+  if (result.error || !result.data) {
+    return [];
+  }
+  return result.data.map(function (row) { return row.game_assignments.unit_id; });
+}
+
+async function refreshCurrentStudentAccess() {
+  if (!currentStudent) {
+    return;
+  }
+  var result = await supabaseClient
+    .from("game_students")
+    .select("allowed_class_ids")
+    .eq("id", currentStudent.id)
+    .maybeSingle();
+
+  if (result.data) {
+    currentStudent.allowed_class_ids = result.data.allowed_class_ids || [];
+  }
+  currentStudent.assignedUnitIds = await fetchAssignedUnitIds(currentStudent.id);
+  storeStudent(currentStudent);
+}
+
 function logoutStudent() {
   currentStudent = null;
   storeStudent(null);
@@ -107,15 +137,21 @@ async function handleLoginSubmit() {
   }
 
   currentStudent = { id: student.id, full_name: student.full_name, group_id: student.group_id, allowed_class_ids: student.allowed_class_ids || [] };
+  currentStudent.assignedUnitIds = await fetchAssignedUnitIds(currentStudent.id);
   storeStudent(currentStudent);
   closeLoginModal();
   renderAuthArea();
   renderSidebar();
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
   currentStudent = loadStoredStudent();
   renderAuthArea();
+
+  if (currentStudent) {
+    await refreshCurrentStudentAccess();
+    renderSidebar();
+  }
 
   document.getElementById("loginCancelBtn").addEventListener("click", closeLoginModal);
   document.getElementById("loginSubmitBtn").addEventListener("click", handleLoginSubmit);

@@ -265,7 +265,13 @@ function unitHasAccess(unit) {
   if (unit.is_demo) {
     return true;
   }
-  return !!(currentStudent && (currentStudent.allowed_class_ids || []).indexOf(unit.class_id) !== -1);
+  if (!currentStudent) {
+    return false;
+  }
+  if ((currentStudent.allowed_class_ids || []).indexOf(unit.class_id) !== -1) {
+    return true;
+  }
+  return (currentStudent.assignedUnitIds || []).indexOf(unit.id) !== -1;
 }
 
 function showAccessNeededMessage() {
