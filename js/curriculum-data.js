@@ -1,12 +1,12 @@
 var VOCAB_ACTIVITY_TEMPLATE = [
   { id: "a1", name: "Thẻ đọc", type: "flashcard", locked: false },
-  { id: "a2a", name: "Nghe từ, chọn hình", type: "quiz", format: "word-to-image", locked: false, maxQuestions: 30 },
-  { id: "a2b", name: "Nhìn hình, chọn từ", type: "quiz", format: "image-to-word", locked: false, maxQuestions: 30 },
-  { id: "a2d", name: "Chỉ nhìn hình, đoán từ", type: "quiz", format: "image-only-to-word", locked: false, maxQuestions: 30 },
-  { id: "a2e", name: "Nghe từ, chọn nghĩa", type: "quiz", format: "word-to-meaning", locked: false, maxQuestions: 30 },
-  { id: "a3", name: "Đánh máy có gợi ý", type: "typing", mode: "hint", locked: false, maxQuestions: 30 },
-  { id: "a4", name: "Đánh máy không gợi ý", type: "typing", mode: "blank", locked: false, maxQuestions: 30 },
-  { id: "a12", name: "Khuyết chữ cái", type: "missing-letter", locked: false, maxQuestions: 30 },
+  { id: "a2a", name: "Nghe từ, chọn hình", type: "quiz", format: "word-to-image", locked: false },
+  { id: "a2b", name: "Nhìn hình, chọn từ", type: "quiz", format: "image-to-word", locked: false },
+  { id: "a2d", name: "Chỉ nhìn hình, đoán từ", type: "quiz", format: "image-only-to-word", locked: false },
+  { id: "a2e", name: "Nghe từ, chọn nghĩa", type: "quiz", format: "word-to-meaning", locked: false },
+  { id: "a3", name: "Đánh máy có gợi ý", type: "typing", mode: "hint", locked: false },
+  { id: "a4", name: "Đánh máy không gợi ý", type: "typing", mode: "blank", locked: false },
+  { id: "a12", name: "Khuyết chữ cái", type: "missing-letter", locked: false },
   { id: "a13", name: "Kiểm tra nói", type: "speaking", locked: false }
 ];
 
