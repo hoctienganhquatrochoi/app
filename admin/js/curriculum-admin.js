@@ -545,13 +545,6 @@ function buildUnitRow(unit, pathLabel, idx, total) {
   nameTd.textContent = pathLabel ? pathLabel + " › " + unitDisplayName(unit) : unitDisplayName(unit);
   tr.appendChild(nameTd);
 
-  var badgeTd = document.createElement("td");
-  var badge = document.createElement("span");
-  badge.className = "status-badge status-active";
-  badge.textContent = unit.content_type === "vocab" ? "Từ vựng" : "Ngữ pháp";
-  badgeTd.appendChild(badge);
-  tr.appendChild(badgeTd);
-
   var moveTd = document.createElement("td");
   if (typeof idx === "number") {
     var upBtn = buildActionBtn("↑", "admin-btn-secondary", function () { moveUnit(unit.id, -1); });
@@ -594,21 +587,6 @@ function buildUnitEditRow(unit) {
   nameTd.appendChild(nameInput);
   tr.appendChild(nameTd);
 
-  var typeTd = document.createElement("td");
-  var typeSelect = document.createElement("select");
-  typeSelect.className = "admin-inline-input";
-  [["vocab", "Từ vựng"], ["grammar", "Ngữ pháp (sắp ra mắt)"]].forEach(function (pair) {
-    var opt = document.createElement("option");
-    opt.value = pair[0];
-    opt.text = pair[1];
-    if (unit.content_type === pair[0]) {
-      opt.selected = true;
-    }
-    typeSelect.appendChild(opt);
-  });
-  typeTd.appendChild(typeSelect);
-  tr.appendChild(typeTd);
-
   var classTd = document.createElement("td");
   var classSelect = document.createElement("select");
   classSelect.className = "admin-inline-input";
@@ -648,17 +626,12 @@ function buildUnitEditRow(unit) {
   var actionTd = document.createElement("td");
   actionTd.appendChild(buildActionBtn("Lưu", "admin-btn-primary", async function () {
     var newName = nameInput.value.trim();
-    if (!newName) {
-      window.alert("Cần nhập tên bài");
-      return;
-    }
     if (!subjectSelect.value) {
       window.alert("Lớp này chưa có Môn học nào");
       return;
     }
     var result = await supabaseClient.from("game_units").update({
       name: newName,
-      content_type: typeSelect.value,
       subject_id: subjectSelect.value
     }).eq("id", unit.id);
     if (result.error) {
@@ -710,26 +683,12 @@ function selectUnitForComposing(unitId) {
   var select = document.getElementById("unitSelect");
   select.value = unitId;
   updateComposeBreadcrumb();
-  updateComposeAreaVisibility();
-  if (findUnitById(unitId) && findUnitById(unitId).content_type === "vocab") {
-    switchComposeSubTab("vocab");
-  }
+  switchComposeSubTab("vocab");
   loadVocabTable();
   loadSpeakingTestList().then(loadSpeakingTable);
   loadWordwallList();
   loadActivityToggles();
   showUnitsComposeView();
-}
-
-function updateComposeAreaVisibility() {
-  var unitId = document.getElementById("unitSelect").value;
-  var unit = findUnitById(unitId);
-  var isVocab = !!unit && unit.content_type === "vocab";
-
-  document.getElementById("bulkAddForm").style.display = isVocab ? "" : "none";
-  document.getElementById("vocabTableWrap").style.display = isVocab ? "" : "none";
-  document.getElementById("composeSubTabs").style.display = isVocab ? "" : "none";
-  document.getElementById("grammarComposeMsg").style.display = isVocab ? "none" : "block";
 }
 
 function switchComposeSubTab(target) {
@@ -746,7 +705,6 @@ function switchComposeSubTab(target) {
 async function handleAddUnit() {
   var subjectId = document.getElementById("addUnitSubjectPicker").value;
   var name = document.getElementById("newUnitName").value.trim();
-  var contentType = document.getElementById("newUnitContentType").value;
 
   if (!subjectId) {
     window.alert("Chưa có Môn học nào, hãy tạo Môn học trước");
@@ -757,7 +715,7 @@ async function handleAddUnit() {
   var newId = genId("u");
   var subjectForOrder = findSubjectById(subjectId);
   var newSortOrder = subjectForOrder ? subjectForOrder.units.length : 0;
-  var result = await supabaseClient.from("game_units").insert({ id: newId, subject_id: subjectId, name: name, content_type: contentType, sort_order: newSortOrder });
+  var result = await supabaseClient.from("game_units").insert({ id: newId, subject_id: subjectId, name: name, content_type: "vocab", sort_order: newSortOrder });
   if (result.error) {
     setCurriculumStatus("Lỗi tạo bài học: " + result.error.message);
     return;
@@ -826,7 +784,6 @@ async function refreshCurriculumEverywhere(opts) {
   if (selectedUnitId) {
     document.getElementById("unitSelect").value = selectedUnitId;
   }
-  updateComposeAreaVisibility();
   loadVocabTable();
   loadSpeakingTestList().then(loadSpeakingTable);
   loadWordwallList();
@@ -840,7 +797,6 @@ function initCurriculumManage() {
   renderClassList();
   renderSubjectList();
   renderUnitList();
-  updateComposeAreaVisibility();
   showUnitsManageView();
   switchCurriculumSubTab("classes");
 
@@ -858,7 +814,6 @@ function initCurriculumManage() {
   });
   document.getElementById("manageUnitSubjectPicker").addEventListener("change", renderUnitList);
   document.getElementById("unitSearchInput").addEventListener("input", renderUnitList);
-  document.getElementById("unitSelect").addEventListener("change", updateComposeAreaVisibility);
   document.getElementById("backToUnitListBtn").addEventListener("click", showUnitsManageView);
 
   var subTabs = document.querySelectorAll("#curriculumSubTabs .admin-subtab");

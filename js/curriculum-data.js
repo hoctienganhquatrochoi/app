@@ -10,12 +10,8 @@ var VOCAB_ACTIVITY_TEMPLATE = [
   { id: "a13", name: "Kiểm tra nói", type: "speaking", locked: false }
 ];
 
-var PLACEHOLDER_ACTIVITY = [
-  { id: "placeholder", name: "Ngữ pháp (sắp ra mắt)", type: "placeholder", locked: true }
-];
-
 function buildActivitiesForUnit(unit) {
-  return unit.content_type === "vocab" ? VOCAB_ACTIVITY_TEMPLATE : PLACEHOLDER_ACTIVITY;
+  return VOCAB_ACTIVITY_TEMPLATE;
 }
 
 function buildWordwallActivities(rows) {
