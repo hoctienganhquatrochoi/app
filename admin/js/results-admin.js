@@ -156,20 +156,7 @@ window.addEventListener("afterprint", function () {
   document.body.classList.remove("printing-history");
 });
 
-function buildDiligenceRanking(rows) {
-  var box = document.createElement("div");
-  box.className = "admin-form";
-  box.style.marginBottom = "16px";
-
-  var heading = document.createElement("h3");
-  heading.textContent = "🏅 Xếp hạng chuyên cần";
-  box.appendChild(heading);
-
-  var hint = document.createElement("p");
-  hint.className = "admin-hint";
-  hint.textContent = "Xếp theo số lượt học nhiều nhất trong khoảng thời gian đang chọn, sau đó theo điểm trung bình.";
-  box.appendChild(hint);
-
+function computeDiligenceRanking(rows) {
   var byStudent = {};
   var order = [];
   rows.forEach(function (row) {
@@ -186,7 +173,7 @@ function buildDiligenceRanking(rows) {
     }
   });
 
-  var ranked = order.map(function (name) {
+  return order.map(function (name) {
     var s = byStudent[name];
     var dayCount = Object.keys(s.days).length;
     var avgPercent = s.totalSum > 0 ? Math.round((s.scoreSum / s.totalSum) * 100) : null;
@@ -197,6 +184,21 @@ function buildDiligenceRanking(rows) {
     }
     return (b.avgPercent || 0) - (a.avgPercent || 0);
   });
+}
+
+function buildDiligenceRanking(ranked) {
+  var box = document.createElement("div");
+  box.className = "admin-form";
+  box.style.marginBottom = "16px";
+
+  var heading = document.createElement("h3");
+  heading.textContent = "🏅 Xếp hạng chuyên cần";
+  box.appendChild(heading);
+
+  var hint = document.createElement("p");
+  hint.className = "admin-hint";
+  hint.textContent = "Xếp theo số lượt học nhiều nhất trong khoảng thời gian đang chọn, sau đó theo điểm trung bình.";
+  box.appendChild(hint);
 
   var medals = ["🥇", "🥈", "🥉"];
   var table = document.createElement("table");
@@ -268,19 +270,18 @@ function renderGroupHistory(attempts, opens) {
     return;
   }
 
-  wrap.appendChild(buildDiligenceRanking(rows));
+  var ranked = computeDiligenceRanking(rows);
+  wrap.appendChild(buildDiligenceRanking(ranked));
 
   var byStudent = {};
-  var studentNames = [];
   rows.forEach(function (row) {
     if (!byStudent[row.studentName]) {
       byStudent[row.studentName] = [];
-      studentNames.push(row.studentName);
     }
     byStudent[row.studentName].push(row);
   });
-  studentNames.sort(function (a, b) {
-    return a.localeCompare(b, "vi");
+  var studentNames = ranked.map(function (s) {
+    return s.name;
   });
 
   studentNames.forEach(function (name) {
