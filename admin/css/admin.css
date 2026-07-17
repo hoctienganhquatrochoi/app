@@ -111,6 +111,19 @@
   margin-bottom: 12px;
 }
 
+.history-student-header {
+  background: #DCEAE2;
+  color: #1B4332;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin: 16px 0 6px;
+  font-size: 15px;
+}
+
+.history-student-header:first-child {
+  margin-top: 0;
+}
+
 .admin-toggle-item-label {
   display: flex;
   align-items: center;

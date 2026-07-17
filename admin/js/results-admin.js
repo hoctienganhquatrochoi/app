@@ -268,47 +268,57 @@ function renderGroupHistory(attempts, opens) {
     return;
   }
 
-  rows.sort(function (a, b) {
-    var nameCompare = a.studentName.localeCompare(b.studentName, "vi");
-    if (nameCompare !== 0) {
-      return nameCompare;
-    }
-    return new Date(b.dateIso) - new Date(a.dateIso);
-  });
-
   wrap.appendChild(buildDiligenceRanking(rows));
 
-  var table = document.createElement("table");
-  table.className = "admin-table";
+  var byStudent = {};
+  var studentNames = [];
+  rows.forEach(function (row) {
+    if (!byStudent[row.studentName]) {
+      byStudent[row.studentName] = [];
+      studentNames.push(row.studentName);
+    }
+    byStudent[row.studentName].push(row);
+  });
+  studentNames.sort(function (a, b) {
+    return a.localeCompare(b, "vi");
+  });
 
-  var thead = document.createElement("thead");
-  var headRow = document.createElement("tr");
-  var headers = ["Học sinh", "Bài", "Dạng bài", "Điểm", "Ngày làm"];
-  var i;
-  for (i = 0; i < headers.length; i++) {
-    var th = document.createElement("th");
-    th.textContent = headers[i];
-    headRow.appendChild(th);
-  }
-  thead.appendChild(headRow);
-  table.appendChild(thead);
+  studentNames.forEach(function (name) {
+    var studentRows = byStudent[name].sort(function (a, b) {
+      return new Date(b.dateIso) - new Date(a.dateIso);
+    });
 
-  var tbody = document.createElement("tbody");
-  for (i = 0; i < rows.length; i++) {
-    var row = rows[i];
-    var tr = document.createElement("tr");
+    var studentHeader = document.createElement("h4");
+    studentHeader.className = "history-student-header";
+    studentHeader.textContent = "👤 " + name + " (" + studentRows.length + " lượt)";
+    wrap.appendChild(studentHeader);
 
-    tr.appendChild(makeTd(row.studentName));
-    tr.appendChild(makeTd(row.unitLabel));
-    tr.appendChild(makeTd(row.activityLabel));
-    tr.appendChild(makeTd(row.scoreLabel));
-    tr.appendChild(makeTd(formatDateTime(row.dateIso)));
+    var table = document.createElement("table");
+    table.className = "admin-table";
 
-    tbody.appendChild(tr);
-  }
-  table.appendChild(tbody);
+    var thead = document.createElement("thead");
+    var headRow = document.createElement("tr");
+    ["Bài", "Dạng bài", "Điểm", "Ngày làm"].forEach(function (text) {
+      var th = document.createElement("th");
+      th.textContent = text;
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
 
-  wrap.appendChild(table);
+    var tbody = document.createElement("tbody");
+    studentRows.forEach(function (row) {
+      var tr = document.createElement("tr");
+      tr.appendChild(makeTd(row.unitLabel));
+      tr.appendChild(makeTd(row.activityLabel));
+      tr.appendChild(makeTd(row.scoreLabel));
+      tr.appendChild(makeTd(formatDateTime(row.dateIso)));
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+
+    wrap.appendChild(table);
+  });
 }
 
 function formatDateTime(iso) {
