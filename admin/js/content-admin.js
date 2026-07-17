@@ -1,3 +1,7 @@
+function stripParenthetical(text) {
+  return (text || "").replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
+}
+
 function populateUnitSelect(selectId) {
   var select = document.getElementById(selectId || "unitSelect");
   var previous = select.value;
@@ -358,7 +362,7 @@ async function handleSaveAll() {
 
     if (textChanged) {
       var noop = function () {};
-      updatePayload.audio_en_url = await generateAudio(newWordEn, "en-US", ref.row.unit_id + "/" + ref.row.id + "_en.mp3", noop);
+      updatePayload.audio_en_url = await generateAudio(stripParenthetical(newWordEn), "en-US", ref.row.unit_id + "/" + ref.row.id + "_en.mp3", noop);
     }
 
     await supabaseClient.from("game_vocab").update(updatePayload).eq("id", ref.row.id);
@@ -471,7 +475,7 @@ function buildVocabEditRow(row) {
     if (textChanged) {
       saveBtn.textContent = "Đang tạo âm thanh...";
       var noop = function () {};
-      updatePayload.audio_en_url = await generateAudio(newWordEn, "en-US", row.unit_id + "/" + row.id + "_en.mp3", noop);
+      updatePayload.audio_en_url = await generateAudio(stripParenthetical(newWordEn), "en-US", row.unit_id + "/" + row.id + "_en.mp3", noop);
     } else {
       saveBtn.textContent = "Đang lưu...";
     }
@@ -654,11 +658,13 @@ async function handleBulkAdd(e) {
     var item = validItems[i];
     setBulkStatus("Đang xử lý " + (i + 1) + "/" + validItems.length + ": " + item.word_en + "...");
 
+    var spokenWordEn = stripParenthetical(item.word_en);
+
     if (!item.phonetic) {
-      item.phonetic = await lookupPhonetic(item.word_en);
+      item.phonetic = await lookupPhonetic(spokenWordEn);
     }
     if (!item.meaning_vi) {
-      item.meaning_vi = await translateToVietnamese(item.word_en, setBulkStatus);
+      item.meaning_vi = await translateToVietnamese(spokenWordEn, setBulkStatus);
     }
 
     var insertResult = await supabaseClient
@@ -680,7 +686,7 @@ async function handleBulkAdd(e) {
 
     var row = insertResult.data;
 
-    var audioEnUrl = await generateAudio(item.word_en, "en-US", unitId + "/" + row.id + "_en.mp3", setBulkStatus);
+    var audioEnUrl = await generateAudio(spokenWordEn, "en-US", unitId + "/" + row.id + "_en.mp3", setBulkStatus);
 
     await supabaseClient
       .from("game_vocab")

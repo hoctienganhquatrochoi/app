@@ -1,9 +1,13 @@
+function stripParentheticalForSpeech(text) {
+  return (text || "").replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
+}
+
 function speak(text, lang) {
   if (!("speechSynthesis" in window)) {
     return;
   }
   window.speechSynthesis.cancel();
-  var utter = new SpeechSynthesisUtterance(text);
+  var utter = new SpeechSynthesisUtterance(stripParentheticalForSpeech(text));
   utter.lang = lang;
   window.speechSynthesis.speak(utter);
 }
