@@ -276,12 +276,11 @@ function renderAssignmentList(rows) {
 }
 
 function goToAssignmentResults(assignmentRow) {
-  switchTab("results");
   document.getElementById("resultsUnitSelect").value = assignmentRow.unit_id;
   document.getElementById("resultsActivitySelect").value = assignmentRow.activity_type;
   document.getElementById("resultsGroupFilter").value = assignmentRow.group_id;
   currentResultsAssignmentId = assignmentRow.id;
-  loadResults();
+  switchTab("results");
 }
 
 async function deleteAssignment(id) {
