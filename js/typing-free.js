@@ -2,6 +2,9 @@ function normalizeFreeTypingAnswer(str) {
   return (str || "").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
+var FREE_TYPING_CORRECT_DELAY_MS = 1200;
+var FREE_TYPING_WRONG_DELAY_MS = 2000;
+
 function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions, mode) {
   var pool = pickQuestionPool(items, maxQuestions);
   var qIndex = 0;
@@ -12,9 +15,11 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
   var answered = false;
   var lastCorrect = false;
   var lastAnswerValue = "";
+  var firstAttemptDone = false;
   var timerIntervalId = startActivityTimer(startedAt);
   var tabTracker = startTabSwitchTracker();
   var currentWrap = null;
+  var advanceTimeoutId = null;
 
   function handleGlobalKeydown(e) {
     if (!currentWrap || !currentWrap.isConnected) {
@@ -25,7 +30,12 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
       return;
     }
     if (answered) {
-      goNext();
+      clearTimeout(advanceTimeoutId);
+      if (lastCorrect) {
+        goNext();
+      } else {
+        retry();
+      }
     } else {
       var inputEl = container.querySelector(".ft-input");
       checkAnswer(inputEl ? inputEl.value : "");
@@ -35,6 +45,7 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
 
   function showQuestion() {
     answered = false;
+    firstAttemptDone = false;
     draw();
     var item = pool[qIndex];
     playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US");
@@ -92,15 +103,8 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
 
       var feedback = document.createElement("div");
       feedback.className = "ft-feedback " + (lastCorrect ? "ft-correct" : "ft-wrong");
-      feedback.textContent = lastCorrect ? "✓ Chính xác!" : ("✗ Đáp án đúng: " + stripParentheticalForSpeech(item.en));
+      feedback.textContent = lastCorrect ? "✓ Chính xác!" : ("✗ Đáp án đúng: " + stripParentheticalForSpeech(item.en) + " — thử gõ lại nhé!");
       wrap.appendChild(feedback);
-
-      var nextBtn = document.createElement("button");
-      nextBtn.className = "quiz-continue-btn";
-      nextBtn.type = "button";
-      nextBtn.textContent = qIndex < pool.length - 1 ? "Câu tiếp theo" : "Xem kết quả";
-      nextBtn.addEventListener("click", goNext);
-      wrap.appendChild(nextBtn);
     }
 
     wrap.appendChild(buildProgressFooter(qIndex + 1, pool.length));
@@ -120,15 +124,34 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
     lastCorrect = isCorrect;
     lastAnswerValue = value;
     answered = true;
-    if (isCorrect) {
-      score++;
+
+    if (!firstAttemptDone) {
+      firstAttemptDone = true;
+      if (isCorrect) {
+        score++;
+      }
+      answersLog.push({
+        vocab_id: item.id,
+        word_en: item.en,
+        selected_label: value,
+        is_correct: isCorrect
+      });
     }
-    answersLog.push({
-      vocab_id: item.id,
-      word_en: item.en,
-      selected_label: value,
-      is_correct: isCorrect
-    });
+
+    draw();
+
+    advanceTimeoutId = setTimeout(function () {
+      if (isCorrect) {
+        goNext();
+      } else {
+        retry();
+      }
+    }, isCorrect ? FREE_TYPING_CORRECT_DELAY_MS : FREE_TYPING_WRONG_DELAY_MS);
+  }
+
+  function retry() {
+    answered = false;
+    lastAnswerValue = "";
     draw();
   }
 
