@@ -9,6 +9,13 @@ function renderFlipCard(container, breadcrumbText, items, unitId) {
   var flipped = false;
   var timerIntervalId = startActivityTimer(startedAt);
 
+  function showCard() {
+    flipped = false;
+    draw();
+    var item = pool[qIndex];
+    playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US");
+  }
+
   function draw() {
     container.innerHTML = "";
     var item = pool[qIndex];
@@ -38,7 +45,7 @@ function renderFlipCard(container, breadcrumbText, items, unitId) {
       card.appendChild(audioBtn);
 
       var wordLine = document.createElement("div");
-      wordLine.className = "fc-word no-visual";
+      wordLine.className = "fc-word no-visual flip-card-word-front";
       wordLine.textContent = item.en;
       card.appendChild(wordLine);
 
@@ -107,15 +114,14 @@ function renderFlipCard(container, breadcrumbText, items, unitId) {
       retryQueue.push(item);
     }
 
-    flipped = false;
     if (qIndex < pool.length - 1) {
       qIndex++;
-      draw();
+      showCard();
     } else if (retryQueue.length) {
       pool = shuffleArray(retryQueue);
       retryQueue = [];
       qIndex = 0;
-      draw();
+      showCard();
     } else {
       showResult();
     }
@@ -162,15 +168,14 @@ function renderFlipCard(container, breadcrumbText, items, unitId) {
       score = 0;
       answersLog = [];
       firstAttemptResult = {};
-      flipped = false;
       startedAt = new Date();
       timerIntervalId = startActivityTimer(startedAt);
-      draw();
+      showCard();
     });
     wrap.appendChild(retryBtn);
 
     container.appendChild(wrap);
   }
 
-  draw();
+  showCard();
 }
