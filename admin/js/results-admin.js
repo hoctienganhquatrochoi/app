@@ -20,6 +20,106 @@ function formatDateTime(iso) {
   return hh + ":" + mi + " " + dd + "/" + mm + "/" + d.getFullYear();
 }
 
+async function loadAllAssignmentsForResults() {
+  var wrap = document.getElementById("resultsAssignmentListWrap");
+  wrap.textContent = "Đang tải...";
+
+  var result = await supabaseClient
+    .from("game_assignments")
+    .select("*")
+    .order("due_at", { ascending: false });
+
+  if (result.error) {
+    wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
+    return;
+  }
+
+  renderResultsAssignmentList(result.data);
+}
+
+function renderResultsAssignmentList(rows) {
+  var wrap = document.getElementById("resultsAssignmentListWrap");
+  wrap.innerHTML = "";
+
+  if (!rows.length) {
+    var empty = document.createElement("div");
+    empty.className = "admin-status";
+    empty.textContent = "Chưa giao bài nào.";
+    wrap.appendChild(empty);
+    return;
+  }
+
+  buildAllUnitsFlat();
+  var unitLabelById = {};
+  ALL_UNITS_FLAT.forEach(function (u) {
+    unitLabelById[u.id] = u.label;
+  });
+
+  var table = document.createElement("table");
+  table.className = "admin-table";
+
+  var thead = document.createElement("thead");
+  var headRow = document.createElement("tr");
+  var headers = ["Bài kiểm tra", "Nhóm", "Hạn nộp", ""];
+  var i;
+  for (i = 0; i < headers.length; i++) {
+    var th = document.createElement("th");
+    th.textContent = headers[i];
+    headRow.appendChild(th);
+  }
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  var tbody = document.createElement("tbody");
+  var now = new Date();
+  for (i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    var tr = document.createElement("tr");
+
+    var nameTd = document.createElement("td");
+    nameTd.textContent = row.activity_name + " (" + (unitLabelById[row.unit_id] || row.unit_id) + ")";
+    tr.appendChild(nameTd);
+
+    var groupTd = document.createElement("td");
+    groupTd.textContent = groupNameById(row.group_id);
+    tr.appendChild(groupTd);
+
+    var dueTd = document.createElement("td");
+    var badge = document.createElement("span");
+    var isPast = new Date(row.due_at) < now;
+    badge.className = "status-badge " + (isPast ? "status-expired" : "status-active");
+    badge.textContent = formatDateTime(row.due_at) + (isPast ? " (đã hết hạn)" : "");
+    dueTd.appendChild(badge);
+    tr.appendChild(dueTd);
+
+    var actionTd = document.createElement("td");
+    var viewBtn = document.createElement("button");
+    viewBtn.className = "admin-btn-secondary";
+    viewBtn.type = "button";
+    viewBtn.textContent = "Xem kết quả";
+    viewBtn.addEventListener("click", function (assignmentRow) {
+      return function () {
+        jumpToAssignmentResults(assignmentRow);
+      };
+    }(row));
+    actionTd.appendChild(viewBtn);
+    tr.appendChild(actionTd);
+
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+
+  wrap.appendChild(table);
+}
+
+function jumpToAssignmentResults(assignmentRow) {
+  document.getElementById("resultsUnitSelect").value = assignmentRow.unit_id;
+  document.getElementById("resultsActivitySelect").value = assignmentRow.activity_type;
+  document.getElementById("resultsGroupFilter").value = assignmentRow.group_id;
+  currentResultsAssignmentId = assignmentRow.id;
+  loadResults();
+}
+
 function formatDuration(startedAtIso, submittedAtIso) {
   var startMs = new Date(startedAtIso).getTime();
   var endMs = new Date(submittedAtIso).getTime();

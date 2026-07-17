@@ -1,5 +1,5 @@
 function isAutoTypingChar(ch) {
-  return !/[a-zA-Z]/.test(ch);
+  return ch === " " || /[.,!?;:]/.test(ch);
 }
 
 function shuffleWordLetters(word) {
@@ -306,6 +306,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
     var title = document.createElement("h2");
     title.textContent = "Kết quả";
     wrap.appendChild(title);
+    wrap.appendChild(buildResultMeta());
 
     var scoreBig = document.createElement("div");
     scoreBig.className = "score-big";

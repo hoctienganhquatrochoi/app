@@ -138,3 +138,14 @@ function buildProgressFooter(current, total) {
   el.textContent = "Câu " + current + " / " + total;
   return el;
 }
+
+function buildResultMeta() {
+  var el = document.createElement("div");
+  el.className = "result-meta";
+  var name = currentStudent ? currentStudent.full_name : "Khách";
+  var d = new Date();
+  var dd = d.getDate() < 10 ? "0" + d.getDate() : "" + d.getDate();
+  var mm = (d.getMonth() + 1) < 10 ? "0" + (d.getMonth() + 1) : "" + (d.getMonth() + 1);
+  el.textContent = name + " — " + dd + "/" + mm + "/" + d.getFullYear();
+  return el;
+}

@@ -179,6 +179,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
     var title = document.createElement("h2");
     title.textContent = "Kết quả";
     wrap.appendChild(title);
+    wrap.appendChild(buildResultMeta());
 
     var scoreBig = document.createElement("div");
     scoreBig.className = "score-big";

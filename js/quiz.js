@@ -184,6 +184,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     var title = document.createElement("h2");
     title.textContent = "Kết quả";
     wrap.appendChild(title);
+    wrap.appendChild(buildResultMeta());
 
     var scoreBig = document.createElement("div");
     scoreBig.className = "score-big";

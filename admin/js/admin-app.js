@@ -14,6 +14,7 @@ function switchTab(target) {
 
   if (target === "results") {
     loadResults();
+    loadAllAssignmentsForResults();
   }
 }
 

@@ -13,6 +13,24 @@ function renderFreeTyping(container, items, unitId, maxQuestions, mode) {
   var lastCorrect = false;
   var lastAnswerValue = "";
   var timerIntervalId = startActivityTimer(startedAt);
+  var currentWrap = null;
+
+  function handleGlobalKeydown(e) {
+    if (!currentWrap || !currentWrap.isConnected) {
+      document.removeEventListener("keydown", handleGlobalKeydown);
+      return;
+    }
+    if (e.key !== "Enter") {
+      return;
+    }
+    if (answered) {
+      goNext();
+    } else {
+      var inputEl = container.querySelector(".ft-input");
+      checkAnswer(inputEl ? inputEl.value : "");
+    }
+  }
+  document.addEventListener("keydown", handleGlobalKeydown);
 
   function showQuestion() {
     answered = false;
@@ -57,14 +75,6 @@ function renderFreeTyping(container, items, unitId, maxQuestions, mode) {
     input.spellcheck = false;
     input.placeholder = "Gõ câu trả lời...";
     input.disabled = answered;
-
-    if (!answered) {
-      input.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-          checkAnswer(input.value);
-        }
-      });
-    }
     wrap.appendChild(input);
 
     if (!answered) {
@@ -94,6 +104,7 @@ function renderFreeTyping(container, items, unitId, maxQuestions, mode) {
 
     wrap.appendChild(buildProgressFooter(qIndex + 1, pool.length));
     container.appendChild(wrap);
+    currentWrap = wrap;
     if (!answered) {
       input.focus();
     }
@@ -131,6 +142,7 @@ function renderFreeTyping(container, items, unitId, maxQuestions, mode) {
 
   function showResult() {
     clearInterval(timerIntervalId);
+    document.removeEventListener("keydown", handleGlobalKeydown);
     submitQuizAttempt(unitId, activityType, score, pool.length, startedAt, answersLog);
 
     container.innerHTML = "";
@@ -140,6 +152,7 @@ function renderFreeTyping(container, items, unitId, maxQuestions, mode) {
     var title = document.createElement("h2");
     title.textContent = "Kết quả";
     wrap.appendChild(title);
+    wrap.appendChild(buildResultMeta());
 
     var scoreBig = document.createElement("div");
     scoreBig.className = "score-big";
@@ -161,6 +174,7 @@ function renderFreeTyping(container, items, unitId, maxQuestions, mode) {
       answersLog = [];
       startedAt = new Date();
       timerIntervalId = startActivityTimer(startedAt);
+      document.addEventListener("keydown", handleGlobalKeydown);
       showQuestion();
     });
     wrap.appendChild(retryBtn);
