@@ -17,7 +17,7 @@ function formatDateTime(iso) {
   var mm = (d.getMonth() + 1) < 10 ? "0" + (d.getMonth() + 1) : "" + (d.getMonth() + 1);
   var hh = d.getHours() < 10 ? "0" + d.getHours() : "" + d.getHours();
   var mi = d.getMinutes() < 10 ? "0" + d.getMinutes() : "" + d.getMinutes();
-  return hh + ":" + mi + " " + dd + "/" + mm;
+  return hh + ":" + mi + " " + dd + "/" + mm + "/" + d.getFullYear();
 }
 
 function formatDuration(startedAtIso, submittedAtIso) {
@@ -126,7 +126,7 @@ function renderLeaderboard(attempts) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  var headers = ["Hạng", "Học sinh", "Điểm", "Thời gian làm"];
+  var headers = ["Hạng", "Học sinh", "Điểm", "Ngày làm", "Thời gian làm"];
   var i;
   for (i = 0; i < headers.length; i++) {
     var th = document.createElement("th");
@@ -152,6 +152,10 @@ function renderLeaderboard(attempts) {
     var scoreTd = document.createElement("td");
     scoreTd.textContent = attempt.score + " / " + attempt.total;
     tr.appendChild(scoreTd);
+
+    var dateTd = document.createElement("td");
+    dateTd.textContent = formatDateTime(attempt.submitted_at);
+    tr.appendChild(dateTd);
 
     var durationTd = document.createElement("td");
     durationTd.textContent = formatDuration(attempt.started_at, attempt.submitted_at);

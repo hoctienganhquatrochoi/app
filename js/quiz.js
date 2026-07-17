@@ -100,7 +100,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     }
     var line = parts.join(" ");
     if (config.showMeaning) {
-      line = line ? line + " - " + q.item.vi : q.item.vi;
+      line = line ? line + " - " + capitalizeFirst(q.item.vi) : capitalizeFirst(q.item.vi);
     }
 
     if (line) {
@@ -122,7 +122,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
       btn.appendChild(buildVisualElement(option, "quiz-option-visual"));
     } else {
       var label = document.createElement("span");
-      label.textContent = config.answerType === "meaning" ? option.vi : option.en;
+      label.textContent = config.answerType === "meaning" ? capitalizeFirst(option.vi) : option.en;
       btn.appendChild(label);
     }
 

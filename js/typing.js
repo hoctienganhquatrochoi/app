@@ -1,9 +1,9 @@
 function isAutoTypingChar(ch) {
-  return ch === " " || ch === "-";
+  return !/[a-zA-Z]/.test(ch);
 }
 
 function shuffleWordLetters(word) {
-  var letters = word.toLowerCase().split("");
+  var letters = word.split("");
   if (letters.length <= 1) {
     return letters;
   }
@@ -33,7 +33,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
 
   function setupQuestion() {
     var item = pool[qIndex];
-    var letters = item.en.toLowerCase().split("");
+    var letters = item.en.split("");
     blanks = letters.map(function (ch) {
       return isAutoTypingChar(ch) ? { id: "auto", char: ch, used: true, auto: true } : null;
     });
@@ -80,7 +80,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
 
     var line = document.createElement("div");
     line.className = "ty-meaning" + (hasVisual ? "" : " no-visual");
-    line.textContent = mode === "hint" ? (item.en + " " + (item.phonetic || "") + " - " + item.vi) : item.vi;
+    line.textContent = mode === "hint" ? (item.en + " " + (item.phonetic || "") + " - " + capitalizeFirst(item.vi)) : capitalizeFirst(item.vi);
     wrap.appendChild(line);
 
     var blanksEl = document.createElement("div");
@@ -178,7 +178,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
   function tryFillLetter(ch) {
     var i;
     for (i = 0; i < tiles.length; i++) {
-      if (!tiles[i].used && tiles[i].char === ch) {
+      if (!tiles[i].used && tiles[i].char.toLowerCase() === ch.toLowerCase()) {
         fillBlankWithTile(tiles[i]);
         return;
       }
@@ -246,7 +246,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
     var attempt = blanks.map(function (b) {
       return b.char;
     }).join("");
-    var target = item.en.toLowerCase();
+    var target = item.en;
     var isCorrect = attempt === target;
 
     if (!firstAttemptDone) {

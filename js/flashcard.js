@@ -34,7 +34,7 @@ function renderFlashcard(container, breadcrumbText, items) {
 
     var line = document.createElement("div");
     line.className = "fc-word" + (hasVisual ? "" : " no-visual");
-    line.textContent = item.en + " " + (item.phonetic || "") + " - " + item.vi;
+    line.textContent = item.en + " " + (item.phonetic || "") + " - " + capitalizeFirst(item.vi);
     card.appendChild(line);
 
     var hint = document.createElement("div");

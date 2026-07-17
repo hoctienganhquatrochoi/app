@@ -103,6 +103,14 @@
   padding: 4px 10px;
 }
 
+.scrollable-list {
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid #E5E0D5;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
 .admin-toggle-item-label {
   display: flex;
   align-items: center;

@@ -17,6 +17,13 @@ function playAudioUrlOrSpeak(url, text, lang) {
   speak(text, lang);
 }
 
+function capitalizeFirst(str) {
+  if (!str) {
+    return str;
+  }
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function shuffleArray(arr) {
   var copy = arr.slice();
   var i, j, tmp;

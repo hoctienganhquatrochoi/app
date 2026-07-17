@@ -80,7 +80,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
 
     var meaning = document.createElement("div");
     meaning.className = "ml-meaning" + (hasVisual ? "" : " no-visual");
-    meaning.textContent = q.item.vi;
+    meaning.textContent = capitalizeFirst(q.item.vi);
     card.appendChild(meaning);
 
     var audioBtn = document.createElement("button");

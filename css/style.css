@@ -931,7 +931,6 @@ html, body {
   border-radius: 8px 8px 0 0;
   font-size: 26px;
   font-weight: bold;
-  text-transform: lowercase;
   color: #1B4332;
   cursor: pointer;
 }
@@ -977,7 +976,6 @@ html, body {
   background: #FFFFFF;
   font-size: 22px;
   font-weight: 700;
-  text-transform: lowercase;
   color: #FFFFFF;
   cursor: pointer;
 }
