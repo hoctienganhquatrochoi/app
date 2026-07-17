@@ -3,7 +3,9 @@ var ASSIGNMENT_ACTIVITY_LABELS = {
   "missing-letter": "Khuyết chữ cái",
   "typing-hint": "Đánh máy có gợi ý",
   "typing-blank": "Đánh máy không gợi ý",
-  "flip-card": "Thẻ lật"
+  "flip-card": "Thẻ lật",
+  "free-typing-hint": "Nghe - Đánh máy (key)",
+  "free-typing-blank": "Nghe - Đánh máy"
 };
 
 var ALL_UNITS_FLAT = [];

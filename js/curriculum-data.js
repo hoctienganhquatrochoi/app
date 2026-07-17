@@ -7,6 +7,8 @@ var VOCAB_ACTIVITY_TEMPLATE = [
   { id: "a2e", name: "Nghe - Dịch", type: "quiz", format: "word-to-meaning", locked: false },
   { id: "a3", name: "Đánh máy có gợi ý", type: "typing", mode: "hint", locked: false },
   { id: "a4", name: "Đánh máy không gợi ý", type: "typing", mode: "blank", locked: false },
+  { id: "a16", name: "Nghe - Đánh máy (key)", type: "free-typing", mode: "hint", locked: false },
+  { id: "a17", name: "Nghe - Đánh máy", type: "free-typing", mode: "blank", locked: false },
   { id: "a12", name: "Khuyết chữ cái", type: "missing-letter", locked: false },
   { id: "a13", name: "Kiểm tra nói", type: "speaking", locked: false }
 ];

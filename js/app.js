@@ -324,7 +324,7 @@ function buildActivityItem(unit, activity, needsAccess) {
   return item;
 }
 
-var vocabActivityTypes = ["flashcard", "flip-card", "quiz", "missing-letter", "typing"];
+var vocabActivityTypes = ["flashcard", "flip-card", "quiz", "missing-letter", "typing", "free-typing"];
 
 async function renderMainContent() {
   var main = document.getElementById("mainContent");
@@ -377,6 +377,8 @@ async function renderMainContent() {
       renderMissingLetter(main, breadcrumbText, items, unit.id, activity.maxQuestions);
     } else if (activity.type === "typing") {
       renderTyping(main, items, unit.id, activity.maxQuestions, activity.mode);
+    } else if (activity.type === "free-typing") {
+      renderFreeTyping(main, items, unit.id, activity.maxQuestions, activity.mode);
     }
     return;
   }

@@ -954,6 +954,37 @@ html, body {
   margin: 22px 0 16px;
 }
 
+.ft-input {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  margin: 16px auto;
+  padding: 12px 16px;
+  font-size: 18px;
+  border: 2px solid #C9D8CE;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.ft-input:disabled {
+  background: #F4F4F0;
+  color: #556355;
+}
+
+.ft-feedback {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 10px 0 6px;
+}
+
+.ft-feedback.ft-correct {
+  color: #2D6A4F;
+}
+
+.ft-feedback.ft-wrong {
+  color: #E63946;
+}
+
 .ty-blank {
   width: 44px;
   height: 52px;
