@@ -81,7 +81,7 @@ function renderFreeTyping(container, items, unitId, maxQuestions, mode) {
 
       var feedback = document.createElement("div");
       feedback.className = "ft-feedback " + (lastCorrect ? "ft-correct" : "ft-wrong");
-      feedback.textContent = lastCorrect ? "✓ Chính xác!" : ("✗ Đáp án đúng: " + item.en);
+      feedback.textContent = lastCorrect ? "✓ Chính xác!" : ("✗ Đáp án đúng: " + stripParentheticalForSpeech(item.en));
       wrap.appendChild(feedback);
 
       var nextBtn = document.createElement("button");
@@ -104,7 +104,7 @@ function renderFreeTyping(container, items, unitId, maxQuestions, mode) {
       return;
     }
     var item = pool[qIndex];
-    var isCorrect = normalizeFreeTypingAnswer(value) === normalizeFreeTypingAnswer(item.en);
+    var isCorrect = normalizeFreeTypingAnswer(value) === normalizeFreeTypingAnswer(stripParentheticalForSpeech(item.en));
     lastCorrect = isCorrect;
     lastAnswerValue = value;
     answered = true;
