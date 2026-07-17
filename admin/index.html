@@ -435,12 +435,17 @@ What's this? | It's a pen."></textarea>
     </div>
 
     <div class="admin-form" id="resultsHistoryBox">
-      <h3>Lịch sử làm bài theo Nhóm</h3>
-      <p class="admin-hint">Chọn 1 Nhóm học sinh để xem tất cả các lượt làm bài của nhóm đó (mọi Unit, mọi Dạng bài). Wordwall không lấy được điểm nên chỉ hiện thời điểm học sinh mở bài. Dùng để báo cáo tình hình học tập — bấm "In / Xuất PDF" để lưu file gửi nhóm phụ huynh.</p>
+      <h3>Lịch sử làm bài theo Nhóm / Học sinh</h3>
+      <p class="admin-hint">Chọn 1 Nhóm học sinh để xem tất cả các lượt làm bài của nhóm đó, hoặc chọn đích danh 1 học sinh (dùng cho học sinh tự do không thuộc nhóm nào). Wordwall không lấy được điểm nên chỉ hiện thời điểm học sinh mở bài. Dùng để báo cáo tình hình học tập — bấm "In / Xuất PDF" để lưu file gửi phụ huynh.</p>
       <div class="admin-form-row">
         <div class="admin-field">
           <label>Nhóm học sinh</label>
           <select class="admin-select" id="historyGroupSelect" style="margin-bottom: 0;"></select>
+        </div>
+        <div class="admin-field">
+          <label>Hoặc tìm đích danh học sinh</label>
+          <input type="text" id="historyStudentSearch" placeholder="Gõ tên học sinh...">
+          <select class="admin-select" id="historyStudentSelect" style="margin-bottom: 0;"></select>
         </div>
         <div class="admin-field admin-field-small">
           <label>Từ ngày</label>

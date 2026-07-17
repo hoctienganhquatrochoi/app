@@ -16,6 +16,7 @@ function switchTab(target) {
     loadResults();
     loadAllAssignmentsForResults();
     populateHistoryGroupSelect();
+    loadAllStudentsForHistory().then(populateHistoryStudentSelect);
   }
 }
 
@@ -54,7 +55,15 @@ document.addEventListener("DOMContentLoaded", async function () {
     populateAssignmentUnitSelect();
     populateAssignmentStudentAccess();
   });
-  document.getElementById("historyGroupSelect").addEventListener("change", loadGroupHistory);
+  document.getElementById("historyGroupSelect").addEventListener("change", function () {
+    document.getElementById("historyStudentSelect").value = "";
+    loadGroupHistory();
+  });
+  document.getElementById("historyStudentSearch").addEventListener("input", populateHistoryStudentSelect);
+  document.getElementById("historyStudentSelect").addEventListener("change", function () {
+    document.getElementById("historyGroupSelect").value = "";
+    loadGroupHistory();
+  });
   document.getElementById("historyFromDate").addEventListener("change", loadGroupHistory);
   document.getElementById("historyToDate").addEventListener("change", loadGroupHistory);
   document.getElementById("historyTodayBtn").addEventListener("click", function () {

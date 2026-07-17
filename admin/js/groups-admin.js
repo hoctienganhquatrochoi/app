@@ -7,6 +7,9 @@ async function loadTeachingGroups() {
 }
 
 function groupNameById(groupId) {
+  if (!groupId) {
+    return "Học tự do (không nhóm)";
+  }
   var i;
   for (i = 0; i < TEACHING_GROUPS.length; i++) {
     if (TEACHING_GROUPS[i].id === groupId) {
@@ -26,7 +29,7 @@ function groupById(groupId) {
   return null;
 }
 
-function populateTeachingGroupSelect(selectId, includeAllOption) {
+function populateTeachingGroupSelect(selectId, includeAllOption, blankLabel) {
   var select = document.getElementById(selectId);
   var previous = select.value;
   select.innerHTML = "";
@@ -34,7 +37,7 @@ function populateTeachingGroupSelect(selectId, includeAllOption) {
   if (includeAllOption) {
     var allOpt = document.createElement("option");
     allOpt.value = "";
-    allOpt.text = "Tất cả";
+    allOpt.text = blankLabel || "Tất cả";
     select.appendChild(allOpt);
   }
 
@@ -52,9 +55,9 @@ function populateTeachingGroupSelect(selectId, includeAllOption) {
 }
 
 function populateAllGroupSelects() {
-  populateTeachingGroupSelect("newStudentGroupSelect", false);
-  populateTeachingGroupSelect("studentsGroupFilter", true);
-  populateTeachingGroupSelect("resultsGroupFilter", true);
+  populateTeachingGroupSelect("newStudentGroupSelect", true, "-- Học tự do (không nhóm) --");
+  populateTeachingGroupSelect("studentsGroupFilter", true, "Tất cả");
+  populateTeachingGroupSelect("resultsGroupFilter", true, "Tất cả");
   applyGroupDefaultClassAccess();
 }
 

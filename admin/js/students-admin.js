@@ -249,6 +249,13 @@ function buildStudentEditRow(row) {
   var groupTd = document.createElement("td");
   var groupSelect = document.createElement("select");
   groupSelect.className = "admin-inline-input";
+  var blankOpt = document.createElement("option");
+  blankOpt.value = "";
+  blankOpt.text = "-- Học tự do (không nhóm) --";
+  if (!row.group_id) {
+    blankOpt.selected = true;
+  }
+  groupSelect.appendChild(blankOpt);
   var i;
   for (i = 0; i < TEACHING_GROUPS.length; i++) {
     var opt = document.createElement("option");
@@ -332,7 +339,7 @@ function buildStudentEditRow(row) {
       .from("game_students")
       .update({
         full_name: newName,
-        group_id: newGroupId,
+        group_id: newGroupId || null,
         date_of_birth: newDob,
         phone_number: newPhone,
         username: newUsername,
@@ -410,17 +417,12 @@ async function handleAddStudent(e) {
     return;
   }
 
-  if (!groupId) {
-    window.alert("Cần tạo ít nhất 1 Nhóm học sinh trước (ở phía trên)");
-    return;
-  }
-
   var start = todayStr();
   var expiry = addYears(start, 1);
 
   var result = await supabaseClient.from("game_students").insert({
     full_name: fullName,
-    group_id: groupId,
+    group_id: groupId || null,
     date_of_birth: dob,
     phone_number: phone,
     username: username,

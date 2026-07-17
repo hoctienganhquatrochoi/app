@@ -39,6 +39,41 @@ function populateHistoryGroupSelect() {
   }
 }
 
+var ALL_STUDENTS_FOR_HISTORY = [];
+
+async function loadAllStudentsForHistory() {
+  var result = await supabaseClient.from("game_students").select("id, full_name").order("full_name", { ascending: true });
+  ALL_STUDENTS_FOR_HISTORY = result.data || [];
+}
+
+function populateHistoryStudentSelect() {
+  var search = (document.getElementById("historyStudentSearch").value || "").trim().toLowerCase();
+  var select = document.getElementById("historyStudentSelect");
+  var previous = select.value;
+  select.innerHTML = "";
+
+  var placeholderOpt = document.createElement("option");
+  placeholderOpt.value = "";
+  placeholderOpt.text = "-- Chọn học sinh --";
+  select.appendChild(placeholderOpt);
+
+  var filtered = search
+    ? ALL_STUDENTS_FOR_HISTORY.filter(function (s) { return s.full_name.toLowerCase().indexOf(search) !== -1; })
+    : ALL_STUDENTS_FOR_HISTORY;
+
+  var i;
+  for (i = 0; i < filtered.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = filtered[i].id;
+    opt.text = filtered[i].full_name;
+    select.appendChild(opt);
+  }
+
+  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
+    select.value = previous;
+  }
+}
+
 function formatDateInputValue(d) {
   var yyyy = d.getFullYear();
   var mm = (d.getMonth() + 1) < 10 ? "0" + (d.getMonth() + 1) : "" + (d.getMonth() + 1);
@@ -66,8 +101,9 @@ function setHistoryDateRange(days) {
 
 async function loadGroupHistory() {
   var groupId = document.getElementById("historyGroupSelect").value;
+  var studentId = document.getElementById("historyStudentSelect").value;
   var wrap = document.getElementById("historyListWrap");
-  if (!groupId) {
+  if (!groupId && !studentId) {
     wrap.innerHTML = "";
     return;
   }
@@ -81,15 +117,21 @@ async function loadGroupHistory() {
   var attemptsQuery = supabaseClient
     .from("game_quiz_attempts")
     .select("*, game_students!inner(full_name, group_id)")
-    .eq("game_students.group_id", groupId)
     .order("submitted_at", { ascending: false })
     .limit(500);
   var opensQuery = supabaseClient
     .from("game_wordwall_opens")
     .select("*, game_students!inner(full_name, group_id)")
-    .eq("game_students.group_id", groupId)
     .order("opened_at", { ascending: false })
     .limit(500);
+
+  if (studentId) {
+    attemptsQuery = attemptsQuery.eq("student_id", studentId);
+    opensQuery = opensQuery.eq("student_id", studentId);
+  } else {
+    attemptsQuery = attemptsQuery.eq("game_students.group_id", groupId);
+    opensQuery = opensQuery.eq("game_students.group_id", groupId);
+  }
 
   if (fromIso) {
     attemptsQuery = attemptsQuery.gte("submitted_at", fromIso);
@@ -112,13 +154,25 @@ async function loadGroupHistory() {
     return;
   }
 
-  renderGroupHistory(attemptsResult.data, opensResult.data || []);
+  renderGroupHistory(attemptsResult.data, opensResult.data || [], !studentId);
+}
+
+function currentHistoryReportLabel() {
+  var groupSelect = document.getElementById("historyGroupSelect");
+  var studentSelect = document.getElementById("historyStudentSelect");
+  if (studentSelect.value) {
+    return studentSelect.options[studentSelect.selectedIndex].text;
+  }
+  if (groupSelect.value) {
+    return "Nhóm " + groupSelect.options[groupSelect.selectedIndex].text;
+  }
+  return null;
 }
 
 function handleHistoryPrint() {
-  var groupSelect = document.getElementById("historyGroupSelect");
-  if (!groupSelect.value) {
-    window.alert("Chọn 1 Nhóm học sinh trước khi in báo cáo");
+  var reportLabel = currentHistoryReportLabel();
+  if (!reportLabel) {
+    window.alert("Chọn 1 Nhóm học sinh hoặc 1 học sinh trước khi in báo cáo");
     return;
   }
 
@@ -126,7 +180,7 @@ function handleHistoryPrint() {
   printArea.innerHTML = "";
 
   var title = document.createElement("h2");
-  title.textContent = "Báo cáo học tập — Nhóm " + groupSelect.options[groupSelect.selectedIndex].text;
+  title.textContent = "Báo cáo học tập — " + reportLabel;
   printArea.appendChild(title);
 
   var fromStr = document.getElementById("historyFromDate").value;
@@ -166,9 +220,9 @@ function csvEscape(value) {
 }
 
 function handleHistoryExportCsv() {
-  var groupSelect = document.getElementById("historyGroupSelect");
-  if (!groupSelect.value) {
-    window.alert("Chọn 1 Nhóm học sinh trước khi xuất file");
+  var reportLabel = currentHistoryReportLabel();
+  if (!reportLabel) {
+    window.alert("Chọn 1 Nhóm học sinh hoặc 1 học sinh trước khi xuất file");
     return;
   }
   if (!lastGroupHistoryRows.length) {
@@ -188,7 +242,7 @@ function handleHistoryExportCsv() {
   var url = URL.createObjectURL(blob);
   var link = document.createElement("a");
   link.href = url;
-  link.download = "bao_cao_" + groupSelect.options[groupSelect.selectedIndex].text + "_" + document.getElementById("historyFromDate").value + "_" + document.getElementById("historyToDate").value + ".csv";
+  link.download = "bao_cao_" + reportLabel + "_" + document.getElementById("historyFromDate").value + "_" + document.getElementById("historyToDate").value + ".csv";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -269,7 +323,7 @@ function buildDiligenceRanking(ranked) {
   return box;
 }
 
-function renderGroupHistory(attempts, opens) {
+function renderGroupHistory(attempts, opens, showRanking) {
   var wrap = document.getElementById("historyListWrap");
   wrap.innerHTML = "";
 
@@ -306,13 +360,15 @@ function renderGroupHistory(attempts, opens) {
   if (!rows.length) {
     var empty = document.createElement("div");
     empty.className = "admin-status";
-    empty.textContent = "Nhóm này chưa có lượt làm bài nào.";
+    empty.textContent = "Chưa có lượt làm bài nào.";
     wrap.appendChild(empty);
     return;
   }
 
   var ranked = computeDiligenceRanking(rows);
-  wrap.appendChild(buildDiligenceRanking(ranked));
+  if (showRanking) {
+    wrap.appendChild(buildDiligenceRanking(ranked));
+  }
 
   var byStudent = {};
   rows.forEach(function (row) {
