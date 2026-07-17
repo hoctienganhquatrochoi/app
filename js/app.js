@@ -421,7 +421,7 @@ async function renderMainContent() {
 
   if (activity.type === "wordwall") {
     main.innerHTML = "";
-    renderWordwallActivity(main, breadcrumbText, activity.embedUrl);
+    renderWordwallActivity(main, breadcrumbText, activity.embedUrl, unit.id, activity.name);
     return;
   }
 

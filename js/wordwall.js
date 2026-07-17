@@ -1,4 +1,15 @@
-function renderWordwallActivity(container, breadcrumbText, embedUrl) {
+function logWordwallOpen(unitId, wordwallName) {
+  if (!currentStudent) {
+    return;
+  }
+  supabaseClient.from("game_wordwall_opens").insert({
+    student_id: currentStudent.id,
+    unit_id: unitId,
+    wordwall_name: wordwallName
+  });
+}
+
+function renderWordwallActivity(container, breadcrumbText, embedUrl, unitId, wordwallName) {
   container.innerHTML = "";
 
   var wrap = document.createElement("div");
@@ -12,4 +23,5 @@ function renderWordwallActivity(container, breadcrumbText, embedUrl) {
   wrap.appendChild(iframe);
 
   container.appendChild(wrap);
+  logWordwallOpen(unitId, wordwallName);
 }

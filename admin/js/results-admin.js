@@ -74,29 +74,44 @@ async function loadGroupHistory() {
 
   var fromStr = document.getElementById("historyFromDate").value;
   var toStr = document.getElementById("historyToDate").value;
+  var fromIso = fromStr ? new Date(fromStr + "T00:00:00").toISOString() : null;
+  var toIso = toStr ? new Date(toStr + "T23:59:59.999").toISOString() : null;
 
-  var query = supabaseClient
+  var attemptsQuery = supabaseClient
     .from("game_quiz_attempts")
     .select("*, game_students!inner(full_name, group_id)")
     .eq("game_students.group_id", groupId)
     .order("submitted_at", { ascending: false })
     .limit(500);
+  var opensQuery = supabaseClient
+    .from("game_wordwall_opens")
+    .select("*, game_students!inner(full_name, group_id)")
+    .eq("game_students.group_id", groupId)
+    .order("opened_at", { ascending: false })
+    .limit(500);
 
-  if (fromStr) {
-    query = query.gte("submitted_at", new Date(fromStr + "T00:00:00").toISOString());
+  if (fromIso) {
+    attemptsQuery = attemptsQuery.gte("submitted_at", fromIso);
+    opensQuery = opensQuery.gte("opened_at", fromIso);
   }
-  if (toStr) {
-    query = query.lte("submitted_at", new Date(toStr + "T23:59:59.999").toISOString());
+  if (toIso) {
+    attemptsQuery = attemptsQuery.lte("submitted_at", toIso);
+    opensQuery = opensQuery.lte("opened_at", toIso);
   }
 
-  var result = await query;
+  var attemptsResult = await attemptsQuery;
+  var opensResult = await opensQuery;
 
-  if (result.error) {
-    wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
+  if (attemptsResult.error) {
+    wrap.textContent = "Lỗi tải dữ liệu: " + attemptsResult.error.message;
+    return;
+  }
+  if (opensResult.error) {
+    wrap.textContent = "Lỗi tải dữ liệu: " + opensResult.error.message;
     return;
   }
 
-  renderGroupHistory(result.data);
+  renderGroupHistory(attemptsResult.data, opensResult.data || []);
 }
 
 function handleHistoryPrint() {
@@ -141,9 +156,33 @@ window.addEventListener("afterprint", function () {
   document.body.classList.remove("printing-history");
 });
 
-function renderGroupHistory(rows) {
+function renderGroupHistory(attempts, opens) {
   var wrap = document.getElementById("historyListWrap");
   wrap.innerHTML = "";
+
+  buildAllUnitsFlat();
+  var unitLabelById = {};
+  ALL_UNITS_FLAT.forEach(function (u) {
+    unitLabelById[u.id] = u.label;
+  });
+
+  var rows = attempts.map(function (row) {
+    return {
+      studentName: row.game_students ? row.game_students.full_name : "(đã xóa tài khoản)",
+      unitLabel: unitLabelById[row.unit_id] || row.unit_id,
+      activityLabel: ASSIGNMENT_ACTIVITY_LABELS[row.activity_type] || row.activity_type,
+      scoreLabel: row.score + " / " + row.total,
+      dateIso: row.submitted_at
+    };
+  }).concat(opens.map(function (row) {
+    return {
+      studentName: row.game_students ? row.game_students.full_name : "(đã xóa tài khoản)",
+      unitLabel: unitLabelById[row.unit_id] || row.unit_id,
+      activityLabel: "Wordwall: " + row.wordwall_name + " (đã mở)",
+      scoreLabel: "—",
+      dateIso: row.opened_at
+    };
+  }));
 
   if (!rows.length) {
     var empty = document.createElement("div");
@@ -153,10 +192,8 @@ function renderGroupHistory(rows) {
     return;
   }
 
-  buildAllUnitsFlat();
-  var unitLabelById = {};
-  ALL_UNITS_FLAT.forEach(function (u) {
-    unitLabelById[u.id] = u.label;
+  rows.sort(function (a, b) {
+    return new Date(b.dateIso) - new Date(a.dateIso);
   });
 
   var table = document.createElement("table");
@@ -179,11 +216,11 @@ function renderGroupHistory(rows) {
     var row = rows[i];
     var tr = document.createElement("tr");
 
-    tr.appendChild(makeTd(row.game_students ? row.game_students.full_name : "(đã xóa tài khoản)"));
-    tr.appendChild(makeTd(unitLabelById[row.unit_id] || row.unit_id));
-    tr.appendChild(makeTd(ASSIGNMENT_ACTIVITY_LABELS[row.activity_type] || row.activity_type));
-    tr.appendChild(makeTd(row.score + " / " + row.total));
-    tr.appendChild(makeTd(formatDateTime(row.submitted_at)));
+    tr.appendChild(makeTd(row.studentName));
+    tr.appendChild(makeTd(row.unitLabel));
+    tr.appendChild(makeTd(row.activityLabel));
+    tr.appendChild(makeTd(row.scoreLabel));
+    tr.appendChild(makeTd(formatDateTime(row.dateIso)));
 
     tbody.appendChild(tr);
   }
