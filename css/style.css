@@ -226,6 +226,61 @@ html, body {
   color: #F4E9CB;
 }
 
+.ranking-modal {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 24px 22px;
+  width: 480px;
+  max-width: 92vw;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.ranking-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ranking-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #1B4332;
+}
+
+.ranking-modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #7A8B82;
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ranking-table th,
+.ranking-table td {
+  padding: 8px 6px;
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 1px solid #F0EDE4;
+}
+
+.ranking-table th {
+  color: #7A8B82;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.ranking-table tr.ranking-row-me {
+  background: #DCEAE2;
+  font-weight: 700;
+}
+
 /* ---------- Layout ---------- */
 .app-body {
   display: flex;

@@ -34,6 +34,15 @@ function renderAuthArea() {
     return;
   }
 
+  if (currentStudent.group_id) {
+    var rankingBtn = document.createElement("button");
+    rankingBtn.className = "login-btn";
+    rankingBtn.type = "button";
+    rankingBtn.textContent = "🏅 Xếp hạng";
+    rankingBtn.addEventListener("click", openRankingModal);
+    authArea.appendChild(rankingBtn);
+  }
+
   var wrap = document.createElement("div");
   wrap.className = "student-badge";
   wrap.title = "Bấm để đăng xuất";
@@ -155,6 +164,12 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   document.getElementById("loginCancelBtn").addEventListener("click", closeLoginModal);
   document.getElementById("loginSubmitBtn").addEventListener("click", handleLoginSubmit);
+  document.getElementById("closeRankingModalBtn").addEventListener("click", closeRankingModal);
+  document.getElementById("rankingModalOverlay").addEventListener("click", function (e) {
+    if (e.target === this) {
+      closeRankingModal();
+    }
+  });
 
   var passwordToggles = document.querySelectorAll(".password-toggle-btn");
   var i;
