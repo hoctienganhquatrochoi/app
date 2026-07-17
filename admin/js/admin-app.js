@@ -15,6 +15,7 @@ function switchTab(target) {
   if (target === "results") {
     loadResults();
     loadAllAssignmentsForResults();
+    populateHistoryGroupSelect();
   }
 }
 
@@ -53,6 +54,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     populateAssignmentUnitSelect();
     populateAssignmentStudentAccess();
   });
+  document.getElementById("historyGroupSelect").addEventListener("change", loadGroupHistory);
   document.getElementById("resultsUnitSearch").addEventListener("input", populateResultsUnitSelect);
   document.getElementById("resultsUnitSelect").addEventListener("change", function () {
     currentResultsAssignmentId = null;

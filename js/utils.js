@@ -140,12 +140,22 @@ function buildProgressFooter(current, total) {
 }
 
 function buildResultMeta() {
-  var el = document.createElement("div");
-  el.className = "result-meta";
+  var wrap = document.createElement("div");
+  wrap.className = "result-meta";
+
   var name = currentStudent ? currentStudent.full_name : "Khách";
+  var nameEl = document.createElement("div");
+  nameEl.className = "result-meta-name";
+  nameEl.textContent = "🌟 " + name;
+  wrap.appendChild(nameEl);
+
   var d = new Date();
   var dd = d.getDate() < 10 ? "0" + d.getDate() : "" + d.getDate();
   var mm = (d.getMonth() + 1) < 10 ? "0" + (d.getMonth() + 1) : "" + (d.getMonth() + 1);
-  el.textContent = name + " — " + dd + "/" + mm + "/" + d.getFullYear();
-  return el;
+  var dateEl = document.createElement("div");
+  dateEl.className = "result-meta-date";
+  dateEl.textContent = dd + "/" + mm + "/" + d.getFullYear();
+  wrap.appendChild(dateEl);
+
+  return wrap;
 }

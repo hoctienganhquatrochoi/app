@@ -11,6 +11,104 @@ function renderResultsFilterStatus() {
     : "";
 }
 
+function populateHistoryGroupSelect() {
+  var select = document.getElementById("historyGroupSelect");
+  var previous = select.value;
+  select.innerHTML = "";
+
+  var placeholderOpt = document.createElement("option");
+  placeholderOpt.value = "";
+  placeholderOpt.text = "-- Chọn Nhóm --";
+  select.appendChild(placeholderOpt);
+
+  var i;
+  for (i = 0; i < TEACHING_GROUPS.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = TEACHING_GROUPS[i].id;
+    opt.text = TEACHING_GROUPS[i].name;
+    select.appendChild(opt);
+  }
+
+  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
+    select.value = previous;
+  }
+}
+
+async function loadGroupHistory() {
+  var groupId = document.getElementById("historyGroupSelect").value;
+  var wrap = document.getElementById("historyListWrap");
+  if (!groupId) {
+    wrap.innerHTML = "";
+    return;
+  }
+  wrap.textContent = "Đang tải...";
+
+  var result = await supabaseClient
+    .from("game_quiz_attempts")
+    .select("*, game_students!inner(full_name, group_id)")
+    .eq("game_students.group_id", groupId)
+    .order("submitted_at", { ascending: false })
+    .limit(200);
+
+  if (result.error) {
+    wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
+    return;
+  }
+
+  renderGroupHistory(result.data);
+}
+
+function renderGroupHistory(rows) {
+  var wrap = document.getElementById("historyListWrap");
+  wrap.innerHTML = "";
+
+  if (!rows.length) {
+    var empty = document.createElement("div");
+    empty.className = "admin-status";
+    empty.textContent = "Nhóm này chưa có lượt làm bài nào.";
+    wrap.appendChild(empty);
+    return;
+  }
+
+  buildAllUnitsFlat();
+  var unitLabelById = {};
+  ALL_UNITS_FLAT.forEach(function (u) {
+    unitLabelById[u.id] = u.label;
+  });
+
+  var table = document.createElement("table");
+  table.className = "admin-table";
+
+  var thead = document.createElement("thead");
+  var headRow = document.createElement("tr");
+  var headers = ["Học sinh", "Bài", "Dạng bài", "Điểm", "Ngày làm"];
+  var i;
+  for (i = 0; i < headers.length; i++) {
+    var th = document.createElement("th");
+    th.textContent = headers[i];
+    headRow.appendChild(th);
+  }
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  var tbody = document.createElement("tbody");
+  for (i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    var tr = document.createElement("tr");
+
+    tr.appendChild(makeTd(row.game_students ? row.game_students.full_name : "(đã xóa tài khoản)"));
+    tr.appendChild(makeTd(unitLabelById[row.unit_id] || row.unit_id));
+    tr.appendChild(makeTd(ASSIGNMENT_ACTIVITY_LABELS[row.activity_type] || row.activity_type));
+    tr.appendChild(makeTd(row.score + " / " + row.total));
+    tr.appendChild(makeTd(formatDateTime(row.submitted_at)));
+
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+
+  wrap.appendChild(table);
+}
+
 function formatDateTime(iso) {
   var d = new Date(iso);
   var dd = d.getDate() < 10 ? "0" + d.getDate() : "" + d.getDate();
