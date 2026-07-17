@@ -1,5 +1,7 @@
 function renderFlashcard(container, breadcrumbText, items) {
   var index = 0;
+  var startedAt = new Date();
+  var tabTracker = startTabSwitchTracker();
 
   function draw() {
     container.innerHTML = "";
@@ -81,6 +83,8 @@ function renderFlashcard(container, breadcrumbText, items) {
   }
 
   function showComplete() {
+    tabTracker.stop();
+
     var overlay = document.createElement("div");
     overlay.className = "fc-overlay";
 
@@ -96,6 +100,9 @@ function renderFlashcard(container, breadcrumbText, items) {
     p.textContent = "Bé đã học xong " + items.length + " từ trong bài này.";
     popup.appendChild(p);
 
+    popup.appendChild(buildDurationLine(startedAt));
+    popup.appendChild(buildTabSwitchLine(tabTracker.getCount()));
+
     var actions = document.createElement("div");
     actions.className = "fc-popup-actions";
 
@@ -105,6 +112,8 @@ function renderFlashcard(container, breadcrumbText, items) {
     againBtn.textContent = "Học lại";
     againBtn.addEventListener("click", function () {
       index = 0;
+      startedAt = new Date();
+      tabTracker = startTabSwitchTracker();
       overlay.remove();
       draw();
     });

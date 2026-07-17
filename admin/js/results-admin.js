@@ -269,6 +269,10 @@ function renderGroupHistory(attempts, opens) {
   }
 
   rows.sort(function (a, b) {
+    var nameCompare = a.studentName.localeCompare(b.studentName, "vi");
+    if (nameCompare !== 0) {
+      return nameCompare;
+    }
     return new Date(b.dateIso) - new Date(a.dateIso);
   });
 

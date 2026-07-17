@@ -168,3 +168,70 @@ function buildResultMeta(activityLabel) {
 
   return wrap;
 }
+
+function formatDurationVN(startedAt) {
+  var totalSeconds = Math.max(0, Math.floor((new Date() - startedAt) / 1000));
+  var minutes = Math.floor(totalSeconds / 60);
+  var seconds = totalSeconds % 60;
+  if (minutes > 0) {
+    return minutes + " phút " + seconds + " giây";
+  }
+  return seconds + " giây";
+}
+
+function buildDurationLine(startedAt) {
+  var el = document.createElement("div");
+  el.className = "result-extra-line";
+  el.textContent = "⏱ Thời gian làm bài: " + formatDurationVN(startedAt);
+  return el;
+}
+
+var activeTabSwitchTracker = null;
+
+function startTabSwitchTracker() {
+  if (activeTabSwitchTracker) {
+    activeTabSwitchTracker.stop();
+  }
+  var count = 0;
+  function handler() {
+    if (document.hidden) {
+      count++;
+    }
+  }
+  document.addEventListener("visibilitychange", handler);
+  var tracker = {
+    getCount: function () {
+      return count;
+    },
+    stop: function () {
+      document.removeEventListener("visibilitychange", handler);
+      if (activeTabSwitchTracker === tracker) {
+        activeTabSwitchTracker = null;
+      }
+    }
+  };
+  activeTabSwitchTracker = tracker;
+  return tracker;
+}
+
+function buildTabSwitchLine(count) {
+  var el = document.createElement("div");
+  el.className = "result-extra-line" + (count > 0 ? " result-extra-warn" : "");
+  el.textContent = count > 0
+    ? "👀 Đã rời khỏi màn hình " + count + " lần trong khi làm bài"
+    : "👀 Không rời khỏi màn hình trong khi làm bài";
+  return el;
+}
+
+function buildAnswerBreakdown(answersLog) {
+  var wrap = document.createElement("div");
+  wrap.className = "answer-breakdown";
+  answersLog.forEach(function (a, idx) {
+    var dot = document.createElement("span");
+    dot.className = "answer-dot " + (a.is_correct ? "answer-dot-correct" : "answer-dot-wrong");
+    dot.title = a.word_en;
+    dot.textContent = "" + (idx + 1);
+    wrap.appendChild(dot);
+  });
+  return wrap;
+}

@@ -53,6 +53,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
   var answersLog = [];
   var startedAt = new Date();
   var timerIntervalId = startActivityTimer(startedAt);
+  var tabTracker = startTabSwitchTracker();
 
   function showQuestion() {
     draw();
@@ -169,6 +170,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
 
   function showResult() {
     clearInterval(timerIntervalId);
+    tabTracker.stop();
     submitQuizAttempt(unitId, "missing-letter", score, questions.length, startedAt, answersLog);
 
     container.innerHTML = "";
@@ -190,6 +192,10 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
     p.textContent = score === questions.length ? "Xuất sắc! Bé trả lời đúng hết!" : "Cố lên, làm lại để nhớ thêm nhé!";
     wrap.appendChild(p);
 
+    wrap.appendChild(buildDurationLine(startedAt));
+    wrap.appendChild(buildTabSwitchLine(tabTracker.getCount()));
+    wrap.appendChild(buildAnswerBreakdown(answersLog));
+
     var retryBtn = document.createElement("button");
     retryBtn.className = "quiz-continue-btn";
     retryBtn.type = "button";
@@ -203,6 +209,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
       answersLog = [];
       startedAt = new Date();
       timerIntervalId = startActivityTimer(startedAt);
+      tabTracker = startTabSwitchTracker();
       showQuestion();
     });
     wrap.appendChild(retryBtn);

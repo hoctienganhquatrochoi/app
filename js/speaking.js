@@ -32,6 +32,8 @@ function renderSpeakingTestPicker(container, breadcrumbText, unitId, testNames) 
 
 function renderSpeaking(container, breadcrumbText, items, onBack) {
   var index = 0;
+  var startedAt = new Date();
+  var tabTracker = startTabSwitchTracker();
 
   function draw() {
     container.innerHTML = "";
@@ -125,6 +127,8 @@ function renderSpeaking(container, breadcrumbText, items, onBack) {
   }
 
   function showComplete() {
+    tabTracker.stop();
+
     var overlay = document.createElement("div");
     overlay.className = "fc-overlay";
 
@@ -140,6 +144,9 @@ function renderSpeaking(container, breadcrumbText, items, onBack) {
     p.textContent = "Bé đã luyện xong " + items.length + " câu trong bài này.";
     popup.appendChild(p);
 
+    popup.appendChild(buildDurationLine(startedAt));
+    popup.appendChild(buildTabSwitchLine(tabTracker.getCount()));
+
     var actions = document.createElement("div");
     actions.className = "fc-popup-actions";
 
@@ -149,6 +156,8 @@ function renderSpeaking(container, breadcrumbText, items, onBack) {
     againBtn.textContent = "Luyện lại";
     againBtn.addEventListener("click", function () {
       index = 0;
+      startedAt = new Date();
+      tabTracker = startTabSwitchTracker();
       overlay.remove();
       draw();
     });

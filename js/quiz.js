@@ -36,6 +36,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
   var answersLog = [];
   var startedAt = new Date();
   var timerIntervalId = startActivityTimer(startedAt);
+  var tabTracker = startTabSwitchTracker();
 
   function showQuestion() {
     draw();
@@ -174,6 +175,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
 
   function showResult() {
     clearInterval(timerIntervalId);
+    tabTracker.stop();
     submitQuizAttempt(unitId, "quiz", score, questions.length, startedAt, answersLog);
 
     container.innerHTML = "";
@@ -195,6 +197,10 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     p.textContent = score === questions.length ? "Xuất sắc! Bé trả lời đúng hết!" : "Cố lên, làm lại để nhớ thêm nhé!";
     wrap.appendChild(p);
 
+    wrap.appendChild(buildDurationLine(startedAt));
+    wrap.appendChild(buildTabSwitchLine(tabTracker.getCount()));
+    wrap.appendChild(buildAnswerBreakdown(answersLog));
+
     var retryBtn = document.createElement("button");
     retryBtn.className = "quiz-continue-btn";
     retryBtn.type = "button";
@@ -208,6 +214,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
       answersLog = [];
       startedAt = new Date();
       timerIntervalId = startActivityTimer(startedAt);
+      tabTracker = startTabSwitchTracker();
       showQuestion();
     });
     wrap.appendChild(retryBtn);

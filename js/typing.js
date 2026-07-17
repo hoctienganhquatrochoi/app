@@ -30,6 +30,7 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
   var keyInputEl = null;
   var keyboardModeEnabled = false;
   var timerIntervalId = startActivityTimer(startedAt);
+  var tabTracker = startTabSwitchTracker();
 
   function setupQuestion() {
     var item = pool[qIndex];
@@ -297,6 +298,7 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
 
   function showResult() {
     clearInterval(timerIntervalId);
+    tabTracker.stop();
     submitQuizAttempt(unitId, activityType, score, pool.length, startedAt, answersLog);
 
     container.innerHTML = "";
@@ -317,6 +319,10 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
     p.textContent = "Bé đã ghép đúng hết " + pool.length + " từ!";
     wrap.appendChild(p);
 
+    wrap.appendChild(buildDurationLine(startedAt));
+    wrap.appendChild(buildTabSwitchLine(tabTracker.getCount()));
+    wrap.appendChild(buildAnswerBreakdown(answersLog));
+
     var retryBtn = document.createElement("button");
     retryBtn.className = "quiz-continue-btn";
     retryBtn.type = "button";
@@ -328,6 +334,7 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
       answersLog = [];
       startedAt = new Date();
       timerIntervalId = startActivityTimer(startedAt);
+      tabTracker = startTabSwitchTracker();
       showQuestion();
     });
     wrap.appendChild(retryBtn);

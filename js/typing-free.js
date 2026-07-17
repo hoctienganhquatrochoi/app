@@ -13,6 +13,7 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
   var lastCorrect = false;
   var lastAnswerValue = "";
   var timerIntervalId = startActivityTimer(startedAt);
+  var tabTracker = startTabSwitchTracker();
   var currentWrap = null;
 
   function handleGlobalKeydown(e) {
@@ -142,6 +143,7 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
 
   function showResult() {
     clearInterval(timerIntervalId);
+    tabTracker.stop();
     document.removeEventListener("keydown", handleGlobalKeydown);
     submitQuizAttempt(unitId, activityType, score, pool.length, startedAt, answersLog);
 
@@ -163,6 +165,10 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
     p.textContent = "Bé đã gõ đúng " + score + " / " + pool.length + " từ!";
     wrap.appendChild(p);
 
+    wrap.appendChild(buildDurationLine(startedAt));
+    wrap.appendChild(buildTabSwitchLine(tabTracker.getCount()));
+    wrap.appendChild(buildAnswerBreakdown(answersLog));
+
     var retryBtn = document.createElement("button");
     retryBtn.className = "quiz-continue-btn";
     retryBtn.type = "button";
@@ -174,6 +180,7 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
       answersLog = [];
       startedAt = new Date();
       timerIntervalId = startActivityTimer(startedAt);
+      tabTracker = startTabSwitchTracker();
       document.addEventListener("keydown", handleGlobalKeydown);
       showQuestion();
     });

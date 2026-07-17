@@ -8,6 +8,7 @@ function renderFlipCard(container, breadcrumbText, items, unitId) {
   var startedAt = new Date();
   var flipped = false;
   var timerIntervalId = startActivityTimer(startedAt);
+  var tabTracker = startTabSwitchTracker();
 
   function showCard() {
     flipped = false;
@@ -129,6 +130,7 @@ function renderFlipCard(container, breadcrumbText, items, unitId) {
 
   function showResult() {
     clearInterval(timerIntervalId);
+    tabTracker.stop();
 
     items.forEach(function (item) {
       answersLog.push({
@@ -158,6 +160,10 @@ function renderFlipCard(container, breadcrumbText, items, unitId) {
     p.textContent = "Bé đã nhớ được " + score + " / " + items.length + " từ trong bài này.";
     wrap.appendChild(p);
 
+    wrap.appendChild(buildDurationLine(startedAt));
+    wrap.appendChild(buildTabSwitchLine(tabTracker.getCount()));
+    wrap.appendChild(buildAnswerBreakdown(answersLog));
+
     var retryBtn = document.createElement("button");
     retryBtn.className = "quiz-continue-btn";
     retryBtn.type = "button";
@@ -171,6 +177,7 @@ function renderFlipCard(container, breadcrumbText, items, unitId) {
       firstAttemptResult = {};
       startedAt = new Date();
       timerIntervalId = startActivityTimer(startedAt);
+      tabTracker = startTabSwitchTracker();
       showCard();
     });
     wrap.appendChild(retryBtn);
