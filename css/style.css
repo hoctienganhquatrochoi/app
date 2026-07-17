@@ -569,9 +569,10 @@ html, body {
 }
 
 .flip-card-phonetic {
-  font-size: 18px;
-  color: #7A8B82;
-  margin-top: 8px;
+  font-size: 34px;
+  font-weight: 600;
+  color: #2D6A4F;
+  margin-top: 10px;
 }
 
 .flip-card-actions {
