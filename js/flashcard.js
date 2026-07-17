@@ -97,7 +97,7 @@ function renderFlashcard(container, breadcrumbText, items) {
     popup.appendChild(buildResultMeta(breadcrumbText));
 
     var p = document.createElement("p");
-    p.textContent = "Bé đã học xong " + items.length + " từ trong bài này.";
+    p.textContent = "Bạn đã học xong " + items.length + " từ trong bài này.";
     popup.appendChild(p);
 
     popup.appendChild(buildDurationLine(startedAt));

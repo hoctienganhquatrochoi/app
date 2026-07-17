@@ -162,7 +162,7 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
     wrap.appendChild(scoreBig);
 
     var p = document.createElement("p");
-    p.textContent = "Bé đã gõ đúng " + score + " / " + pool.length + " từ!";
+    p.textContent = "Bạn đã gõ đúng " + score + " / " + pool.length + " từ!";
     wrap.appendChild(p);
 
     wrap.appendChild(buildDurationLine(startedAt));

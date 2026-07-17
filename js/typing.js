@@ -316,7 +316,7 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
     wrap.appendChild(scoreBig);
 
     var p = document.createElement("p");
-    p.textContent = "Bé đã ghép đúng hết " + pool.length + " từ!";
+    p.textContent = "Bạn đã ghép đúng hết " + pool.length + " từ!";
     wrap.appendChild(p);
 
     wrap.appendChild(buildDurationLine(startedAt));

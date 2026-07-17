@@ -141,7 +141,7 @@ function renderSpeaking(container, breadcrumbText, items, onBack) {
     popup.appendChild(buildResultMeta(breadcrumbText));
 
     var p = document.createElement("p");
-    p.textContent = "Bé đã luyện xong " + items.length + " câu trong bài này.";
+    p.textContent = "Bạn đã luyện xong " + items.length + " câu trong bài này.";
     popup.appendChild(p);
 
     popup.appendChild(buildDurationLine(startedAt));

@@ -157,7 +157,7 @@ function renderFlipCard(container, breadcrumbText, items, unitId) {
     wrap.appendChild(scoreBig);
 
     var p = document.createElement("p");
-    p.textContent = "Bé đã nhớ được " + score + " / " + items.length + " từ trong bài này.";
+    p.textContent = "Bạn đã nhớ được " + score + " / " + items.length + " từ trong bài này.";
     wrap.appendChild(p);
 
     wrap.appendChild(buildDurationLine(startedAt));

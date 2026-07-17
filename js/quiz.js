@@ -194,7 +194,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     wrap.appendChild(scoreBig);
 
     var p = document.createElement("p");
-    p.textContent = score === questions.length ? "Xuất sắc! Bé trả lời đúng hết!" : "Cố lên, làm lại để nhớ thêm nhé!";
+    p.textContent = score === questions.length ? "Xuất sắc! Bạn trả lời đúng hết!" : "Cố lên, làm lại để nhớ thêm nhé!";
     wrap.appendChild(p);
 
     wrap.appendChild(buildDurationLine(startedAt));

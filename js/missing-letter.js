@@ -189,7 +189,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
     wrap.appendChild(scoreBig);
 
     var p = document.createElement("p");
-    p.textContent = score === questions.length ? "Xuất sắc! Bé trả lời đúng hết!" : "Cố lên, làm lại để nhớ thêm nhé!";
+    p.textContent = score === questions.length ? "Xuất sắc! Bạn trả lời đúng hết!" : "Cố lên, làm lại để nhớ thêm nhé!";
     wrap.appendChild(p);
 
     wrap.appendChild(buildDurationLine(startedAt));
