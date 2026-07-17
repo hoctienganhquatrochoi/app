@@ -66,6 +66,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     loadGroupHistory();
   });
   document.getElementById("historyPrintBtn").addEventListener("click", handleHistoryPrint);
+  document.getElementById("historyExportCsvBtn").addEventListener("click", handleHistoryExportCsv);
   document.getElementById("resultsUnitSearch").addEventListener("input", populateResultsUnitSelect);
   document.getElementById("resultsUnitSelect").addEventListener("change", function () {
     currentResultsAssignmentId = null;

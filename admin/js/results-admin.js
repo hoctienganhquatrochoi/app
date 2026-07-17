@@ -3,6 +3,7 @@ function populateResultsUnitSelect() {
 }
 
 var currentResultsAssignmentId = null;
+var lastGroupHistoryRows = [];
 
 function renderResultsFilterStatus() {
   var el = document.getElementById("resultsFilterStatus");
@@ -156,6 +157,43 @@ window.addEventListener("afterprint", function () {
   document.body.classList.remove("printing-history");
 });
 
+function csvEscape(value) {
+  var str = "" + value;
+  if (str.indexOf(",") !== -1 || str.indexOf('"') !== -1 || str.indexOf("\n") !== -1) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
+function handleHistoryExportCsv() {
+  var groupSelect = document.getElementById("historyGroupSelect");
+  if (!groupSelect.value) {
+    window.alert("Chọn 1 Nhóm học sinh trước khi xuất file");
+    return;
+  }
+  if (!lastGroupHistoryRows.length) {
+    window.alert("Không có dữ liệu để xuất");
+    return;
+  }
+
+  var headers = ["Học sinh", "Bài", "Dạng bài", "Điểm", "Ngày làm"];
+  var lines = [headers.map(csvEscape).join(",")];
+  lastGroupHistoryRows.forEach(function (row) {
+    lines.push([row.studentName, row.unitLabel, row.activityLabel, row.scoreLabel, formatDateTime(row.dateIso)].map(csvEscape).join(","));
+  });
+
+  var csvContent = "\uFEFF" + lines.join("\r\n");
+  var blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement("a");
+  link.href = url;
+  link.download = "bao_cao_" + groupSelect.options[groupSelect.selectedIndex].text + "_" + document.getElementById("historyFromDate").value + "_" + document.getElementById("historyToDate").value + ".csv";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 function computeDiligenceRanking(rows) {
   var byStudent = {};
   var order = [];
@@ -261,6 +299,8 @@ function renderGroupHistory(attempts, opens) {
       dateIso: row.opened_at
     };
   }));
+
+  lastGroupHistoryRows = rows;
 
   if (!rows.length) {
     var empty = document.createElement("div");
