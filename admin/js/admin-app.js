@@ -55,6 +55,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     populateAssignmentStudentAccess();
   });
   document.getElementById("historyGroupSelect").addEventListener("change", loadGroupHistory);
+  document.getElementById("historyFromDate").addEventListener("change", loadGroupHistory);
+  document.getElementById("historyToDate").addEventListener("change", loadGroupHistory);
+  document.getElementById("historyTodayBtn").addEventListener("click", function () {
+    setHistoryDateRange(1);
+    loadGroupHistory();
+  });
+  document.getElementById("historyLast7Btn").addEventListener("click", function () {
+    setHistoryDateRange(7);
+    loadGroupHistory();
+  });
+  document.getElementById("historyPrintBtn").addEventListener("click", handleHistoryPrint);
   document.getElementById("resultsUnitSearch").addEventListener("input", populateResultsUnitSelect);
   document.getElementById("resultsUnitSelect").addEventListener("change", function () {
     currentResultsAssignmentId = null;

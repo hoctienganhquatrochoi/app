@@ -32,6 +32,35 @@ function populateHistoryGroupSelect() {
   if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
     select.value = previous;
   }
+
+  if (!document.getElementById("historyFromDate").value) {
+    setHistoryDateRange(1);
+  }
+}
+
+function formatDateInputValue(d) {
+  var yyyy = d.getFullYear();
+  var mm = (d.getMonth() + 1) < 10 ? "0" + (d.getMonth() + 1) : "" + (d.getMonth() + 1);
+  var dd = d.getDate() < 10 ? "0" + d.getDate() : "" + d.getDate();
+  return yyyy + "-" + mm + "-" + dd;
+}
+
+function formatVNDateDisplay(isoDateStr) {
+  if (!isoDateStr) {
+    return "?";
+  }
+  var parts = isoDateStr.split("-");
+  return parts[2] + "/" + parts[1] + "/" + parts[0];
+}
+
+function setHistoryDateRange(days) {
+  var today = new Date();
+  var toStr = formatDateInputValue(today);
+  var fromDate = new Date(today);
+  fromDate.setDate(fromDate.getDate() - (days - 1));
+  var fromStr = formatDateInputValue(fromDate);
+  document.getElementById("historyFromDate").value = fromStr;
+  document.getElementById("historyToDate").value = toStr;
 }
 
 async function loadGroupHistory() {
@@ -43,12 +72,24 @@ async function loadGroupHistory() {
   }
   wrap.textContent = "Đang tải...";
 
-  var result = await supabaseClient
+  var fromStr = document.getElementById("historyFromDate").value;
+  var toStr = document.getElementById("historyToDate").value;
+
+  var query = supabaseClient
     .from("game_quiz_attempts")
     .select("*, game_students!inner(full_name, group_id)")
     .eq("game_students.group_id", groupId)
     .order("submitted_at", { ascending: false })
-    .limit(200);
+    .limit(500);
+
+  if (fromStr) {
+    query = query.gte("submitted_at", new Date(fromStr + "T00:00:00").toISOString());
+  }
+  if (toStr) {
+    query = query.lte("submitted_at", new Date(toStr + "T23:59:59.999").toISOString());
+  }
+
+  var result = await query;
 
   if (result.error) {
     wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
@@ -57,6 +98,48 @@ async function loadGroupHistory() {
 
   renderGroupHistory(result.data);
 }
+
+function handleHistoryPrint() {
+  var groupSelect = document.getElementById("historyGroupSelect");
+  if (!groupSelect.value) {
+    window.alert("Chọn 1 Nhóm học sinh trước khi in báo cáo");
+    return;
+  }
+
+  var printArea = document.getElementById("historyPrintArea");
+  printArea.innerHTML = "";
+
+  var title = document.createElement("h2");
+  title.textContent = "Báo cáo học tập — Nhóm " + groupSelect.options[groupSelect.selectedIndex].text;
+  printArea.appendChild(title);
+
+  var fromStr = document.getElementById("historyFromDate").value;
+  var toStr = document.getElementById("historyToDate").value;
+  var rangeLine = document.createElement("p");
+  rangeLine.textContent = "Từ ngày " + formatVNDateDisplay(fromStr) + " đến ngày " + formatVNDateDisplay(toStr);
+  printArea.appendChild(rangeLine);
+
+  var genLine = document.createElement("p");
+  genLine.className = "history-print-gen";
+  genLine.textContent = "Xuất báo cáo lúc: " + formatDateTime(new Date().toISOString());
+  printArea.appendChild(genLine);
+
+  var existingTable = document.querySelector("#historyListWrap table");
+  if (existingTable) {
+    printArea.appendChild(existingTable.cloneNode(true));
+  } else {
+    var empty = document.createElement("p");
+    empty.textContent = "Không có dữ liệu trong khoảng thời gian này.";
+    printArea.appendChild(empty);
+  }
+
+  document.body.classList.add("printing-history");
+  window.print();
+}
+
+window.addEventListener("afterprint", function () {
+  document.body.classList.remove("printing-history");
+});
 
 function renderGroupHistory(rows) {
   var wrap = document.getElementById("historyListWrap");

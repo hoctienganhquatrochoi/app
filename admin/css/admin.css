@@ -500,3 +500,29 @@ tr.editing-row {
   border-radius: 8px;
   font-size: 13px;
 }
+
+#historyPrintArea {
+  display: none;
+}
+
+.history-print-gen {
+  color: #7A8B82;
+  font-size: 13px;
+}
+
+@media print {
+  body.printing-history * {
+    visibility: hidden;
+  }
+  body.printing-history #historyPrintArea,
+  body.printing-history #historyPrintArea * {
+    visibility: visible;
+  }
+  body.printing-history #historyPrintArea {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+}

@@ -436,10 +436,29 @@ What's this? | It's a pen."></textarea>
 
     <div class="admin-form" id="resultsHistoryBox">
       <h3>Lịch sử làm bài theo Nhóm</h3>
-      <p class="admin-hint">Chọn 1 Nhóm học sinh để xem tất cả các lượt làm bài của nhóm đó (mọi Unit, mọi Dạng bài) — dùng để báo cáo tình hình học tập.</p>
-      <select class="admin-select" id="historyGroupSelect"></select>
+      <p class="admin-hint">Chọn 1 Nhóm học sinh để xem tất cả các lượt làm bài của nhóm đó (mọi Unit, mọi Dạng bài, trừ Wordwall vì không lấy được điểm) — dùng để báo cáo tình hình học tập. Bấm "In / Xuất PDF" để lưu file gửi nhóm phụ huynh.</p>
+      <div class="admin-form-row">
+        <div class="admin-field">
+          <label>Nhóm học sinh</label>
+          <select class="admin-select" id="historyGroupSelect" style="margin-bottom: 0;"></select>
+        </div>
+        <div class="admin-field admin-field-small">
+          <label>Từ ngày</label>
+          <input type="date" id="historyFromDate">
+        </div>
+        <div class="admin-field admin-field-small">
+          <label>Đến ngày</label>
+          <input type="date" id="historyToDate">
+        </div>
+        <div class="admin-field admin-field-btn">
+          <button type="button" class="admin-btn-secondary" id="historyTodayBtn">Hôm nay</button>
+          <button type="button" class="admin-btn-secondary" id="historyLast7Btn">7 ngày qua</button>
+          <button type="button" class="admin-btn-primary" id="historyPrintBtn">🖨️ In / Xuất PDF</button>
+        </div>
+      </div>
       <div id="historyListWrap" class="scrollable-list"></div>
     </div>
+    <div id="historyPrintArea"></div>
 
     <div class="admin-form-row" style="margin-bottom: 20px;">
       <div class="admin-field">
