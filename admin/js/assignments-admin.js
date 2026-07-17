@@ -2,7 +2,8 @@ var ASSIGNMENT_ACTIVITY_LABELS = {
   "quiz": "Quiz",
   "missing-letter": "Khuyết chữ cái",
   "typing-hint": "Đánh máy có gợi ý",
-  "typing-blank": "Đánh máy không gợi ý"
+  "typing-blank": "Đánh máy không gợi ý",
+  "flip-card": "Thẻ lật"
 };
 
 var ALL_UNITS_FLAT = [];

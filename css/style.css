@@ -568,6 +568,38 @@ html, body {
   cursor: not-allowed;
 }
 
+.flip-card-phonetic {
+  font-size: 18px;
+  color: #7A8B82;
+  margin-top: 8px;
+}
+
+.flip-card-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.flip-btn {
+  padding: 10px 22px;
+  border-radius: 24px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.flip-btn-wrong {
+  background: #FBE0E0;
+  color: #E63946;
+}
+
+.flip-btn-correct {
+  background: #DCEAE2;
+  color: #2D6A4F;
+}
+
 .fc-overlay {
   position: fixed;
   top: 0;

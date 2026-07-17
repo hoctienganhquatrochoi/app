@@ -1,5 +1,6 @@
 var VOCAB_ACTIVITY_TEMPLATE = [
   { id: "a1", name: "Thẻ đọc", type: "flashcard", locked: false },
+  { id: "a14", name: "Thẻ lật", type: "flip-card", locked: false },
   { id: "a2a", name: "Nghe từ, chọn hình", type: "quiz", format: "word-to-image", locked: false },
   { id: "a2b", name: "Nhìn hình, chọn từ", type: "quiz", format: "image-to-word", locked: false },
   { id: "a2d", name: "Chỉ nhìn hình, đoán từ", type: "quiz", format: "image-only-to-word", locked: false },

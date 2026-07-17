@@ -324,7 +324,7 @@ function buildActivityItem(unit, activity, needsAccess) {
   return item;
 }
 
-var vocabActivityTypes = ["flashcard", "quiz", "missing-letter", "typing"];
+var vocabActivityTypes = ["flashcard", "flip-card", "quiz", "missing-letter", "typing"];
 
 async function renderMainContent() {
   var main = document.getElementById("mainContent");
@@ -369,6 +369,8 @@ async function renderMainContent() {
 
     if (activity.type === "flashcard") {
       renderFlashcard(main, breadcrumbText, items);
+    } else if (activity.type === "flip-card") {
+      renderFlipCard(main, breadcrumbText, items, unit.id);
     } else if (activity.type === "quiz") {
       renderQuiz(main, breadcrumbText, items, unit.id, activity.maxQuestions, activity.format);
     } else if (activity.type === "missing-letter") {
