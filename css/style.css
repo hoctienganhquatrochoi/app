@@ -1148,7 +1148,9 @@ html, body {
 }
 
 .ty-blank.auto.space {
-  width: 18px;
+  width: 12px;
+  border-bottom: none;
+  background: none;
 }
 
 .ty-tiles {
