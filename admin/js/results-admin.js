@@ -139,9 +139,9 @@ function handleHistoryPrint() {
   genLine.textContent = "Xuất báo cáo lúc: " + formatDateTime(new Date().toISOString());
   printArea.appendChild(genLine);
 
-  var existingTable = document.querySelector("#historyListWrap table");
-  if (existingTable) {
-    printArea.appendChild(existingTable.cloneNode(true));
+  var historyListWrap = document.getElementById("historyListWrap");
+  if (historyListWrap.querySelector("table")) {
+    printArea.appendChild(historyListWrap.cloneNode(true));
   } else {
     var empty = document.createElement("p");
     empty.textContent = "Không có dữ liệu trong khoảng thời gian này.";
@@ -155,6 +155,78 @@ function handleHistoryPrint() {
 window.addEventListener("afterprint", function () {
   document.body.classList.remove("printing-history");
 });
+
+function buildDiligenceRanking(rows) {
+  var box = document.createElement("div");
+  box.className = "admin-form";
+  box.style.marginBottom = "16px";
+
+  var heading = document.createElement("h3");
+  heading.textContent = "🏅 Xếp hạng chuyên cần";
+  box.appendChild(heading);
+
+  var hint = document.createElement("p");
+  hint.className = "admin-hint";
+  hint.textContent = "Xếp theo số lượt học nhiều nhất trong khoảng thời gian đang chọn, sau đó theo điểm trung bình.";
+  box.appendChild(hint);
+
+  var byStudent = {};
+  var order = [];
+  rows.forEach(function (row) {
+    if (!byStudent[row.studentName]) {
+      byStudent[row.studentName] = { name: row.studentName, count: 0, days: {}, scoreSum: 0, totalSum: 0 };
+      order.push(row.studentName);
+    }
+    var s = byStudent[row.studentName];
+    s.count++;
+    s.days[row.dateIso.slice(0, 10)] = true;
+    if (typeof row.score === "number" && typeof row.total === "number") {
+      s.scoreSum += row.score;
+      s.totalSum += row.total;
+    }
+  });
+
+  var ranked = order.map(function (name) {
+    var s = byStudent[name];
+    var dayCount = Object.keys(s.days).length;
+    var avgPercent = s.totalSum > 0 ? Math.round((s.scoreSum / s.totalSum) * 100) : null;
+    return { name: name, count: s.count, days: dayCount, avgPercent: avgPercent };
+  }).sort(function (a, b) {
+    if (b.count !== a.count) {
+      return b.count - a.count;
+    }
+    return (b.avgPercent || 0) - (a.avgPercent || 0);
+  });
+
+  var medals = ["🥇", "🥈", "🥉"];
+  var table = document.createElement("table");
+  table.className = "admin-table";
+
+  var thead = document.createElement("thead");
+  var headRow = document.createElement("tr");
+  ["Hạng", "Học sinh", "Số lượt học", "Số ngày có học", "Điểm TB"].forEach(function (text) {
+    var th = document.createElement("th");
+    th.textContent = text;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  var tbody = document.createElement("tbody");
+  ranked.forEach(function (s, idx) {
+    var tr = document.createElement("tr");
+    tr.appendChild(makeTd(medals[idx] || ("#" + (idx + 1))));
+    tr.appendChild(makeTd(s.name));
+    tr.appendChild(makeTd("" + s.count));
+    tr.appendChild(makeTd("" + s.days));
+    tr.appendChild(makeTd(s.avgPercent === null ? "—" : s.avgPercent + "%"));
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+
+  box.appendChild(table);
+  return box;
+}
 
 function renderGroupHistory(attempts, opens) {
   var wrap = document.getElementById("historyListWrap");
@@ -172,6 +244,8 @@ function renderGroupHistory(attempts, opens) {
       unitLabel: unitLabelById[row.unit_id] || row.unit_id,
       activityLabel: ASSIGNMENT_ACTIVITY_LABELS[row.activity_type] || row.activity_type,
       scoreLabel: row.score + " / " + row.total,
+      score: row.score,
+      total: row.total,
       dateIso: row.submitted_at
     };
   }).concat(opens.map(function (row) {
@@ -180,6 +254,8 @@ function renderGroupHistory(attempts, opens) {
       unitLabel: unitLabelById[row.unit_id] || row.unit_id,
       activityLabel: "Wordwall: " + row.wordwall_name + " (đã mở)",
       scoreLabel: "—",
+      score: null,
+      total: null,
       dateIso: row.opened_at
     };
   }));
@@ -195,6 +271,8 @@ function renderGroupHistory(attempts, opens) {
   rows.sort(function (a, b) {
     return new Date(b.dateIso) - new Date(a.dateIso);
   });
+
+  wrap.appendChild(buildDiligenceRanking(rows));
 
   var table = document.createElement("table");
   table.className = "admin-table";

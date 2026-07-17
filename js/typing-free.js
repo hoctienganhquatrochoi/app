@@ -2,7 +2,7 @@ function normalizeFreeTypingAnswer(str) {
   return (str || "").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
-function renderFreeTyping(container, items, unitId, maxQuestions, mode) {
+function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions, mode) {
   var pool = pickQuestionPool(items, maxQuestions);
   var qIndex = 0;
   var score = 0;
@@ -152,7 +152,7 @@ function renderFreeTyping(container, items, unitId, maxQuestions, mode) {
     var title = document.createElement("h2");
     title.textContent = "Kết quả";
     wrap.appendChild(title);
-    wrap.appendChild(buildResultMeta());
+    wrap.appendChild(buildResultMeta(breadcrumbText));
 
     var scoreBig = document.createElement("div");
     scoreBig.className = "score-big";

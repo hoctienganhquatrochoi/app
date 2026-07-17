@@ -910,15 +910,26 @@ html, body {
 }
 
 .result-meta-name {
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 800;
-  color: #B7876B;
+  background: linear-gradient(90deg, #B8860B, #E6B94D, #B8860B);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 1px 1px rgba(184, 134, 11, 0.15);
+}
+
+.result-meta-activity {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2D6A4F;
+  margin-top: 4px;
 }
 
 .result-meta-date {
   font-size: 14px;
   color: #7A8B82;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .quiz-result .score-big {

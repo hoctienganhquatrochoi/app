@@ -134,7 +134,7 @@ function renderSpeaking(container, breadcrumbText, items, onBack) {
     var h3 = document.createElement("h3");
     h3.textContent = "🎉 Hoàn thành!";
     popup.appendChild(h3);
-    popup.appendChild(buildResultMeta());
+    popup.appendChild(buildResultMeta(breadcrumbText));
 
     var p = document.createElement("p");
     p.textContent = "Bé đã luyện xong " + items.length + " câu trong bài này.";

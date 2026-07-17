@@ -139,7 +139,7 @@ function buildProgressFooter(current, total) {
   return el;
 }
 
-function buildResultMeta() {
+function buildResultMeta(activityLabel) {
   var wrap = document.createElement("div");
   wrap.className = "result-meta";
 
@@ -149,12 +149,21 @@ function buildResultMeta() {
   nameEl.textContent = "🌟 " + name;
   wrap.appendChild(nameEl);
 
+  if (activityLabel) {
+    var activityEl = document.createElement("div");
+    activityEl.className = "result-meta-activity";
+    activityEl.textContent = activityLabel;
+    wrap.appendChild(activityEl);
+  }
+
   var d = new Date();
   var dd = d.getDate() < 10 ? "0" + d.getDate() : "" + d.getDate();
   var mm = (d.getMonth() + 1) < 10 ? "0" + (d.getMonth() + 1) : "" + (d.getMonth() + 1);
+  var hh = d.getHours() < 10 ? "0" + d.getHours() : "" + d.getHours();
+  var mi = d.getMinutes() < 10 ? "0" + d.getMinutes() : "" + d.getMinutes();
   var dateEl = document.createElement("div");
   dateEl.className = "result-meta-date";
-  dateEl.textContent = dd + "/" + mm + "/" + d.getFullYear();
+  dateEl.textContent = hh + ":" + mi + " " + dd + "/" + mm + "/" + d.getFullYear();
   wrap.appendChild(dateEl);
 
   return wrap;

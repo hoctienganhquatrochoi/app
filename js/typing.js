@@ -16,7 +16,7 @@ function shuffleWordLetters(word) {
   return shuffled;
 }
 
-function renderTyping(container, items, unitId, maxQuestions, mode) {
+function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mode) {
   var pool = pickQuestionPool(items, maxQuestions);
   var qIndex = 0;
   var score = 0;
@@ -306,7 +306,7 @@ function renderTyping(container, items, unitId, maxQuestions, mode) {
     var title = document.createElement("h2");
     title.textContent = "Kết quả";
     wrap.appendChild(title);
-    wrap.appendChild(buildResultMeta());
+    wrap.appendChild(buildResultMeta(breadcrumbText));
 
     var scoreBig = document.createElement("div");
     scoreBig.className = "score-big";

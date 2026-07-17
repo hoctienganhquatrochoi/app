@@ -525,4 +525,12 @@ tr.editing-row {
     left: 0;
     width: 100%;
   }
+  body.printing-history #historyPrintArea .scrollable-list {
+    max-height: none;
+    overflow: visible;
+    border: none;
+  }
+  body.printing-history #historyPrintArea .admin-hint {
+    display: none;
+  }
 }

@@ -376,9 +376,9 @@ async function renderMainContent() {
     } else if (activity.type === "missing-letter") {
       renderMissingLetter(main, breadcrumbText, items, unit.id, activity.maxQuestions);
     } else if (activity.type === "typing") {
-      renderTyping(main, items, unit.id, activity.maxQuestions, activity.mode);
+      renderTyping(main, breadcrumbText, items, unit.id, activity.maxQuestions, activity.mode);
     } else if (activity.type === "free-typing") {
-      renderFreeTyping(main, items, unit.id, activity.maxQuestions, activity.mode);
+      renderFreeTyping(main, breadcrumbText, items, unit.id, activity.maxQuestions, activity.mode);
     }
     return;
   }
