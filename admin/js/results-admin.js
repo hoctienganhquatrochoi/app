@@ -179,7 +179,8 @@ function handleHistoryExportCsv() {
   var headers = ["Học sinh", "Bài", "Dạng bài", "Điểm", "Ngày làm"];
   var lines = [headers.map(csvEscape).join(",")];
   lastGroupHistoryRows.forEach(function (row) {
-    lines.push([row.studentName, row.unitLabel, row.activityLabel, row.scoreLabel, formatDateTime(row.dateIso)].map(csvEscape).join(","));
+    var scoreCell = '="' + row.scoreLabel + '"';
+    lines.push([row.studentName, row.unitLabel, row.activityLabel, scoreCell, formatDateTime(row.dateIso)].map(csvEscape).join(","));
   });
 
   var csvContent = "\uFEFF" + lines.join("\r\n");
