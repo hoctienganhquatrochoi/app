@@ -230,9 +230,29 @@ function buildVocabToolbar() {
       renderVocabTable(currentVocabRows);
     });
     toolbar.appendChild(editAllBtn);
+
+    var deleteAllBtn = document.createElement("button");
+    deleteAllBtn.className = "admin-btn-danger";
+    deleteAllBtn.type = "button";
+    deleteAllBtn.textContent = "Xóa tất cả từ vựng";
+    deleteAllBtn.addEventListener("click", handleDeleteAllVocab);
+    toolbar.appendChild(deleteAllBtn);
   }
 
   return toolbar;
+}
+
+async function handleDeleteAllVocab() {
+  var unitId = document.getElementById("unitSelect").value;
+  if (!window.confirm("Xóa toàn bộ " + currentVocabRows.length + " từ vựng trong Unit này? Không thể khôi phục.")) {
+    return;
+  }
+  var result = await supabaseClient.from("game_vocab").delete().eq("unit_id", unitId);
+  if (result.error) {
+    window.alert("Lỗi xóa: " + result.error.message);
+    return;
+  }
+  loadVocabTable();
 }
 
 function renderVocabTable(rows) {
