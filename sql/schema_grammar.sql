@@ -6,11 +6,8 @@ create table if not exists game_grammar_mcq (
   unit_id text not null,
   sort_order int not null default 0,
   question text,
-  option_a text not null,
-  option_b text not null,
-  option_c text not null,
-  option_d text not null,
-  correct_option text not null check (correct_option in ('A', 'B', 'C', 'D')),
+  correct_answer text not null,
+  wrong_answers text[] not null,
   created_at timestamptz not null default now()
 );
 

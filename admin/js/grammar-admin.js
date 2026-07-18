@@ -58,7 +58,7 @@ function renderGrammarMcqTable(rows) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  ["Câu hỏi", "A", "B", "C", "D", "Đáp án đúng", ""].forEach(function (h) {
+  ["Câu hỏi", "Đáp án đúng", "Đáp án sai", ""].forEach(function (h) {
     var th = document.createElement("th");
     th.textContent = h;
     headRow.appendChild(th);
@@ -78,11 +78,8 @@ function renderGrammarMcqTable(rows) {
 function buildGrammarMcqRow(row) {
   var tr = document.createElement("tr");
   tr.appendChild(makeTd(row.question));
-  tr.appendChild(makeTd(row.option_a));
-  tr.appendChild(makeTd(row.option_b));
-  tr.appendChild(makeTd(row.option_c));
-  tr.appendChild(makeTd(row.option_d));
-  tr.appendChild(makeTd(row.correct_option));
+  tr.appendChild(makeTd(row.correct_answer));
+  tr.appendChild(makeTd((row.wrong_answers || []).join(", ")));
 
   var actionsTd = document.createElement("td");
 
@@ -114,18 +111,12 @@ function buildGrammarMcqEditRow(row) {
   tr.className = "editing-row";
 
   var questionTd = makeInputTd(row.question);
-  var aTd = makeInputTd(row.option_a);
-  var bTd = makeInputTd(row.option_b);
-  var cTd = makeInputTd(row.option_c);
-  var dTd = makeInputTd(row.option_d);
-  var correctTd = makeInputTd(row.correct_option);
+  var correctTd = makeInputTd(row.correct_answer);
+  var wrongTd = makeInputTd((row.wrong_answers || []).join(", "));
 
   tr.appendChild(questionTd);
-  tr.appendChild(aTd);
-  tr.appendChild(bTd);
-  tr.appendChild(cTd);
-  tr.appendChild(dTd);
   tr.appendChild(correctTd);
+  tr.appendChild(wrongTd);
 
   var actionsTd = document.createElement("td");
 
@@ -134,18 +125,16 @@ function buildGrammarMcqEditRow(row) {
   saveBtn.type = "button";
   saveBtn.textContent = "Lưu";
   saveBtn.addEventListener("click", async function () {
-    var correctOption = correctTd.inputEl.value.trim().toUpperCase();
-    if (["A", "B", "C", "D"].indexOf(correctOption) === -1) {
-      window.alert("Đáp án đúng phải là A, B, C hoặc D");
+    var correctAnswer = correctTd.inputEl.value.trim();
+    var wrongAnswers = wrongTd.inputEl.value.split(",").map(function (w) { return w.trim(); }).filter(function (w) { return w; });
+    if (!correctAnswer || !wrongAnswers.length) {
+      window.alert("Đáp án đúng và đáp án sai không được để trống");
       return;
     }
     var result = await supabaseClient.from("game_grammar_mcq").update({
       question: questionTd.inputEl.value.trim(),
-      option_a: aTd.inputEl.value.trim(),
-      option_b: bTd.inputEl.value.trim(),
-      option_c: cTd.inputEl.value.trim(),
-      option_d: dTd.inputEl.value.trim(),
-      correct_option: correctOption
+      correct_answer: correctAnswer,
+      wrong_answers: wrongAnswers
     }).eq("id", row.id);
 
     if (result.error) {
@@ -198,16 +187,32 @@ async function handleDeleteAllGrammarMcq() {
   loadCurriculumData().then(loadActivityToggles);
 }
 
-function parseGrammarMcqBulkLine(line) {
-  var parts = line.split("|").map(function (p) { return p.trim(); });
-  return {
-    question: parts[0] || "",
-    option_a: parts[1] || "",
-    option_b: parts[2] || "",
-    option_c: parts[3] || "",
-    option_d: parts[4] || "",
-    correct_option: (parts[5] || "").toUpperCase()
-  };
+function parseGrammarMcqBulkBlock(block) {
+  var lines = block.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+  var question = "";
+  var correctAnswer = "";
+  var wrongAnswers = [];
+
+  lines.forEach(function (line) {
+    var correctMatch = line.match(/^đáp\s*án\s*đúng\s*:\s*(.*)$/i);
+    var wrongMatch = line.match(/^đáp\s*án\s*sai\s*:\s*(.*)$/i);
+    if (correctMatch) {
+      correctAnswer = correctMatch[1].trim();
+    } else if (wrongMatch) {
+      wrongAnswers = wrongMatch[1].split(",").map(function (w) { return w.trim(); }).filter(function (w) { return w; });
+    } else if (!question) {
+      question = line;
+    }
+  });
+
+  return { question: question, correct_answer: correctAnswer, wrong_answers: wrongAnswers };
+}
+
+function parseGrammarMcqBulkText(text) {
+  var blocks = text.split(/\n\s*\n/);
+  return blocks.map(parseGrammarMcqBulkBlock).filter(function (item) {
+    return item.correct_answer || item.wrong_answers.length;
+  });
 }
 
 async function handleBulkAddGrammarMcq(e) {
@@ -215,9 +220,9 @@ async function handleBulkAddGrammarMcq(e) {
 
   var unitId = document.getElementById("unitSelect").value;
   var text = document.getElementById("bulkGrammarMcqTextarea").value;
-  var lines = text.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+  var items = parseGrammarMcqBulkText(text);
 
-  if (!lines.length) {
+  if (!items.length) {
     window.alert("Chưa dán dữ liệu nào.");
     return;
   }
@@ -226,37 +231,34 @@ async function handleBulkAddGrammarMcq(e) {
   var nextSortOrder = existingCountResult.count || 0;
 
   var successCount = 0;
-  var invalidLines = [];
+  var invalidBlocks = [];
   var i;
-  for (i = 0; i < lines.length; i++) {
-    var item = parseGrammarMcqBulkLine(lines[i]);
-    if (!item.option_a || !item.option_b || !item.option_c || !item.option_d || ["A", "B", "C", "D"].indexOf(item.correct_option) === -1) {
-      invalidLines.push(i + 1);
+  for (i = 0; i < items.length; i++) {
+    var item = items[i];
+    if (!item.correct_answer || !item.wrong_answers.length) {
+      invalidBlocks.push(i + 1);
       continue;
     }
-    setBulkGrammarMcqStatus("Đang xử lý " + (i + 1) + "/" + lines.length + "...");
+    setBulkGrammarMcqStatus("Đang xử lý " + (i + 1) + "/" + items.length + "...");
 
     var insertResult = await supabaseClient.from("game_grammar_mcq").insert({
       unit_id: unitId,
       sort_order: nextSortOrder + successCount,
       question: item.question,
-      option_a: item.option_a,
-      option_b: item.option_b,
-      option_c: item.option_c,
-      option_d: item.option_d,
-      correct_option: item.correct_option
+      correct_answer: item.correct_answer,
+      wrong_answers: item.wrong_answers
     });
 
     if (insertResult.error) {
-      setBulkGrammarMcqStatus("Lỗi lưu dòng " + (i + 1) + ": " + insertResult.error.message);
+      setBulkGrammarMcqStatus("Lỗi lưu câu " + (i + 1) + ": " + insertResult.error.message);
       continue;
     }
     successCount++;
   }
 
-  var summary = "Xong! Đã thêm " + successCount + "/" + lines.length + " câu.";
-  if (invalidLines.length) {
-    summary += " Bỏ qua dòng thiếu dữ liệu hoặc sai đáp án: dòng " + invalidLines.join(", ") + ".";
+  var summary = "Xong! Đã thêm " + successCount + "/" + items.length + " câu.";
+  if (invalidBlocks.length) {
+    summary += " Bỏ qua câu thiếu đáp án đúng/sai: câu " + invalidBlocks.join(", ") + ".";
   }
   setBulkGrammarMcqStatus(summary);
 

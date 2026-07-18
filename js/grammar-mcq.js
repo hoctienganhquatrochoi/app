@@ -1,11 +1,21 @@
 var GRAMMAR_MCQ_ADVANCE_DELAY_MS = 1200;
 
+function buildGrammarMcqQuestions(items) {
+  return shuffleArray(items).map(function (row) {
+    var wrongOptions = (row.wrong_answers || []).map(function (text) {
+      return { text: text, isCorrect: false };
+    });
+    var options = shuffleArray([{ text: row.correct_answer, isCorrect: true }].concat(wrongOptions));
+    return { id: row.id, question: row.question, options: options };
+  });
+}
+
 function renderGrammarMcq(container, breadcrumbText, items, unitId) {
-  var questions = shuffleArray(items);
+  var questions = buildGrammarMcqQuestions(items);
   var qIndex = 0;
   var score = 0;
   var answered = false;
-  var selectedOption = null;
+  var selectedIndex = null;
   var answersLog = [];
   var startedAt = new Date();
   var timerIntervalId = startActivityTimer(startedAt);
@@ -32,10 +42,8 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId) {
     var optionsEl = document.createElement("div");
     optionsEl.className = "quiz-options";
 
-    var keys = ["A", "B", "C", "D"];
-    var fields = { A: "option_a", B: "option_b", C: "option_c", D: "option_d" };
-    keys.forEach(function (key) {
-      optionsEl.appendChild(buildOption(q, key, q[fields[key]]));
+    q.options.forEach(function (option, idx) {
+      optionsEl.appendChild(buildOption(q, option, idx));
     });
     body.appendChild(optionsEl);
 
@@ -44,22 +52,22 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId) {
     container.appendChild(wrap);
   }
 
-  function buildOption(q, key, text) {
+  function buildOption(q, option, idx) {
     var btn = document.createElement("button");
     btn.className = "quiz-option grammar-mcq-option";
     btn.type = "button";
 
     var label = document.createElement("span");
-    appendTextWithUnderline(label, text);
+    appendTextWithUnderline(label, option.text);
     btn.appendChild(label);
 
     if (answered) {
       btn.disabled = true;
       btn.className += " disabled";
-      if (key === q.correct_option) {
+      if (option.isCorrect) {
         btn.className += " correct";
         btn.appendChild(buildResultIcon(true));
-      } else if (key === selectedOption) {
+      } else if (idx === selectedIndex) {
         btn.className += " wrong";
         btn.appendChild(buildResultIcon(false));
       }
@@ -70,16 +78,15 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId) {
         return;
       }
       answered = true;
-      selectedOption = key;
-      var isCorrect = key === q.correct_option;
-      if (isCorrect) {
+      selectedIndex = idx;
+      if (option.isCorrect) {
         score++;
       }
       answersLog.push({
         vocab_id: q.id,
-        word_en: q.question || (q.option_a + " / " + q.option_b + " / " + q.option_c + " / " + q.option_d),
-        selected_label: text,
-        is_correct: isCorrect
+        word_en: q.question || q.options.map(function (o) { return o.text; }).join(" / "),
+        selected_label: option.text,
+        is_correct: option.isCorrect
       });
       draw();
 
@@ -87,7 +94,7 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId) {
         if (qIndex < questions.length - 1) {
           qIndex++;
           answered = false;
-          selectedOption = null;
+          selectedIndex = null;
           draw();
         } else {
           showResult();
@@ -130,11 +137,11 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId) {
     retryBtn.type = "button";
     retryBtn.textContent = "Làm lại";
     retryBtn.addEventListener("click", function () {
-      questions = shuffleArray(items);
+      questions = buildGrammarMcqQuestions(items);
       qIndex = 0;
       score = 0;
       answered = false;
-      selectedOption = null;
+      selectedIndex = null;
       answersLog = [];
       startedAt = new Date();
       timerIntervalId = startActivityTimer(startedAt);
