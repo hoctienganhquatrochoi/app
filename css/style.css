@@ -805,6 +805,12 @@ html, body {
   text-align: center;
 }
 
+.grammar-mcq-question {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1B4332;
+}
+
 .vocab-visual-frame {
   overflow: hidden;
   border-radius: 16px;
