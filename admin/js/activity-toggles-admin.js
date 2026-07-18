@@ -144,6 +144,21 @@ async function saveToggleState(disabledIds) {
   statusEl.textContent = result.error ? "Lỗi lưu: " + result.error.message : "Đã lưu ✓";
 }
 
+function isVocabActivityId(id) {
+  return VOCAB_ACTIVITY_TEMPLATE.some(function (a) { return a.id === id; });
+}
+
+async function setVocabTogglesEnabled(enabled) {
+  var checkboxes = document.querySelectorAll("#activityTogglesList input[type=checkbox]");
+  var i;
+  for (i = 0; i < checkboxes.length; i++) {
+    if (isVocabActivityId(currentToggleActivities[i].id)) {
+      checkboxes[i].checked = enabled;
+    }
+  }
+  await saveToggleState(collectDisabledIds());
+}
+
 async function handleToggleChange() {
   await saveToggleState(collectDisabledIds());
 }

@@ -49,6 +49,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
   document.getElementById("unitSelect").addEventListener("change", loadWordwallList);
   document.getElementById("unitSelect").addEventListener("change", loadActivityToggles);
+  document.getElementById("toggleAllVocabOnBtn").addEventListener("click", function () {
+    setVocabTogglesEnabled(true);
+  });
+  document.getElementById("toggleAllVocabOffBtn").addEventListener("click", function () {
+    setVocabTogglesEnabled(false);
+  });
   document.getElementById("bulkAddForm").addEventListener("submit", handleBulkAdd);
   document.getElementById("bulkAddSentenceForm").addEventListener("submit", handleBulkAddSentences);
   document.getElementById("bulkAddVietLiteracyForm").addEventListener("submit", handleBulkAddVietLiteracy);

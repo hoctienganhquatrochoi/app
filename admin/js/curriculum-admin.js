@@ -830,6 +830,23 @@ async function handleAddUnit() {
     return;
   }
 
+  if (contentType !== "viet-literacy") {
+    var prevUnits = (subjectForOrder ? subjectForOrder.units : []).filter(function (u) {
+      return u.content_type === contentType || (!u.content_type && contentType === "vocab");
+    });
+    var lastUnit = prevUnits.length ? prevUnits[prevUnits.length - 1] : null;
+    if (lastUnit) {
+      var prevSettings = await supabaseClient.from("game_unit_settings").select("disabled_activity_ids, activity_order").eq("unit_id", lastUnit.id).maybeSingle();
+      if (prevSettings.data) {
+        await supabaseClient.from("game_unit_settings").upsert({
+          unit_id: newId,
+          disabled_activity_ids: prevSettings.data.disabled_activity_ids,
+          activity_order: prevSettings.data.activity_order
+        });
+      }
+    }
+  }
+
   document.getElementById("newUnitName").value = "";
   document.getElementById("newUnitHighlightTarget").value = "";
   setCurriculumStatus(name ? "Đã tạo bài học \"" + name + "\"." : "Đã tạo bài học không tên — nội dung sẽ hiện thẳng dưới Môn học cho học sinh.");
