@@ -190,8 +190,7 @@ async function loadUnitDisabledActivities(unitId) {
     unitDisabledActivities[unitId] = result.data.disabled_activity_ids || [];
     unitActivityOrder[unitId] = result.data.activity_order;
   } else {
-    var unit = findUnitById(unitId);
-    unitDisabledActivities[unitId] = unit ? unit.activities.map(function (a) { return a.id; }) : [];
+    unitDisabledActivities[unitId] = [];
     unitActivityOrder[unitId] = null;
   }
   renderSidebar();

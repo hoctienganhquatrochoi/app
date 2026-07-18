@@ -61,9 +61,7 @@ async function loadActivityToggles() {
   currentToggleUnitId = unitId;
   currentToggleActivities = orderActivities(unit.activities, orderIds);
 
-  var disabledIds = result.data
-    ? (result.data.disabled_activity_ids || [])
-    : currentToggleActivities.map(function (a) { return a.id; });
+  var disabledIds = result.data ? (result.data.disabled_activity_ids || []) : [];
 
   renderActivityToggles(disabledIds);
 }
