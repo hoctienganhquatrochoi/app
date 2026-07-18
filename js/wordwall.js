@@ -6,6 +6,10 @@ function logWordwallOpen(unitId, wordwallName) {
     student_id: currentStudent.id,
     unit_id: unitId,
     wordwall_name: wordwallName
+  }).then(function (result) {
+    if (result.error) {
+      console.error("logWordwallOpen failed:", result.error);
+    }
   });
 }
 
