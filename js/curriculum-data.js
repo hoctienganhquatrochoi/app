@@ -18,8 +18,8 @@ var SENTENCE_ACTIVITY_TEMPLATE = [
   { id: "s1", name: "Thẻ đọc (câu)", type: "flashcard", locked: false },
   { id: "s14", name: "Thẻ lật (câu)", type: "flip-card", locked: false },
   { id: "s2e", name: "Nghe - Dịch (câu)", type: "quiz", format: "word-to-meaning", locked: false },
-  { id: "s3", name: "Đánh máy có gợi ý (câu)", type: "typing", mode: "hint", locked: false },
-  { id: "s4", name: "Đánh máy không gợi ý (câu)", type: "typing", mode: "blank", locked: false },
+  { id: "s3", name: "Đánh máy có gợi ý (câu)", type: "free-typing", mode: "hint", locked: false },
+  { id: "s4", name: "Đánh máy không gợi ý (câu)", type: "free-typing", mode: "blank", locked: false },
   { id: "s18", name: "Nghe - Đánh máy (câu)", type: "free-typing", mode: "audio", locked: false }
 ];
 
