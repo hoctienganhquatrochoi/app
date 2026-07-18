@@ -236,6 +236,7 @@ async function handleBulkAddGrammarMcq(e) {
 
   var successCount = 0;
   var invalidBlocks = [];
+  var saveErrors = [];
   var i;
   for (i = 0; i < items.length; i++) {
     var item = items[i];
@@ -254,7 +255,7 @@ async function handleBulkAddGrammarMcq(e) {
     });
 
     if (insertResult.error) {
-      setBulkGrammarMcqStatus("Lỗi lưu câu " + (i + 1) + ": " + insertResult.error.message);
+      saveErrors.push("câu " + (i + 1) + ": " + insertResult.error.message);
       continue;
     }
     successCount++;
@@ -263,6 +264,9 @@ async function handleBulkAddGrammarMcq(e) {
   var summary = "Xong! Đã thêm " + successCount + "/" + items.length + " câu.";
   if (invalidBlocks.length) {
     summary += " Bỏ qua câu thiếu đáp án đúng/sai: câu " + invalidBlocks.join(", ") + ".";
+  }
+  if (saveErrors.length) {
+    summary += " Lỗi lưu — " + saveErrors.join("; ") + ".";
   }
   setBulkGrammarMcqStatus(summary);
 
@@ -481,6 +485,7 @@ async function handleBulkAddGrammarTyping(e) {
 
   var successCount = 0;
   var invalidLines = [];
+  var saveErrors = [];
   var i;
   for (i = 0; i < lines.length; i++) {
     var item = parseGrammarTypingBulkLine(lines[i]);
@@ -498,7 +503,7 @@ async function handleBulkAddGrammarTyping(e) {
     });
 
     if (insertResult.error) {
-      setBulkGrammarTypingStatus("Lỗi lưu dòng " + (i + 1) + ": " + insertResult.error.message);
+      saveErrors.push("dòng " + (i + 1) + ": " + insertResult.error.message);
       continue;
     }
     successCount++;
@@ -507,6 +512,9 @@ async function handleBulkAddGrammarTyping(e) {
   var summary = "Xong! Đã thêm " + successCount + "/" + lines.length + " câu.";
   if (invalidLines.length) {
     summary += " Bỏ qua dòng thiếu dữ liệu: dòng " + invalidLines.join(", ") + ".";
+  }
+  if (saveErrors.length) {
+    summary += " Lỗi lưu — " + saveErrors.join("; ") + ".";
   }
   setBulkGrammarTypingStatus(summary);
 
