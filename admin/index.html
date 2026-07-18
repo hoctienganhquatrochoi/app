@@ -458,13 +458,12 @@ What's this? | It's a pen."></textarea>
         <div class="admin-field admin-field-btn">
           <button type="button" class="admin-btn-secondary" id="historyTodayBtn">Hôm nay</button>
           <button type="button" class="admin-btn-secondary" id="historyLast7Btn">7 ngày qua</button>
-          <button type="button" class="admin-btn-primary" id="historyPrintBtn">🖨️ In / Xuất PDF</button>
+          <button type="button" class="admin-btn-primary" id="historyExportPdfBtn">📄 Xuất PDF</button>
           <button type="button" class="admin-btn-secondary" id="historyExportCsvBtn">📊 Xuất Excel</button>
         </div>
       </div>
       <div id="historyListWrap" class="scrollable-list"></div>
     </div>
-    <div id="historyPrintArea"></div>
 
     <div class="admin-form-row" style="margin-bottom: 20px;">
       <div class="admin-field">
@@ -508,6 +507,8 @@ What's this? | It's a pen."></textarea>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="../js/data.js"></script>
 <script src="../js/supabase-config.js"></script>
 <script src="js/admin-auth.js"></script>

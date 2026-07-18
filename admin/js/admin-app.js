@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     setHistoryDateRange(7);
     loadGroupHistory();
   });
-  document.getElementById("historyPrintBtn").addEventListener("click", handleHistoryPrint);
+  document.getElementById("historyExportPdfBtn").addEventListener("click", handleHistoryExportPdf);
   document.getElementById("historyExportCsvBtn").addEventListener("click", handleHistoryExportCsv);
   document.getElementById("resultsUnitSearch").addEventListener("input", populateResultsUnitSelect);
   document.getElementById("resultsUnitSelect").addEventListener("change", function () {

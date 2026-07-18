@@ -514,36 +514,3 @@ tr.editing-row {
   font-size: 13px;
 }
 
-#historyPrintArea {
-  display: none;
-}
-
-.history-print-gen {
-  color: #7A8B82;
-  font-size: 13px;
-}
-
-@media print {
-  body.printing-history * {
-    visibility: hidden;
-  }
-  body.printing-history #historyPrintArea,
-  body.printing-history #historyPrintArea * {
-    visibility: visible;
-  }
-  body.printing-history #historyPrintArea {
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-  }
-  body.printing-history #historyPrintArea .scrollable-list {
-    max-height: none;
-    overflow: visible;
-    border: none;
-  }
-  body.printing-history #historyPrintArea .admin-hint {
-    display: none;
-  }
-}

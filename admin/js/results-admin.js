@@ -169,47 +169,67 @@ function currentHistoryReportLabel() {
   return null;
 }
 
-function handleHistoryPrint() {
+async function handleHistoryExportPdf() {
   var reportLabel = currentHistoryReportLabel();
   if (!reportLabel) {
-    window.alert("Chọn 1 Nhóm học sinh hoặc 1 học sinh trước khi in báo cáo");
+    window.alert("Chọn 1 Nhóm học sinh hoặc 1 học sinh trước khi xuất PDF");
+    return;
+  }
+  if (!lastGroupHistoryRows.length) {
+    window.alert("Không có dữ liệu để xuất");
     return;
   }
 
-  var printArea = document.getElementById("historyPrintArea");
-  printArea.innerHTML = "";
+  var btn = document.getElementById("historyExportPdfBtn");
+  btn.disabled = true;
+  var originalBtnText = btn.textContent;
+  btn.textContent = "Đang tạo PDF...";
+
+  var exportArea = document.createElement("div");
+  exportArea.style.cssText = "position: fixed; left: -9999px; top: 0; width: 700px; background: #fff; padding: 24px; font-family: 'Segoe UI', Arial, sans-serif; color: #1B4332;";
 
   var title = document.createElement("h2");
+  title.style.cssText = "margin: 0 0 8px;";
   title.textContent = "Báo cáo học tập — " + reportLabel;
-  printArea.appendChild(title);
+  exportArea.appendChild(title);
 
   var fromStr = document.getElementById("historyFromDate").value;
   var toStr = document.getElementById("historyToDate").value;
   var rangeLine = document.createElement("p");
+  rangeLine.style.cssText = "margin: 0 0 4px; color: #555;";
   rangeLine.textContent = "Từ ngày " + formatVNDateDisplay(fromStr) + " đến ngày " + formatVNDateDisplay(toStr);
-  printArea.appendChild(rangeLine);
+  exportArea.appendChild(rangeLine);
 
   var genLine = document.createElement("p");
-  genLine.className = "history-print-gen";
+  genLine.style.cssText = "margin: 0 0 16px; color: #7A8B82; font-size: 13px;";
   genLine.textContent = "Xuất báo cáo lúc: " + formatDateTime(new Date().toISOString());
-  printArea.appendChild(genLine);
+  exportArea.appendChild(genLine);
 
-  var historyListWrap = document.getElementById("historyListWrap");
-  if (historyListWrap.querySelector("table")) {
-    printArea.appendChild(historyListWrap.cloneNode(true));
-  } else {
-    var empty = document.createElement("p");
-    empty.textContent = "Không có dữ liệu trong khoảng thời gian này.";
-    printArea.appendChild(empty);
+  var listClone = document.getElementById("historyListWrap").cloneNode(true);
+  listClone.style.maxHeight = "none";
+  listClone.style.overflow = "visible";
+  exportArea.appendChild(listClone);
+
+  document.body.appendChild(exportArea);
+
+  try {
+    var canvas = await html2canvas(exportArea, { scale: 1.5, backgroundColor: "#ffffff" });
+    var imgData = canvas.toDataURL("image/jpeg", 0.85);
+    var jsPDFCtor = window.jspdf.jsPDF;
+    var pxToMm = 0.264583 / 1.5;
+    var pageWidthMm = canvas.width * pxToMm;
+    var pageHeightMm = canvas.height * pxToMm;
+    var doc = new jsPDFCtor({ unit: "mm", format: [pageWidthMm, pageHeightMm] });
+    doc.addImage(imgData, "JPEG", 0, 0, pageWidthMm, pageHeightMm);
+
+    var todayStr = formatDateInputValue(new Date());
+    doc.save("bao_cao_" + reportLabel + "_" + todayStr + ".pdf");
+  } finally {
+    exportArea.remove();
+    btn.disabled = false;
+    btn.textContent = originalBtnText;
   }
-
-  document.body.classList.add("printing-history");
-  window.print();
 }
-
-window.addEventListener("afterprint", function () {
-  document.body.classList.remove("printing-history");
-});
 
 function csvEscape(value) {
   var str = "" + value;
