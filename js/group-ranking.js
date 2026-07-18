@@ -28,6 +28,92 @@ function computeStudentDiligenceRanking(rows) {
   });
 }
 
+function computeOwnDailyBreakdown(rows, studentId) {
+  var byDay = {};
+  var order = [];
+  rows.forEach(function (row) {
+    if (row.studentId !== studentId) {
+      return;
+    }
+    var day = row.dateIso.slice(0, 10);
+    if (!byDay[day]) {
+      byDay[day] = { day: day, count: 0, scoreSum: 0, totalSum: 0 };
+      order.push(day);
+    }
+    var d = byDay[day];
+    d.count++;
+    if (typeof row.score === "number" && typeof row.total === "number") {
+      d.scoreSum += row.score;
+      d.totalSum += row.total;
+    }
+  });
+
+  return order.map(function (day) {
+    var d = byDay[day];
+    var avgPercent = d.totalSum > 0 ? Math.round((d.scoreSum / d.totalSum) * 100) : null;
+    return { day: day, count: d.count, avgPercent: avgPercent };
+  }).sort(function (a, b) {
+    return b.day.localeCompare(a.day);
+  });
+}
+
+function formatDayLabel(isoDay) {
+  var parts = isoDay.split("-");
+  return parts[2] + "/" + parts[1];
+}
+
+function buildOwnDailyBreakdown(rows, studentId) {
+  var daily = computeOwnDailyBreakdown(rows, studentId);
+  if (!daily.length) {
+    return null;
+  }
+
+  var box = document.createElement("div");
+  box.style.marginTop = "16px";
+
+  var heading = document.createElement("p");
+  heading.className = "fc-hint";
+  heading.style.marginBottom = "8px";
+  heading.textContent = "📅 Lịch học của em theo ngày (7 ngày gần đây)";
+  box.appendChild(heading);
+
+  var table = document.createElement("table");
+  table.className = "ranking-table";
+
+  var thead = document.createElement("thead");
+  var headRow = document.createElement("tr");
+  ["Ngày", "Số lượt học", "Điểm TB"].forEach(function (text) {
+    var th = document.createElement("th");
+    th.textContent = text;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  var tbody = document.createElement("tbody");
+  daily.forEach(function (d) {
+    var tr = document.createElement("tr");
+
+    var dayTd = document.createElement("td");
+    dayTd.textContent = formatDayLabel(d.day);
+    tr.appendChild(dayTd);
+
+    var countTd = document.createElement("td");
+    countTd.textContent = "" + d.count;
+    tr.appendChild(countTd);
+
+    var scoreTd = document.createElement("td");
+    scoreTd.textContent = d.avgPercent === null ? "—" : d.avgPercent + "%";
+    tr.appendChild(scoreTd);
+
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+
+  box.appendChild(table);
+  return box;
+}
+
 function openRankingModal() {
   if (!currentStudent || !currentStudent.group_id) {
     return;
@@ -150,4 +236,9 @@ async function loadGroupRanking() {
   table.appendChild(tbody);
 
   body.appendChild(table);
+
+  var dailyBox = buildOwnDailyBreakdown(rows, currentStudent.id);
+  if (dailyBox) {
+    body.appendChild(dailyBox);
+  }
 }

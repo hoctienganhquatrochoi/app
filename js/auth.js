@@ -43,6 +43,13 @@ function renderAuthArea() {
     authArea.appendChild(rankingBtn);
   }
 
+  var todayBtn = document.createElement("button");
+  todayBtn.className = "login-btn";
+  todayBtn.type = "button";
+  todayBtn.textContent = "📋 Hôm nay học gì";
+  todayBtn.addEventListener("click", openTodayModal);
+  authArea.appendChild(todayBtn);
+
   var wrap = document.createElement("div");
   wrap.className = "student-badge";
   wrap.title = "Bấm để đăng xuất";
@@ -168,6 +175,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("rankingModalOverlay").addEventListener("click", function (e) {
     if (e.target === this) {
       closeRankingModal();
+    }
+  });
+  document.getElementById("closeTodayModalBtn").addEventListener("click", closeTodayModal);
+  document.getElementById("todayModalOverlay").addEventListener("click", function (e) {
+    if (e.target === this) {
+      closeTodayModal();
     }
   });
 
