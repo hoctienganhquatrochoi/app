@@ -481,11 +481,19 @@ async function handleAddSubject() {
 
 async function handleDeleteSubject(subjectId) {
   var subject = findSubjectById(subjectId);
-  if (subject && subject.units.length > 0) {
-    window.alert("Môn học này còn Unit, hãy xóa hết Unit trong môn trước.");
-    return;
-  }
-  if (!window.confirm("Xóa môn học \"" + (subject ? subjectDisplayName(subject) : subjectId) + "\"?")) {
+  var units = subject ? subject.units : [];
+
+  if (units.length > 0) {
+    if (!window.confirm("Môn học này còn " + units.length + " Unit. Xóa Môn học sẽ xóa luôn tất cả các Unit đó và toàn bộ nội dung bên trong, không thể khôi phục. Bạn có chắc chắn muốn xóa?")) {
+      return;
+    }
+    setCurriculumStatus("Đang xóa " + units.length + " Unit...");
+    var i;
+    for (i = 0; i < units.length; i++) {
+      var counts = await getUnitContentCounts(units[i].id);
+      await deleteUnitAndContent(units[i].id, counts);
+    }
+  } else if (!window.confirm("Xóa môn học \"" + (subject ? subjectDisplayName(subject) : subjectId) + "\"?")) {
     return;
   }
 
@@ -906,50 +914,63 @@ async function handleBulkCreateUnits() {
   await refreshCurriculumEverywhere();
 }
 
-async function handleDeleteUnit(unitId) {
+async function getUnitContentCounts(unitId) {
   var vocabResult = await supabaseClient.from("game_vocab").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var sentenceResult = await supabaseClient.from("game_sentences").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var speakingResult = await supabaseClient.from("game_speaking_questions").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var vietLitResult = await supabaseClient.from("game_viet_literacy").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
-  var vocabCount = vocabResult.count || 0;
-  var sentenceCount = sentenceResult.count || 0;
-  var speakingCount = speakingResult.count || 0;
-  var vietLitCount = vietLitResult.count || 0;
+  return {
+    vocab: vocabResult.count || 0,
+    sentence: sentenceResult.count || 0,
+    speaking: speakingResult.count || 0,
+    vietLit: vietLitResult.count || 0
+  };
+}
 
+function describeUnitContentCounts(counts) {
   var warnParts = [];
-  if (vocabCount > 0) {
-    warnParts.push(vocabCount + " từ vựng");
+  if (counts.vocab > 0) {
+    warnParts.push(counts.vocab + " từ vựng");
   }
-  if (sentenceCount > 0) {
-    warnParts.push(sentenceCount + " mẫu câu");
+  if (counts.sentence > 0) {
+    warnParts.push(counts.sentence + " mẫu câu");
   }
-  if (speakingCount > 0) {
-    warnParts.push(speakingCount + " câu Kiểm tra nói");
+  if (counts.speaking > 0) {
+    warnParts.push(counts.speaking + " câu Kiểm tra nói");
   }
-  if (vietLitCount > 0) {
-    warnParts.push(vietLitCount + " mục học vần/chữ");
+  if (counts.vietLit > 0) {
+    warnParts.push(counts.vietLit + " mục học vần/chữ");
   }
+  return warnParts;
+}
+
+async function deleteUnitAndContent(unitId, counts) {
+  if (counts.vocab > 0) {
+    await supabaseClient.from("game_vocab").delete().eq("unit_id", unitId);
+  }
+  if (counts.sentence > 0) {
+    await supabaseClient.from("game_sentences").delete().eq("unit_id", unitId);
+  }
+  if (counts.speaking > 0) {
+    await supabaseClient.from("game_speaking_questions").delete().eq("unit_id", unitId);
+  }
+  if (counts.vietLit > 0) {
+    await supabaseClient.from("game_viet_literacy").delete().eq("unit_id", unitId);
+  }
+  await supabaseClient.from("game_unit_settings").delete().eq("unit_id", unitId);
+  return await supabaseClient.from("game_units").delete().eq("id", unitId);
+}
+
+async function handleDeleteUnit(unitId) {
+  var counts = await getUnitContentCounts(unitId);
+  var warnParts = describeUnitContentCounts(counts);
   var warnMsg = warnParts.length > 0 ? ("Xóa Unit này sẽ xóa luôn " + warnParts.join(" và ") + " bên trong, không thể khôi phục. ") : "";
 
   if (!window.confirm(warnMsg + "Bạn có chắc chắn muốn xóa Unit này?")) {
     return;
   }
 
-  if (vocabCount > 0) {
-    await supabaseClient.from("game_vocab").delete().eq("unit_id", unitId);
-  }
-  if (sentenceCount > 0) {
-    await supabaseClient.from("game_sentences").delete().eq("unit_id", unitId);
-  }
-  if (speakingCount > 0) {
-    await supabaseClient.from("game_speaking_questions").delete().eq("unit_id", unitId);
-  }
-  if (vietLitCount > 0) {
-    await supabaseClient.from("game_viet_literacy").delete().eq("unit_id", unitId);
-  }
-  await supabaseClient.from("game_unit_settings").delete().eq("unit_id", unitId);
-
-  var result = await supabaseClient.from("game_units").delete().eq("id", unitId);
+  var result = await deleteUnitAndContent(unitId, counts);
   if (result.error) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
