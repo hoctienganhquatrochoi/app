@@ -472,6 +472,17 @@ html, body {
   margin-left: 6px;
 }
 
+.activity-section-divider {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #7A8B82;
+  padding: 10px 10px 4px;
+  margin-top: 4px;
+  border-top: 1px solid #E5E0D5;
+}
+
 /* ---------- Play screen mock ---------- */
 .play-screen {
   max-width: 720px;

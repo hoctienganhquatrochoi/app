@@ -42,12 +42,13 @@ function populateHistoryGroupSelect() {
 var ALL_STUDENTS_FOR_HISTORY = [];
 
 async function loadAllStudentsForHistory() {
-  var result = await supabaseClient.from("game_students").select("id, full_name, username").order("full_name", { ascending: true });
+  var result = await supabaseClient.from("game_students").select("id, full_name, username, group_id").order("full_name", { ascending: true });
   ALL_STUDENTS_FOR_HISTORY = result.data || [];
 }
 
 function populateHistoryStudentSelect() {
   var search = (document.getElementById("historyStudentSearch").value || "").trim().toLowerCase();
+  var groupId = document.getElementById("historyGroupSelect").value;
   var select = document.getElementById("historyStudentSelect");
   var previous = select.value;
   select.innerHTML = "";
@@ -57,11 +58,15 @@ function populateHistoryStudentSelect() {
   placeholderOpt.text = "-- Chọn học sinh --";
   select.appendChild(placeholderOpt);
 
+  var scoped = groupId
+    ? ALL_STUDENTS_FOR_HISTORY.filter(function (s) { return s.group_id === groupId; })
+    : ALL_STUDENTS_FOR_HISTORY;
+
   var filtered = search
-    ? ALL_STUDENTS_FOR_HISTORY.filter(function (s) {
+    ? scoped.filter(function (s) {
         return s.full_name.toLowerCase().indexOf(search) !== -1 || (s.username || "").toLowerCase().indexOf(search) !== -1;
       })
-    : ALL_STUDENTS_FOR_HISTORY;
+    : scoped;
 
   var i;
   for (i = 0; i < filtered.length; i++) {

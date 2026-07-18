@@ -11,7 +11,7 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
   var score = 0;
   var answersLog = [];
   var startedAt = new Date();
-  var activityType = mode === "hint" ? "free-typing-hint" : "free-typing-blank";
+  var activityType = mode === "hint" ? "free-typing-hint" : (mode === "audio" ? "free-typing-audio" : "free-typing-blank");
   var answered = false;
   var lastCorrect = false;
   var lastAnswerValue = "";
@@ -74,10 +74,17 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
       wrap.appendChild(buildVisualElement(item, "ty-emoji"));
     }
 
-    var line = document.createElement("div");
-    line.className = "ty-meaning" + (hasVisual ? "" : " no-visual");
-    line.textContent = mode === "hint" ? (item.en + " " + (item.phonetic || "") + " - " + capitalizeFirst(item.vi)) : capitalizeFirst(item.vi);
-    wrap.appendChild(line);
+    if (mode !== "audio") {
+      var line = document.createElement("div");
+      line.className = "ty-meaning" + (hasVisual ? "" : " no-visual");
+      line.textContent = mode === "hint" ? (item.en + " " + (item.phonetic || "") + " - " + capitalizeFirst(item.vi)) : capitalizeFirst(item.vi);
+      wrap.appendChild(line);
+    } else {
+      var hint = document.createElement("div");
+      hint.className = "ty-hint";
+      hint.textContent = "Nghe kỹ rồi gõ lại nhé, bấm ▶ để nghe lại";
+      wrap.appendChild(hint);
+    }
 
     var input = document.createElement("input");
     input.type = "text";

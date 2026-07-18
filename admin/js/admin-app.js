@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   populateAssignmentUnitSelect();
   populateAssignmentStudentAccess();
   loadVocabTable();
+  loadSentenceTable();
   loadSpeakingTestList().then(loadSpeakingTable);
   loadWordwallList();
   loadWordwallTemplates();
@@ -40,12 +41,14 @@ document.addEventListener("DOMContentLoaded", async function () {
   populateNewTeachingGroupClassAccess();
 
   document.getElementById("unitSelect").addEventListener("change", loadVocabTable);
+  document.getElementById("unitSelect").addEventListener("change", loadSentenceTable);
   document.getElementById("unitSelect").addEventListener("change", function () {
     loadSpeakingTestList().then(loadSpeakingTable);
   });
   document.getElementById("unitSelect").addEventListener("change", loadWordwallList);
   document.getElementById("unitSelect").addEventListener("change", loadActivityToggles);
   document.getElementById("bulkAddForm").addEventListener("submit", handleBulkAdd);
+  document.getElementById("bulkAddSentenceForm").addEventListener("submit", handleBulkAddSentences);
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);
   document.getElementById("addStudentForm").addEventListener("submit", handleAddStudent);
   document.getElementById("addTeachingGroupBtn").addEventListener("click", handleAddTeachingGroup);
@@ -56,14 +59,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     populateAssignmentStudentAccess();
   });
   document.getElementById("historyGroupSelect").addEventListener("change", function () {
-    document.getElementById("historyStudentSelect").value = "";
+    populateHistoryStudentSelect();
     loadGroupHistory();
   });
   document.getElementById("historyStudentSearch").addEventListener("input", populateHistoryStudentSelect);
-  document.getElementById("historyStudentSelect").addEventListener("change", function () {
-    document.getElementById("historyGroupSelect").value = "";
-    loadGroupHistory();
-  });
+  document.getElementById("historyStudentSelect").addEventListener("change", loadGroupHistory);
   document.getElementById("historyFromDate").addEventListener("change", loadGroupHistory);
   document.getElementById("historyToDate").addEventListener("change", loadGroupHistory);
   document.getElementById("historyTodayBtn").addEventListener("click", function () {

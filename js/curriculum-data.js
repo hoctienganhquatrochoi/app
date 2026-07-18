@@ -8,9 +8,19 @@ var VOCAB_ACTIVITY_TEMPLATE = [
   { id: "a3", name: "Đánh máy có gợi ý", type: "typing", mode: "hint", locked: false },
   { id: "a4", name: "Đánh máy không gợi ý", type: "typing", mode: "blank", locked: false },
   { id: "a16", name: "Nghe - Đánh máy (key)", type: "free-typing", mode: "hint", locked: false },
-  { id: "a17", name: "Nghe - Đánh máy", type: "free-typing", mode: "blank", locked: false },
+  { id: "a17", name: "Nghe đánh máy không key", type: "free-typing", mode: "blank", locked: false },
+  { id: "a18", name: "Nghe - Đánh máy", type: "free-typing", mode: "audio", locked: false },
   { id: "a12", name: "Khuyết chữ cái", type: "missing-letter", locked: false },
   { id: "a13", name: "Kiểm tra nói", type: "speaking", locked: false }
+];
+
+var SENTENCE_ACTIVITY_TEMPLATE = [
+  { id: "s1", name: "Thẻ đọc (câu)", type: "flashcard", locked: false },
+  { id: "s14", name: "Thẻ lật (câu)", type: "flip-card", locked: false },
+  { id: "s2e", name: "Nghe - Dịch (câu)", type: "quiz", format: "word-to-meaning", locked: false },
+  { id: "s3", name: "Đánh máy có gợi ý (câu)", type: "typing", mode: "hint", locked: false },
+  { id: "s4", name: "Đánh máy không gợi ý (câu)", type: "typing", mode: "blank", locked: false },
+  { id: "s18", name: "Nghe - Đánh máy (câu)", type: "free-typing", mode: "audio", locked: false }
 ];
 
 function buildActivitiesForUnit(unit) {
@@ -43,6 +53,11 @@ async function loadCurriculumData() {
   var unitsResult = await supabaseClient.from("game_units").select("*").order("sort_order", { ascending: true });
   var wordwallResult = await supabaseClient.from("game_wordwall_activities").select("*").order("sort_order", { ascending: true });
   var wordwallByUnit = buildWordwallActivities(wordwallResult.data || []);
+  var sentenceUnitsResult = await supabaseClient.from("game_sentences").select("unit_id");
+  var unitsWithSentences = {};
+  (sentenceUnitsResult.data || []).forEach(function (row) {
+    unitsWithSentences[row.unit_id] = true;
+  });
 
   var classes = (classesResult.data || []).map(function (row) {
     return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order };
@@ -71,7 +86,9 @@ async function loadCurriculumData() {
       continue;
     }
     var unit = { id: urow.id, subject_id: urow.subject_id, class_id: subj.class_id, name: urow.name, content_type: urow.content_type, is_demo: !!urow.is_demo, sort_order: urow.sort_order, progress: "" };
-    unit.activities = buildActivitiesForUnit(unit).concat(wordwallByUnit[urow.id] || []);
+    unit.activities = buildActivitiesForUnit(unit)
+      .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
+      .concat(wordwallByUnit[urow.id] || []);
     subj.units.push(unit);
   }
 

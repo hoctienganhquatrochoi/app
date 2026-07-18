@@ -139,6 +139,29 @@ function buildSubjectItem(subject) {
   return wrap;
 }
 
+function appendActivityListItems(listEl, unit, activities, disabledIds, needsAccess) {
+  var i;
+  var sawNonSentence = false;
+  var dividerInserted = false;
+  for (i = 0; i < activities.length; i++) {
+    if (disabledIds.indexOf(activities[i].id) !== -1) {
+      continue;
+    }
+    var isSentence = activities[i].id.indexOf("s") === 0;
+    if (isSentence && sawNonSentence && !dividerInserted) {
+      var divider = document.createElement("div");
+      divider.className = "activity-section-divider";
+      divider.textContent = "Luyện câu";
+      listEl.appendChild(divider);
+      dividerInserted = true;
+    }
+    if (!isSentence) {
+      sawNonSentence = true;
+    }
+    listEl.appendChild(buildActivityItem(unit, activities[i], needsAccess));
+  }
+}
+
 function buildFlattenedUnitActivities(unit) {
   if (unitDisabledActivities[unit.id] === undefined) {
     loadUnitDisabledActivities(unit.id);
@@ -149,13 +172,7 @@ function buildFlattenedUnitActivities(unit) {
   var disabledIds = unitDisabledActivities[unit.id] || [];
   var activities = orderedActivitiesForUnit(unit);
   var needsAccess = !unitHasAccess(unit);
-  var i;
-  for (i = 0; i < activities.length; i++) {
-    if (disabledIds.indexOf(activities[i].id) !== -1) {
-      continue;
-    }
-    list.appendChild(buildActivityItem(unit, activities[i], needsAccess));
-  }
+  appendActivityListItems(list, unit, activities, disabledIds, needsAccess);
   return list;
 }
 
@@ -248,13 +265,7 @@ function buildUnitItem(unit) {
     var disabledIds = unitDisabledActivities[unit.id] || [];
     var activities = orderedActivitiesForUnit(unit);
     var needsAccess = !unitHasAccess(unit);
-    var i;
-    for (i = 0; i < activities.length; i++) {
-      if (disabledIds.indexOf(activities[i].id) !== -1) {
-        continue;
-      }
-      list.appendChild(buildActivityItem(unit, activities[i], needsAccess));
-    }
+    appendActivityListItems(list, unit, activities, disabledIds, needsAccess);
     wrap.appendChild(list);
   }
 
@@ -350,7 +361,8 @@ async function renderMainContent() {
     loading.textContent = "Đang tải nội dung...";
     main.appendChild(loading);
 
-    var items = await loadVocabForUnit(unit.id);
+    var isSentenceActivity = activity.id.indexOf("s") === 0;
+    var items = isSentenceActivity ? await loadSentencesForUnit(unit.id) : await loadVocabForUnit(unit.id);
 
     if (!state.selectedActivity || state.selectedActivity.unit.id !== unit.id || state.selectedActivity.activity.id !== activity.id) {
       return;

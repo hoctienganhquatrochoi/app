@@ -721,6 +721,7 @@ function selectUnitForComposing(unitId) {
   updateComposeBreadcrumb();
   switchComposeSubTab("vocab");
   loadVocabTable();
+  loadSentenceTable();
   loadSpeakingTestList().then(loadSpeakingTable);
   loadWordwallList();
   loadActivityToggles();
@@ -734,8 +735,13 @@ function switchComposeSubTab(target) {
     tabs[i].className = tabs[i].getAttribute("data-composesubtab") === target ? "admin-subtab active" : "admin-subtab";
   }
   document.getElementById("vocabComposeSubPanel").style.display = target === "vocab" ? "" : "none";
+  document.getElementById("sentenceComposeSubPanel").style.display = target === "sentence" ? "" : "none";
   document.getElementById("speakingComposeSubPanel").style.display = target === "speaking" ? "" : "none";
   document.getElementById("wordwallComposeSubPanel").style.display = target === "wordwall" ? "" : "none";
+
+  if (target === "sentence") {
+    loadSentenceTable();
+  }
 }
 
 async function handleAddUnit() {
@@ -778,13 +784,18 @@ async function handleAddUnit() {
 
 async function handleDeleteUnit(unitId) {
   var vocabResult = await supabaseClient.from("game_vocab").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var sentenceResult = await supabaseClient.from("game_sentences").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var speakingResult = await supabaseClient.from("game_speaking_questions").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var vocabCount = vocabResult.count || 0;
+  var sentenceCount = sentenceResult.count || 0;
   var speakingCount = speakingResult.count || 0;
 
   var warnParts = [];
   if (vocabCount > 0) {
     warnParts.push(vocabCount + " từ vựng");
+  }
+  if (sentenceCount > 0) {
+    warnParts.push(sentenceCount + " mẫu câu");
   }
   if (speakingCount > 0) {
     warnParts.push(speakingCount + " câu Kiểm tra nói");
@@ -797,6 +808,9 @@ async function handleDeleteUnit(unitId) {
 
   if (vocabCount > 0) {
     await supabaseClient.from("game_vocab").delete().eq("unit_id", unitId);
+  }
+  if (sentenceCount > 0) {
+    await supabaseClient.from("game_sentences").delete().eq("unit_id", unitId);
   }
   if (speakingCount > 0) {
     await supabaseClient.from("game_speaking_questions").delete().eq("unit_id", unitId);

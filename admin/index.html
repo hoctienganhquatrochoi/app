@@ -224,6 +224,7 @@
 
             <nav class="admin-tabs" id="composeSubTabs">
               <button class="admin-subtab active" type="button" data-composesubtab="vocab">Từ vựng</button>
+              <button class="admin-subtab" type="button" data-composesubtab="sentence">Mẫu câu</button>
               <button class="admin-subtab" type="button" data-composesubtab="speaking">Kiểm tra nói</button>
               <button class="admin-subtab" type="button" data-composesubtab="wordwall">Wordwall</button>
             </nav>
@@ -246,6 +247,22 @@ school bag /ˈskuːl bæɡ/ cặp đi học"></textarea>
               </form>
 
               <div id="vocabTableWrap"></div>
+            </div>
+
+            <div id="sentenceComposeSubPanel" style="display:none">
+              <form class="admin-form" id="bulkAddSentenceForm">
+                <h3>Nhập hàng loạt</h3>
+                <p class="admin-hint">
+                  Câu tiếng Anh dùng để ôn mẫu câu của Unit này, tách riêng khỏi Từ vựng để Quiz không trộn từ đơn
+                  và câu dài. Định dạng mỗi dòng: <code>câu tiếng Anh | nghĩa tiếng Việt</code>. Không cần phiên âm.
+                </p>
+                <textarea class="admin-textarea" id="bulkSentenceTextarea" rows="8" placeholder="I have two brothers. | Tôi có hai anh em trai.
+What time is it? | Mấy giờ rồi?"></textarea>
+                <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả + tạo âm thanh</button>
+                <div class="admin-status" id="bulkSentenceStatus"></div>
+              </form>
+
+              <div id="sentenceTableWrap"></div>
             </div>
 
             <div id="speakingComposeSubPanel" style="display:none">
@@ -409,7 +426,8 @@ What's this? | It's a pen."></textarea>
             <option value="typing-blank">Đánh máy không gợi ý</option>
             <option value="flip-card">Thẻ lật</option>
             <option value="free-typing-hint">Nghe - Đánh máy (key)</option>
-            <option value="free-typing-blank">Nghe - Đánh máy</option>
+            <option value="free-typing-blank">Nghe đánh máy không key</option>
+            <option value="free-typing-audio">Nghe - Đánh máy</option>
           </select>
         </div>
         <div class="admin-field">
@@ -482,7 +500,8 @@ What's this? | It's a pen."></textarea>
           <option value="typing-blank">Đánh máy không gợi ý</option>
           <option value="flip-card">Thẻ lật</option>
           <option value="free-typing-hint">Nghe - Đánh máy (key)</option>
-          <option value="free-typing-blank">Nghe - Đánh máy</option>
+          <option value="free-typing-blank">Nghe đánh máy không key</option>
+          <option value="free-typing-audio">Nghe - Đánh máy</option>
         </select>
       </div>
       <div class="admin-field">
@@ -513,6 +532,7 @@ What's this? | It's a pen."></textarea>
 <script src="js/admin-auth.js"></script>
 <script src="../js/curriculum-data.js"></script>
 <script src="js/content-admin.js"></script>
+<script src="js/sentences-admin.js"></script>
 <script src="js/speaking-admin.js"></script>
 <script src="js/wordwall-admin.js"></script>
 <script src="js/wordwall-templates-admin.js"></script>

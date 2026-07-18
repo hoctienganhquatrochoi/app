@@ -5,7 +5,8 @@ var ASSIGNMENT_ACTIVITY_LABELS = {
   "typing-blank": "Đánh máy không gợi ý",
   "flip-card": "Thẻ lật",
   "free-typing-hint": "Nghe - Đánh máy (key)",
-  "free-typing-blank": "Nghe - Đánh máy"
+  "free-typing-blank": "Nghe đánh máy không key",
+  "free-typing-audio": "Nghe - Đánh máy"
 };
 
 var ALL_UNITS_FLAT = [];
