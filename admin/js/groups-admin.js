@@ -19,6 +19,31 @@ function groupNameById(groupId) {
   return "(chưa có nhóm)";
 }
 
+async function applyGroupDefaultsToExistingStudents(groupId, defaultClassIds) {
+  if (!defaultClassIds.length) {
+    return;
+  }
+  var result = await supabaseClient.from("game_students").select("id, allowed_class_ids").eq("group_id", groupId);
+  if (result.error) {
+    window.alert("Lỗi cập nhật quyền học sinh: " + result.error.message);
+    return;
+  }
+  var students = result.data || [];
+  var i;
+  for (i = 0; i < students.length; i++) {
+    var existing = students[i].allowed_class_ids || [];
+    var merged = existing.slice();
+    defaultClassIds.forEach(function (classId) {
+      if (merged.indexOf(classId) === -1) {
+        merged.push(classId);
+      }
+    });
+    if (merged.length !== existing.length) {
+      await supabaseClient.from("game_students").update({ allowed_class_ids: merged }).eq("id", students[i].id);
+    }
+  }
+}
+
 function groupById(groupId) {
   var i;
   for (i = 0; i < TEACHING_GROUPS.length; i++) {
@@ -167,14 +192,25 @@ function buildGroupEditRow(group) {
       window.alert("Cần nhập tên nhóm học sinh");
       return;
     }
+    var newDefaults = collectClassAccessChecklist(accessWrap);
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Đang lưu...";
+
     var result = await supabaseClient
       .from("game_teaching_groups")
-      .update({ name: newName, default_allowed_class_ids: collectClassAccessChecklist(accessWrap) })
+      .update({ name: newName, default_allowed_class_ids: newDefaults })
       .eq("id", group.id);
     if (result.error) {
       window.alert("Lỗi lưu: " + result.error.message);
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Lưu";
       return;
     }
+
+    saveBtn.textContent = "Đang cập nhật học sinh...";
+    await applyGroupDefaultsToExistingStudents(group.id, newDefaults);
+
     editingGroupId = null;
     await refreshTeachingGroups();
   });
