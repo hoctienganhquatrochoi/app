@@ -141,22 +141,32 @@ function buildSubjectItem(subject) {
 
 function appendActivityListItems(listEl, unit, activities, disabledIds, needsAccess) {
   var i;
-  var sawNonSentence = false;
-  var dividerInserted = false;
+  var sawOther = false;
+  var sentenceDividerInserted = false;
+  var grammarDividerInserted = false;
   for (i = 0; i < activities.length; i++) {
     if (disabledIds.indexOf(activities[i].id) !== -1) {
       continue;
     }
-    var isSentence = activities[i].id.indexOf("s") === 0;
-    if (isSentence && sawNonSentence && !dividerInserted) {
-      var divider = document.createElement("div");
-      divider.className = "activity-section-divider";
-      divider.textContent = "Luyện câu";
-      listEl.appendChild(divider);
-      dividerInserted = true;
+    var id = activities[i].id;
+    var isSentence = id.indexOf("s") === 0;
+    var isGrammar = id.indexOf("gm") === 0 || id.indexOf("gt") === 0;
+    if (isSentence && sawOther && !sentenceDividerInserted) {
+      var sentenceDivider = document.createElement("div");
+      sentenceDivider.className = "activity-section-divider";
+      sentenceDivider.textContent = "Luyện câu";
+      listEl.appendChild(sentenceDivider);
+      sentenceDividerInserted = true;
     }
-    if (!isSentence) {
-      sawNonSentence = true;
+    if (isGrammar && sawOther && !grammarDividerInserted) {
+      var grammarDivider = document.createElement("div");
+      grammarDivider.className = "activity-section-divider";
+      grammarDivider.textContent = "Ngữ pháp";
+      listEl.appendChild(grammarDivider);
+      grammarDividerInserted = true;
+    }
+    if (!isSentence && !isGrammar) {
+      sawOther = true;
     }
     listEl.appendChild(buildActivityItem(unit, activities[i], needsAccess));
   }
@@ -431,6 +441,38 @@ async function renderMainContent() {
 
     main.innerHTML = "";
     renderSpeakingTestPicker(main, breadcrumbText, unit.id, testNames);
+    return;
+  }
+
+  if (activity.type === "grammar-mcq" || activity.type === "grammar-typing") {
+    var grammarLoading = document.createElement("div");
+    grammarLoading.className = "placeholder";
+    grammarLoading.textContent = "Đang tải nội dung...";
+    main.appendChild(grammarLoading);
+
+    var grammarItems = activity.type === "grammar-mcq"
+      ? await loadGrammarMcqForUnit(unit.id)
+      : await loadGrammarTypingForUnit(unit.id);
+
+    if (!state.selectedActivity || state.selectedActivity.unit.id !== unit.id || state.selectedActivity.activity.id !== activity.id) {
+      return;
+    }
+
+    if (!grammarItems.length) {
+      main.innerHTML = "";
+      var grammarEmpty = document.createElement("div");
+      grammarEmpty.className = "placeholder";
+      grammarEmpty.textContent = "Unit này chưa có nội dung.";
+      main.appendChild(grammarEmpty);
+      return;
+    }
+
+    main.innerHTML = "";
+    if (activity.type === "grammar-mcq") {
+      renderGrammarMcq(main, breadcrumbText, grammarItems, unit.id);
+    } else {
+      renderGrammarTyping(main, breadcrumbText, grammarItems, unit.id);
+    }
     return;
   }
 

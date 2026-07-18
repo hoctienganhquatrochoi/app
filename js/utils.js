@@ -28,6 +28,24 @@ function capitalizeFirst(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+function appendTextWithUnderline(el, text) {
+  var parts = (text || "").split("_");
+  var i;
+  for (i = 0; i < parts.length; i++) {
+    if (!parts[i]) {
+      continue;
+    }
+    if (i % 2 === 1) {
+      var span = document.createElement("span");
+      span.className = "underline-text";
+      span.textContent = parts[i];
+      el.appendChild(span);
+    } else {
+      el.appendChild(document.createTextNode(parts[i]));
+    }
+  }
+}
+
 function shuffleArray(arr) {
   var copy = arr.slice();
   var i, j, tmp;

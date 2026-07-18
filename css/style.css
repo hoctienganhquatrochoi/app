@@ -909,6 +909,17 @@ html, body {
 .quiz-option:not(.quiz-option-image):nth-child(3) { background: #F0973D; }
 .quiz-option:not(.quiz-option-image):nth-child(4) { background: #4FAE6D; }
 
+.quiz-option.grammar-mcq-option {
+  text-transform: none;
+}
+
+.underline-text {
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 3px;
+}
+
 .quiz-option-visual {
   width: 100%;
   height: 190px;

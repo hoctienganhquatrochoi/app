@@ -31,6 +31,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   populateAssignmentStudentAccess();
   loadVocabTable();
   loadSentenceTable();
+  loadGrammarMcqTable();
+  loadGrammarTypingTable();
   loadSpeakingTestList().then(loadSpeakingTable);
   loadWordwallList();
   loadWordwallTemplates();
@@ -42,6 +44,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   document.getElementById("unitSelect").addEventListener("change", loadVocabTable);
   document.getElementById("unitSelect").addEventListener("change", loadSentenceTable);
+  document.getElementById("unitSelect").addEventListener("change", loadGrammarMcqTable);
+  document.getElementById("unitSelect").addEventListener("change", loadGrammarTypingTable);
   document.getElementById("unitSelect").addEventListener("change", function () {
     loadSpeakingTestList().then(loadSpeakingTable);
   });
@@ -55,6 +59,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
   document.getElementById("bulkAddForm").addEventListener("submit", handleBulkAdd);
   document.getElementById("bulkAddSentenceForm").addEventListener("submit", handleBulkAddSentences);
+  document.getElementById("bulkAddGrammarMcqForm").addEventListener("submit", handleBulkAddGrammarMcq);
+  document.getElementById("bulkAddGrammarTypingForm").addEventListener("submit", handleBulkAddGrammarTyping);
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);
   document.getElementById("addStudentForm").addEventListener("submit", handleAddStudent);
   document.getElementById("addTeachingGroupBtn").addEventListener("click", handleAddTeachingGroup);

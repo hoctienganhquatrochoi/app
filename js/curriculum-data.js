@@ -23,6 +23,14 @@ var SENTENCE_ACTIVITY_TEMPLATE = [
   { id: "s18", name: "Nghe - Đánh máy (câu)", type: "free-typing", mode: "audio", locked: false }
 ];
 
+var GRAMMAR_MCQ_ACTIVITY_TEMPLATE = [
+  { id: "gm1", name: "Trắc nghiệm ngữ pháp", type: "grammar-mcq", locked: false }
+];
+
+var GRAMMAR_TYPING_ACTIVITY_TEMPLATE = [
+  { id: "gt1", name: "Viết câu trả lời", type: "grammar-typing", locked: false }
+];
+
 function buildWordwallActivities(rows) {
   var byUnit = {};
   rows.forEach(function (row) {
@@ -54,6 +62,16 @@ async function loadCurriculumData() {
   (sentenceUnitsResult.data || []).forEach(function (row) {
     unitsWithSentences[row.unit_id] = true;
   });
+  var grammarMcqUnitsResult = await supabaseClient.from("game_grammar_mcq").select("unit_id");
+  var unitsWithGrammarMcq = {};
+  (grammarMcqUnitsResult.data || []).forEach(function (row) {
+    unitsWithGrammarMcq[row.unit_id] = true;
+  });
+  var grammarTypingUnitsResult = await supabaseClient.from("game_grammar_typing").select("unit_id");
+  var unitsWithGrammarTyping = {};
+  (grammarTypingUnitsResult.data || []).forEach(function (row) {
+    unitsWithGrammarTyping[row.unit_id] = true;
+  });
   var classes = (classesResult.data || []).map(function (row) {
     return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order };
   });
@@ -83,6 +101,8 @@ async function loadCurriculumData() {
     var unit = { id: urow.id, subject_id: urow.subject_id, class_id: subj.class_id, name: urow.name, content_type: urow.content_type, is_demo: !!urow.is_demo, sort_order: urow.sort_order, progress: "" };
     unit.activities = VOCAB_ACTIVITY_TEMPLATE
       .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
+      .concat(unitsWithGrammarMcq[urow.id] ? GRAMMAR_MCQ_ACTIVITY_TEMPLATE : [])
+      .concat(unitsWithGrammarTyping[urow.id] ? GRAMMAR_TYPING_ACTIVITY_TEMPLATE : [])
       .concat(wordwallByUnit[urow.id] || []);
     subj.units.push(unit);
   }

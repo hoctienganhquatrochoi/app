@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260718l">
-<link rel="stylesheet" href="css/admin.css?v=20260718l">
+<link rel="stylesheet" href="../css/style.css?v=20260718m">
+<link rel="stylesheet" href="css/admin.css?v=20260718m">
 </head>
 <body>
 
@@ -231,6 +231,8 @@
               <button class="admin-subtab" type="button" data-composesubtab="sentence">Mẫu câu</button>
               <button class="admin-subtab" type="button" data-composesubtab="speaking">Kiểm tra nói</button>
               <button class="admin-subtab" type="button" data-composesubtab="wordwall">Wordwall</button>
+              <button class="admin-subtab" type="button" data-composesubtab="grammarMcq">Trắc nghiệm ngữ pháp</button>
+              <button class="admin-subtab" type="button" data-composesubtab="grammarTyping">Viết câu trả lời</button>
             </nav>
 
             <div id="vocabComposeSubPanel">
@@ -343,6 +345,37 @@ What's this? | It's a pen."></textarea>
                 </div>
                 <div class="admin-status" id="wordwallStatus"></div>
               </div>
+            </div>
+
+            <div id="grammarMcqComposeSubPanel" style="display:none">
+              <form class="admin-form" id="bulkAddGrammarMcqForm">
+                <h3>Nhập hàng loạt</h3>
+                <p class="admin-hint">
+                  Mỗi dòng 1 câu, cách nhau bằng dấu <code>|</code>: <code>Câu hỏi (có thể để trống) | Đáp án A | Đáp án B | Đáp án C | Đáp án D | Đáp án đúng (A/B/C/D)</code>.
+                  Để gạch chân 1 phần chữ trong đáp án, đặt dấu gạch dưới <code>_</code> ở hai đầu phần đó — VD <code>gr_ea_t</code> sẽ hiện "great" với "ea" được gạch chân.
+                </p>
+                <textarea class="admin-textarea" id="bulkGrammarMcqTextarea" rows="8" placeholder="Choose the word that has the underlined letters pronounced differently. | gr_ea_t | cl_ea_n | t_ea_cher | b_ea_n | A"></textarea>
+                <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả</button>
+                <div class="admin-status" id="bulkGrammarMcqStatus"></div>
+              </form>
+
+              <div id="grammarMcqTableWrap"></div>
+            </div>
+
+            <div id="grammarTypingComposeSubPanel" style="display:none">
+              <form class="admin-form" id="bulkAddGrammarTypingForm">
+                <h3>Nhập hàng loạt</h3>
+                <p class="admin-hint">
+                  Mỗi dòng 1 câu, cách nhau bằng dấu <code>|</code>: <code>Câu hỏi | Đáp án</code>. Dùng được cho nhiều dạng: chuyển câu (khẳng định → phủ định), dịch Việt → Anh, v.v.
+                  Học sinh gõ tự do, không có gợi ý, không đọc âm thanh.
+                </p>
+                <textarea class="admin-textarea" id="bulkGrammarTypingTextarea" rows="8" placeholder="I am a student. | I am not a student.
+Tôi có hai anh em trai. | I have two brothers."></textarea>
+                <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả</button>
+                <div class="admin-status" id="bulkGrammarTypingStatus"></div>
+              </form>
+
+              <div id="grammarTypingTableWrap"></div>
             </div>
           </div>
         </div>
@@ -533,21 +566,22 @@ What's this? | It's a pen."></textarea>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260718l"></script>
-<script src="../js/supabase-config.js?v=20260718l"></script>
-<script src="js/admin-auth.js?v=20260718l"></script>
-<script src="../js/curriculum-data.js?v=20260718l"></script>
-<script src="js/content-admin.js?v=20260718l"></script>
-<script src="js/sentences-admin.js?v=20260718l"></script>
-<script src="js/speaking-admin.js?v=20260718l"></script>
-<script src="js/wordwall-admin.js?v=20260718l"></script>
-<script src="js/wordwall-templates-admin.js?v=20260718l"></script>
-<script src="js/groups-admin.js?v=20260718l"></script>
-<script src="js/students-admin.js?v=20260718l"></script>
-<script src="js/assignments-admin.js?v=20260718l"></script>
-<script src="js/results-admin.js?v=20260718l"></script>
-<script src="js/activity-toggles-admin.js?v=20260718l"></script>
-<script src="js/curriculum-admin.js?v=20260718l"></script>
-<script src="js/admin-app.js?v=20260718l"></script>
+<script src="../js/data.js?v=20260718m"></script>
+<script src="../js/supabase-config.js?v=20260718m"></script>
+<script src="js/admin-auth.js?v=20260718m"></script>
+<script src="../js/curriculum-data.js?v=20260718m"></script>
+<script src="js/content-admin.js?v=20260718m"></script>
+<script src="js/sentences-admin.js?v=20260718m"></script>
+<script src="js/grammar-admin.js?v=20260718m"></script>
+<script src="js/speaking-admin.js?v=20260718m"></script>
+<script src="js/wordwall-admin.js?v=20260718m"></script>
+<script src="js/wordwall-templates-admin.js?v=20260718m"></script>
+<script src="js/groups-admin.js?v=20260718m"></script>
+<script src="js/students-admin.js?v=20260718m"></script>
+<script src="js/assignments-admin.js?v=20260718m"></script>
+<script src="js/results-admin.js?v=20260718m"></script>
+<script src="js/activity-toggles-admin.js?v=20260718m"></script>
+<script src="js/curriculum-admin.js?v=20260718m"></script>
+<script src="js/admin-app.js?v=20260718m"></script>
 </body>
 </html>

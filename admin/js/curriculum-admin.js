@@ -747,9 +747,15 @@ function switchComposeSubTab(target) {
   document.getElementById("sentenceComposeSubPanel").style.display = target === "sentence" ? "" : "none";
   document.getElementById("speakingComposeSubPanel").style.display = target === "speaking" ? "" : "none";
   document.getElementById("wordwallComposeSubPanel").style.display = target === "wordwall" ? "" : "none";
+  document.getElementById("grammarMcqComposeSubPanel").style.display = target === "grammarMcq" ? "" : "none";
+  document.getElementById("grammarTypingComposeSubPanel").style.display = target === "grammarTyping" ? "" : "none";
 
   if (target === "sentence") {
     loadSentenceTable();
+  } else if (target === "grammarMcq") {
+    loadGrammarMcqTable();
+  } else if (target === "grammarTyping") {
+    loadGrammarTypingTable();
   }
 }
 
@@ -808,10 +814,14 @@ async function getUnitContentCounts(unitId) {
   var vocabResult = await supabaseClient.from("game_vocab").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var sentenceResult = await supabaseClient.from("game_sentences").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var speakingResult = await supabaseClient.from("game_speaking_questions").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var grammarMcqResult = await supabaseClient.from("game_grammar_mcq").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var grammarTypingResult = await supabaseClient.from("game_grammar_typing").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   return {
     vocab: vocabResult.count || 0,
     sentence: sentenceResult.count || 0,
-    speaking: speakingResult.count || 0
+    speaking: speakingResult.count || 0,
+    grammarMcq: grammarMcqResult.count || 0,
+    grammarTyping: grammarTypingResult.count || 0
   };
 }
 
@@ -826,6 +836,12 @@ function describeUnitContentCounts(counts) {
   if (counts.speaking > 0) {
     warnParts.push(counts.speaking + " câu Kiểm tra nói");
   }
+  if (counts.grammarMcq > 0) {
+    warnParts.push(counts.grammarMcq + " câu trắc nghiệm ngữ pháp");
+  }
+  if (counts.grammarTyping > 0) {
+    warnParts.push(counts.grammarTyping + " câu viết trả lời");
+  }
   return warnParts;
 }
 
@@ -838,6 +854,12 @@ async function deleteUnitAndContent(unitId, counts) {
   }
   if (counts.speaking > 0) {
     await supabaseClient.from("game_speaking_questions").delete().eq("unit_id", unitId);
+  }
+  if (counts.grammarMcq > 0) {
+    await supabaseClient.from("game_grammar_mcq").delete().eq("unit_id", unitId);
+  }
+  if (counts.grammarTyping > 0) {
+    await supabaseClient.from("game_grammar_typing").delete().eq("unit_id", unitId);
   }
   await supabaseClient.from("game_unit_settings").delete().eq("unit_id", unitId);
   return await supabaseClient.from("game_units").delete().eq("id", unitId);
