@@ -18,7 +18,7 @@ function renderFlashcard(container, breadcrumbText, items, highlightTarget) {
     var item = items[index];
 
     var card = document.createElement("div");
-    card.className = "fc-card";
+    card.className = "fc-card" + (item.vi ? "" : " viet-literacy-card");
 
     var audioBtn = document.createElement("button");
     audioBtn.className = "audio-btn fc-audio-btn";
