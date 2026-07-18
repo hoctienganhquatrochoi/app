@@ -31,7 +31,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   populateAssignmentStudentAccess();
   loadVocabTable();
   loadSentenceTable();
-  loadVietLiteracyTable();
   loadSpeakingTestList().then(loadSpeakingTable);
   loadWordwallList();
   loadWordwallTemplates();
@@ -43,7 +42,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   document.getElementById("unitSelect").addEventListener("change", loadVocabTable);
   document.getElementById("unitSelect").addEventListener("change", loadSentenceTable);
-  document.getElementById("unitSelect").addEventListener("change", loadVietLiteracyTable);
   document.getElementById("unitSelect").addEventListener("change", function () {
     loadSpeakingTestList().then(loadSpeakingTable);
   });
@@ -57,7 +55,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
   document.getElementById("bulkAddForm").addEventListener("submit", handleBulkAdd);
   document.getElementById("bulkAddSentenceForm").addEventListener("submit", handleBulkAddSentences);
-  document.getElementById("bulkAddVietLiteracyForm").addEventListener("submit", handleBulkAddVietLiteracy);
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);
   document.getElementById("addStudentForm").addEventListener("submit", handleAddStudent);
   document.getElementById("addTeachingGroupBtn").addEventListener("click", handleAddTeachingGroup);

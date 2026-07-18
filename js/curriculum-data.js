@@ -23,35 +23,6 @@ var SENTENCE_ACTIVITY_TEMPLATE = [
   { id: "s18", name: "Nghe - Đánh máy (câu)", type: "free-typing", mode: "audio", locked: false }
 ];
 
-function vietLiteracyTierActivities(tier, label, idPrefix) {
-  return [
-    { id: idPrefix + "1", name: "Thẻ đọc (" + label + ")", type: "flashcard", source: "viet-literacy", tier: tier, locked: false },
-    { id: idPrefix + "2", name: "Nghe - chọn chữ theo mẫu (" + label + ")", type: "quiz", format: "visual-matching", source: "viet-literacy", tier: tier, locked: false },
-    { id: idPrefix + "3", name: "Nghe - chọn chữ (" + label + ")", type: "quiz", format: "audio-matching", source: "viet-literacy", tier: tier, locked: false }
-  ];
-}
-
-function buildActivitiesForUnit(unit, vietTierPresence) {
-  if (unit.content_type === "viet-literacy") {
-    var presence = (vietTierPresence && vietTierPresence[unit.id]) || {};
-    var activities = [];
-    if (presence.letter) {
-      activities = activities.concat(vietLiteracyTierActivities("letter", "chữ cái", "vl1"));
-    }
-    if (presence.word) {
-      activities = activities.concat(vietLiteracyTierActivities("word", "từ đơn", "vl2"));
-    }
-    if (presence.compound) {
-      activities = activities.concat(vietLiteracyTierActivities("compound", "từ ghép", "vl3"));
-    }
-    if (presence.sentence) {
-      activities = activities.concat(vietLiteracyTierActivities("sentence", "câu", "vl4"));
-    }
-    return activities;
-  }
-  return VOCAB_ACTIVITY_TEMPLATE;
-}
-
 function buildWordwallActivities(rows) {
   var byUnit = {};
   rows.forEach(function (row) {
@@ -83,15 +54,6 @@ async function loadCurriculumData() {
   (sentenceUnitsResult.data || []).forEach(function (row) {
     unitsWithSentences[row.unit_id] = true;
   });
-  var vietTiersResult = await supabaseClient.from("game_viet_literacy").select("unit_id, tier");
-  var vietTierPresence = {};
-  (vietTiersResult.data || []).forEach(function (row) {
-    if (!vietTierPresence[row.unit_id]) {
-      vietTierPresence[row.unit_id] = {};
-    }
-    vietTierPresence[row.unit_id][row.tier] = true;
-  });
-
   var classes = (classesResult.data || []).map(function (row) {
     return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order };
   });
@@ -118,8 +80,8 @@ async function loadCurriculumData() {
     if (!subj) {
       continue;
     }
-    var unit = { id: urow.id, subject_id: urow.subject_id, class_id: subj.class_id, name: urow.name, content_type: urow.content_type, is_demo: !!urow.is_demo, sort_order: urow.sort_order, progress: "", highlightTarget: urow.highlight_target || "" };
-    unit.activities = buildActivitiesForUnit(unit, vietTierPresence)
+    var unit = { id: urow.id, subject_id: urow.subject_id, class_id: subj.class_id, name: urow.name, content_type: urow.content_type, is_demo: !!urow.is_demo, sort_order: urow.sort_order, progress: "" };
+    unit.activities = VOCAB_ACTIVITY_TEMPLATE
       .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
       .concat(wordwallByUnit[urow.id] || []);
     subj.units.push(unit);

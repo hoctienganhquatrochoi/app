@@ -3,9 +3,7 @@ var QUIZ_FORMAT_CONFIG = {
   "image-to-word": { showWord: true, showPhonetic: true, showImage: true, showMeaning: true, answerType: "word" },
   "text-to-word": { showWord: false, showPhonetic: true, showImage: false, showMeaning: true, answerType: "word" },
   "image-only-to-word": { showWord: false, showPhonetic: false, showImage: true, showMeaning: false, answerType: "word" },
-  "word-to-meaning": { showWord: true, showPhonetic: true, showImage: false, showMeaning: false, answerType: "meaning" },
-  "visual-matching": { showWord: true, showPhonetic: false, showImage: false, showMeaning: false, answerType: "word" },
-  "audio-matching": { showWord: false, showPhonetic: false, showImage: false, showMeaning: false, answerType: "word" }
+  "word-to-meaning": { showWord: true, showPhonetic: true, showImage: false, showMeaning: false, answerType: "meaning" }
 };
 
 var QUIZ_FORMAT_KEYS = Object.keys(QUIZ_FORMAT_CONFIG);
@@ -29,7 +27,7 @@ function buildQuizQuestions(items, maxQuestions, fixedFormat) {
 
 var QUIZ_ADVANCE_DELAY_MS = 1200;
 
-function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, format, highlightTarget) {
+function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, format) {
   var questions = buildQuizQuestions(items, maxQuestions, format);
   var qIndex = 0;
   var score = 0;
@@ -43,7 +41,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
   function showQuestion() {
     draw();
     var q = questions[qIndex];
-    playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.speechText || q.item.en, q.item.lang || "en-US");
+    playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.en, "en-US");
   }
 
   function draw() {
@@ -85,7 +83,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     audioBtn.type = "button";
     audioBtn.textContent = "▶";
     audioBtn.addEventListener("click", function () {
-      playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.speechText || q.item.en, q.item.lang || "en-US");
+      playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.en, "en-US");
     });
     prompt.appendChild(audioBtn);
 
@@ -108,12 +106,8 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
 
     if (line) {
       var lineEl = document.createElement("div");
-      lineEl.className = "quiz-question-word" + (hasVisual ? "" : " no-visual") + (q.item.vi ? "" : " viet-literacy-word");
-      if (highlightTarget && line === q.item.en) {
-        appendTextWithHighlight(lineEl, line, highlightTarget);
-      } else {
-        lineEl.textContent = line;
-      }
+      lineEl.className = "quiz-question-word" + (hasVisual ? "" : " no-visual");
+      lineEl.textContent = line;
       prompt.appendChild(lineEl);
     }
 
@@ -122,20 +116,15 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
 
   function buildOption(q, config, option) {
     var btn = document.createElement("button");
-    btn.className = "quiz-option" + (config.answerType === "image" ? " quiz-option-image" : "") + (option.vi ? "" : " viet-literacy-option");
+    btn.className = "quiz-option" + (config.answerType === "image" ? " quiz-option-image" : "");
     btn.type = "button";
 
     if (config.answerType === "image") {
       btn.appendChild(buildVisualElement(option, "quiz-option-visual"));
     } else {
       var label = document.createElement("span");
-      if (!option.vi) {
-        label.className = "viet-literacy-word";
-      }
       if (config.answerType === "meaning") {
         label.textContent = capitalizeFirst(option.vi);
-      } else if (highlightTarget) {
-        appendTextWithHighlight(label, option.en, highlightTarget);
       } else {
         label.textContent = option.en;
       }

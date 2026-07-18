@@ -361,9 +361,7 @@ async function renderMainContent() {
     main.appendChild(loading);
 
     var items;
-    if (activity.source === "viet-literacy") {
-      items = await loadVietLiteracyForUnit(unit.id, activity.tier);
-    } else if (activity.id.indexOf("s") === 0) {
+    if (activity.id.indexOf("s") === 0) {
       items = await loadSentencesForUnit(unit.id);
     } else {
       items = await loadVocabForUnit(unit.id);
@@ -384,13 +382,12 @@ async function renderMainContent() {
 
     main.innerHTML = "";
 
-    var hl = activity.tier === "word" ? unit.highlightTarget : null;
     if (activity.type === "flashcard") {
-      renderFlashcard(main, breadcrumbText, items, hl);
+      renderFlashcard(main, breadcrumbText, items);
     } else if (activity.type === "flip-card") {
       renderFlipCard(main, breadcrumbText, items, unit.id);
     } else if (activity.type === "quiz") {
-      renderQuiz(main, breadcrumbText, items, unit.id, activity.maxQuestions, activity.format, hl);
+      renderQuiz(main, breadcrumbText, items, unit.id, activity.maxQuestions, activity.format);
     } else if (activity.type === "missing-letter") {
       renderMissingLetter(main, breadcrumbText, items, unit.id, activity.maxQuestions);
     } else if (activity.type === "typing") {

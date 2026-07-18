@@ -1,4 +1,4 @@
-function renderFlashcard(container, breadcrumbText, items, highlightTarget) {
+function renderFlashcard(container, breadcrumbText, items) {
   var index = 0;
   var startedAt = new Date();
   var tabTracker = startTabSwitchTracker();
@@ -18,7 +18,7 @@ function renderFlashcard(container, breadcrumbText, items, highlightTarget) {
     var item = items[index];
 
     var card = document.createElement("div");
-    card.className = "fc-card" + (item.vi ? "" : " viet-literacy-card");
+    card.className = "fc-card";
 
     var audioBtn = document.createElement("button");
     audioBtn.className = "audio-btn fc-audio-btn";
@@ -26,7 +26,7 @@ function renderFlashcard(container, breadcrumbText, items, highlightTarget) {
     audioBtn.textContent = "▶";
     audioBtn.addEventListener("click", function (e) {
       e.stopPropagation();
-      playAudioUrlOrSpeak(item.audioEnUrl, item.speechText || item.en, item.lang || "en-US");
+      playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US");
     });
     card.appendChild(audioBtn);
 
@@ -36,12 +36,8 @@ function renderFlashcard(container, breadcrumbText, items, highlightTarget) {
     }
 
     var line = document.createElement("div");
-    line.className = "fc-word" + (hasVisual ? "" : " no-visual") + (item.vi ? "" : " viet-literacy-word");
-    if (item.vi) {
-      line.textContent = item.en + " " + (item.phonetic || "") + " - " + capitalizeFirst(item.vi);
-    } else {
-      appendTextWithHighlight(line, item.en, highlightTarget);
-    }
+    line.className = "fc-word" + (hasVisual ? "" : " no-visual");
+    line.textContent = item.en + " " + (item.phonetic || "") + " - " + capitalizeFirst(item.vi);
     card.appendChild(line);
 
     var hint = document.createElement("div");
@@ -75,7 +71,7 @@ function renderFlashcard(container, breadcrumbText, items, highlightTarget) {
     wrap.appendChild(nav);
     container.appendChild(wrap);
 
-    playAudioUrlOrSpeak(item.audioEnUrl, item.speechText || item.en, item.lang || "en-US");
+    playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US");
   }
 
   function goNext() {

@@ -28,29 +28,6 @@ function capitalizeFirst(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function appendTextWithHighlight(el, text, highlightTarget) {
-  if (!highlightTarget) {
-    el.textContent = text;
-    return;
-  }
-  var idx = text.indexOf(highlightTarget);
-  if (idx === -1) {
-    el.textContent = text;
-    return;
-  }
-  if (idx > 0) {
-    el.appendChild(document.createTextNode(text.slice(0, idx)));
-  }
-  var span = document.createElement("span");
-  span.className = "viet-highlight";
-  span.textContent = text.slice(idx, idx + highlightTarget.length);
-  el.appendChild(span);
-  var rest = idx + highlightTarget.length;
-  if (rest < text.length) {
-    el.appendChild(document.createTextNode(text.slice(rest)));
-  }
-}
-
 function shuffleArray(arr) {
   var copy = arr.slice();
   var i, j, tmp;
