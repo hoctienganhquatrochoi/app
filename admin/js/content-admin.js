@@ -2,6 +2,30 @@ function stripParenthetical(text) {
   return (text || "").replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
 }
 
+var VOCAB_AUDIO_BUCKET = "vocab-audio";
+var VOCAB_AUDIO_PUBLIC_PREFIX = "/storage/v1/object/public/" + VOCAB_AUDIO_BUCKET + "/";
+
+async function deleteAudioFileForUrl(url) {
+  if (!url) {
+    return;
+  }
+  var idx = url.indexOf(VOCAB_AUDIO_PUBLIC_PREFIX);
+  if (idx === -1) {
+    return;
+  }
+  var path = url.slice(idx + VOCAB_AUDIO_PUBLIC_PREFIX.length);
+  await supabaseClient.storage.from(VOCAB_AUDIO_BUCKET).remove([path]);
+}
+
+async function deleteUnitAudioFolder(unitId) {
+  var listResult = await supabaseClient.storage.from(VOCAB_AUDIO_BUCKET).list(unitId);
+  if (listResult.error || !listResult.data || !listResult.data.length) {
+    return;
+  }
+  var paths = listResult.data.map(function (f) { return unitId + "/" + f.name; });
+  await supabaseClient.storage.from(VOCAB_AUDIO_BUCKET).remove(paths);
+}
+
 function populateUnitSelect(selectId) {
   var select = document.getElementById(selectId || "unitSelect");
   var previous = select.value;
@@ -251,6 +275,9 @@ async function handleDeleteAllVocab() {
   if (!window.confirm("Xóa toàn bộ " + currentVocabRows.length + " từ vựng trong Unit này? Không thể khôi phục.")) {
     return;
   }
+  await Promise.all(currentVocabRows.map(function (row) {
+    return Promise.all([deleteAudioFileForUrl(row.audio_en_url), deleteAudioFileForUrl(row.audio_vi_url)]);
+  }));
   var result = await supabaseClient.from("game_vocab").delete().eq("unit_id", unitId);
   if (result.error) {
     window.alert("Lỗi xóa: " + result.error.message);
@@ -319,7 +346,7 @@ function buildVocabBulkEditRow(row) {
   delBtn.type = "button";
   delBtn.textContent = "Xóa";
   delBtn.addEventListener("click", function () {
-    deleteVocab(row.id);
+    deleteVocab(row);
   });
   actionsTd.appendChild(delBtn);
   tr.appendChild(actionsTd);
@@ -403,7 +430,7 @@ function buildVocabRow(row) {
   delBtn.type = "button";
   delBtn.textContent = "Xóa";
   delBtn.addEventListener("click", function () {
-    deleteVocab(row.id);
+    deleteVocab(row);
   });
   actionsTd.appendChild(delBtn);
   tr.appendChild(actionsTd);
@@ -501,11 +528,12 @@ function buildVocabEditRow(row) {
   return tr;
 }
 
-async function deleteVocab(id) {
+async function deleteVocab(row) {
   if (!window.confirm("Xóa từ này?")) {
     return;
   }
-  var result = await supabaseClient.from("game_vocab").delete().eq("id", id);
+  await Promise.all([deleteAudioFileForUrl(row.audio_en_url), deleteAudioFileForUrl(row.audio_vi_url)]);
+  var result = await supabaseClient.from("game_vocab").delete().eq("id", row.id);
   if (result.error) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;

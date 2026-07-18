@@ -846,6 +846,9 @@ function describeUnitContentCounts(counts) {
 }
 
 async function deleteUnitAndContent(unitId, counts) {
+  if (counts.vocab > 0 || counts.sentence > 0 || counts.speaking > 0) {
+    await deleteUnitAudioFolder(unitId);
+  }
   if (counts.vocab > 0) {
     await supabaseClient.from("game_vocab").delete().eq("unit_id", unitId);
   }

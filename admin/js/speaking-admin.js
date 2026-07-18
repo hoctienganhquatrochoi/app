@@ -130,6 +130,10 @@ async function deleteSpeakingTest(name, count) {
     return;
   }
   var unitId = document.getElementById("unitSelect").value;
+  var rowsResult = await supabaseClient.from("game_speaking_questions").select("audio_question_url").eq("unit_id", unitId).eq("test_name", name);
+  await Promise.all((rowsResult.data || []).map(function (row) {
+    return deleteAudioFileForUrl(row.audio_question_url);
+  }));
   var result = await supabaseClient.from("game_speaking_questions").delete().eq("unit_id", unitId).eq("test_name", name);
   if (result.error) {
     window.alert("Lỗi xóa: " + result.error.message);
@@ -257,7 +261,7 @@ function buildSpeakingRow(row) {
   delBtn.type = "button";
   delBtn.textContent = "Xóa";
   delBtn.addEventListener("click", function () {
-    deleteSpeaking(row.id);
+    deleteSpeaking(row);
   });
   actionsTd.appendChild(delBtn);
   tr.appendChild(actionsTd);
@@ -340,11 +344,12 @@ function buildSpeakingEditRow(row) {
   return tr;
 }
 
-async function deleteSpeaking(id) {
+async function deleteSpeaking(row) {
   if (!window.confirm("Xóa câu hỏi này?")) {
     return;
   }
-  var result = await supabaseClient.from("game_speaking_questions").delete().eq("id", id);
+  await deleteAudioFileForUrl(row.audio_question_url);
+  var result = await supabaseClient.from("game_speaking_questions").delete().eq("id", row.id);
   if (result.error) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
