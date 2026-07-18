@@ -719,11 +719,23 @@ function selectUnitForComposing(unitId) {
   var select = document.getElementById("unitSelect");
   select.value = unitId;
   updateComposeBreadcrumb();
-  switchComposeSubTab("vocab");
-  loadVocabTable();
-  loadSentenceTable();
-  loadSpeakingTestList().then(loadSpeakingTable);
-  loadWordwallList();
+
+  var unit = findUnitById(unitId);
+  var isVietLiteracy = !!(unit && unit.content_type === "viet-literacy");
+
+  document.getElementById("composeSubTabs").style.display = isVietLiteracy ? "none" : "";
+  document.getElementById("vietLiteracySubTabs").style.display = isVietLiteracy ? "" : "none";
+  document.getElementById("vietLiteracyComposeSubPanel").style.display = isVietLiteracy ? "" : "none";
+
+  if (isVietLiteracy) {
+    switchVietLiteracyTab("letter");
+  } else {
+    switchComposeSubTab("vocab");
+    loadVocabTable();
+    loadSentenceTable();
+    loadSpeakingTestList().then(loadSpeakingTable);
+    loadWordwallList();
+  }
   loadActivityToggles();
   showUnitsComposeView();
 }
@@ -744,10 +756,28 @@ function switchComposeSubTab(target) {
   }
 }
 
+function switchVietLiteracyTab(tier) {
+  var tabs = document.querySelectorAll("#vietLiteracySubTabs .admin-subtab");
+  var i;
+  for (i = 0; i < tabs.length; i++) {
+    tabs[i].className = tabs[i].getAttribute("data-vltab") === tier ? "admin-subtab active" : "admin-subtab";
+  }
+  currentVietTier = tier;
+  loadVietLiteracyTable();
+}
+
+function updateNewUnitContentTypeFields() {
+  var isVietLiteracy = document.getElementById("newUnitContentType").value === "viet-literacy";
+  document.getElementById("newUnitHighlightField").style.display = isVietLiteracy ? "" : "none";
+  document.getElementById("bulkUnitCreateBox").style.display = isVietLiteracy ? "" : "none";
+}
+
 async function handleAddUnit() {
   var classId = document.getElementById("addUnitClassPicker").value;
   var subjectId = document.getElementById("addUnitSubjectPicker").value;
   var name = document.getElementById("newUnitName").value.trim();
+  var contentType = document.getElementById("newUnitContentType").value;
+  var highlightTarget = document.getElementById("newUnitHighlightTarget").value.trim();
   var newSortOrder = 0;
 
   if (!subjectId) {
@@ -769,26 +799,84 @@ async function handleAddUnit() {
 
   setCurriculumStatus("Đang tạo bài học...");
   var newId = genId("u");
-  var result = await supabaseClient.from("game_units").insert({ id: newId, subject_id: subjectId, name: name, content_type: "vocab", sort_order: newSortOrder });
+  var insertPayload = { id: newId, subject_id: subjectId, name: name, content_type: contentType, sort_order: newSortOrder };
+  if (contentType === "viet-literacy" && highlightTarget) {
+    insertPayload.highlight_target = highlightTarget;
+  }
+  var result = await supabaseClient.from("game_units").insert(insertPayload);
   if (result.error) {
     setCurriculumStatus("Lỗi tạo bài học: " + result.error.message);
     return;
   }
 
   document.getElementById("newUnitName").value = "";
+  document.getElementById("newUnitHighlightTarget").value = "";
   setCurriculumStatus(name ? "Đã tạo bài học \"" + name + "\"." : "Đã tạo bài học không tên — nội dung sẽ hiện thẳng dưới Môn học cho học sinh.");
   await refreshCurriculumEverywhere({ selectUnitId: newId });
   switchCurriculumSubTab("manageContent");
   selectUnitForComposing(newId);
 }
 
+async function handleBulkCreateUnits() {
+  var classId = document.getElementById("addUnitClassPicker").value;
+  var subjectId = document.getElementById("addUnitSubjectPicker").value;
+  var statusEl = document.getElementById("bulkUnitCreateStatus");
+  var text = document.getElementById("bulkUnitLines").value;
+  var lines = text.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+
+  if (!lines.length) {
+    window.alert("Chưa dán danh sách chữ/vần nào.");
+    return;
+  }
+
+  if (!subjectId) {
+    if (!classId) {
+      window.alert("Chưa có Lớp nào, hãy tạo Lớp trước");
+      return;
+    }
+    statusEl.textContent = "Đang tạo Môn...";
+    subjectId = genId("s");
+    var subjectResult = await supabaseClient.from("game_subjects").insert({ id: subjectId, class_id: classId, name: "", color: "#2D6A4F", sort_order: 0 });
+    if (subjectResult.error) {
+      statusEl.textContent = "Lỗi tạo Môn: " + subjectResult.error.message;
+      return;
+    }
+  }
+
+  var subjectForOrder = findSubjectById(subjectId);
+  var baseSortOrder = subjectForOrder ? subjectForOrder.units.length : 0;
+
+  var successCount = 0;
+  var i;
+  for (i = 0; i < lines.length; i++) {
+    statusEl.textContent = "Đang tạo " + (i + 1) + "/" + lines.length + ": " + lines[i] + "...";
+    var insertResult = await supabaseClient.from("game_units").insert({
+      id: genId("u"),
+      subject_id: subjectId,
+      name: lines[i],
+      content_type: "viet-literacy",
+      highlight_target: lines[i],
+      sort_order: baseSortOrder + i
+    });
+    if (!insertResult.error) {
+      successCount++;
+    }
+  }
+
+  document.getElementById("bulkUnitLines").value = "";
+  statusEl.textContent = "Xong! Đã tạo " + successCount + "/" + lines.length + " Unit.";
+  await refreshCurriculumEverywhere();
+}
+
 async function handleDeleteUnit(unitId) {
   var vocabResult = await supabaseClient.from("game_vocab").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var sentenceResult = await supabaseClient.from("game_sentences").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var speakingResult = await supabaseClient.from("game_speaking_questions").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var vietLitResult = await supabaseClient.from("game_viet_literacy").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var vocabCount = vocabResult.count || 0;
   var sentenceCount = sentenceResult.count || 0;
   var speakingCount = speakingResult.count || 0;
+  var vietLitCount = vietLitResult.count || 0;
 
   var warnParts = [];
   if (vocabCount > 0) {
@@ -799,6 +887,9 @@ async function handleDeleteUnit(unitId) {
   }
   if (speakingCount > 0) {
     warnParts.push(speakingCount + " câu Kiểm tra nói");
+  }
+  if (vietLitCount > 0) {
+    warnParts.push(vietLitCount + " mục học vần/chữ");
   }
   var warnMsg = warnParts.length > 0 ? ("Xóa Unit này sẽ xóa luôn " + warnParts.join(" và ") + " bên trong, không thể khôi phục. ") : "";
 
@@ -814,6 +905,9 @@ async function handleDeleteUnit(unitId) {
   }
   if (speakingCount > 0) {
     await supabaseClient.from("game_speaking_questions").delete().eq("unit_id", unitId);
+  }
+  if (vietLitCount > 0) {
+    await supabaseClient.from("game_viet_literacy").delete().eq("unit_id", unitId);
   }
   await supabaseClient.from("game_unit_settings").delete().eq("unit_id", unitId);
 
@@ -893,7 +987,17 @@ function initCurriculumManage() {
     });
   }
 
+  var vietLiteracySubTabs = document.querySelectorAll("#vietLiteracySubTabs .admin-subtab");
+  for (i = 0; i < vietLiteracySubTabs.length; i++) {
+    vietLiteracySubTabs[i].addEventListener("click", function () {
+      switchVietLiteracyTab(this.getAttribute("data-vltab"));
+    });
+  }
+
   document.getElementById("addSpeakingTestBtn").addEventListener("click", handleAddSpeakingTest);
   document.getElementById("speakingTestSelect").addEventListener("change", loadSpeakingTable);
   document.getElementById("addWordwallBtn").addEventListener("click", handleAddWordwall);
+
+  document.getElementById("newUnitContentType").addEventListener("change", updateNewUnitContentTypeFields);
+  document.getElementById("bulkCreateUnitsBtn").addEventListener("click", handleBulkCreateUnits);
 }

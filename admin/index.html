@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260718">
-<link rel="stylesheet" href="css/admin.css?v=20260718">
+<link rel="stylesheet" href="../css/style.css?v=20260718b">
+<link rel="stylesheet" href="css/admin.css?v=20260718b">
 </head>
 <body>
 
@@ -178,12 +178,33 @@
             <select id="addUnitSubjectPicker"></select>
           </div>
           <div class="admin-field">
+            <label>Loại nội dung</label>
+            <select id="newUnitContentType">
+              <option value="vocab">Từ vựng (mặc định)</option>
+              <option value="viet-literacy">Tiếng Việt - Học vần/chữ</option>
+            </select>
+          </div>
+          <div class="admin-field">
             <label>Tên bài (không bắt buộc)</label>
             <input type="text" id="newUnitName" placeholder="Màu sắc – Colors">
+          </div>
+          <div class="admin-field" id="newUnitHighlightField" style="display:none">
+            <label>Chữ/vần trọng tâm (tùy chọn)</label>
+            <input type="text" id="newUnitHighlightTarget" placeholder="ơi">
           </div>
           <div class="admin-field admin-field-btn">
             <button type="button" class="admin-btn-primary" id="addUnitBtn">+ Thêm bài</button>
           </div>
+        </div>
+
+        <div id="bulkUnitCreateBox" style="display:none">
+          <p class="admin-hint">Tạo nhanh nhiều Unit "Học vần/chữ" cùng lúc — mỗi dòng 1 chữ/vần, hệ thống tự tạo 1 Unit cho mỗi dòng (tên Unit và chữ/vần trọng tâm lấy đúng dòng đó).</p>
+          <textarea class="admin-textarea" id="bulkUnitLines" rows="6" placeholder="a
+ă
+â
+ơi"></textarea>
+          <button type="button" class="admin-btn-primary admin-btn-bulk" id="bulkCreateUnitsBtn">+ Tạo hàng loạt Unit</button>
+          <div class="admin-status" id="bulkUnitCreateStatus"></div>
         </div>
       </div>
 
@@ -227,6 +248,13 @@
               <button class="admin-subtab" type="button" data-composesubtab="sentence">Mẫu câu</button>
               <button class="admin-subtab" type="button" data-composesubtab="speaking">Kiểm tra nói</button>
               <button class="admin-subtab" type="button" data-composesubtab="wordwall">Wordwall</button>
+            </nav>
+
+            <nav class="admin-tabs" id="vietLiteracySubTabs" style="display:none">
+              <button class="admin-subtab active" type="button" data-vltab="letter">Chữ cái</button>
+              <button class="admin-subtab" type="button" data-vltab="word">Từ đơn</button>
+              <button class="admin-subtab" type="button" data-vltab="compound">Từ ghép</button>
+              <button class="admin-subtab" type="button" data-vltab="sentence">Câu</button>
             </nav>
 
             <div id="vocabComposeSubPanel">
@@ -339,6 +367,23 @@ What's this? | It's a pen."></textarea>
                 </div>
                 <div class="admin-status" id="wordwallStatus"></div>
               </div>
+            </div>
+
+            <div id="vietLiteracyComposeSubPanel" style="display:none">
+              <p class="admin-hint">
+                Định dạng mỗi dòng: <code>chữ/từ/câu | cách đọc (tùy chọn)</code>. Cách đọc chỉ cần điền khi máy đọc sai
+                (VD chữ "b" máy đọc thành "bê", gõ "bờ" vào ô cách đọc để máy đọc đúng — màn hình học sinh vẫn hiện "b" như thường).
+              </p>
+              <form class="admin-form" id="bulkAddVietLiteracyForm">
+                <h3>Nhập hàng loạt</h3>
+                <textarea class="admin-textarea" id="bulkVietLiteracyTextarea" rows="8" placeholder="b | bờ
+bơi
+mơi"></textarea>
+                <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả + tạo âm thanh</button>
+                <div class="admin-status" id="bulkVietLiteracyStatus"></div>
+              </form>
+
+              <div id="vietLiteracyTableWrap"></div>
             </div>
           </div>
         </div>
@@ -529,21 +574,22 @@ What's this? | It's a pen."></textarea>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260718"></script>
-<script src="../js/supabase-config.js?v=20260718"></script>
-<script src="js/admin-auth.js?v=20260718"></script>
-<script src="../js/curriculum-data.js?v=20260718"></script>
-<script src="js/content-admin.js?v=20260718"></script>
-<script src="js/sentences-admin.js?v=20260718"></script>
-<script src="js/speaking-admin.js?v=20260718"></script>
-<script src="js/wordwall-admin.js?v=20260718"></script>
-<script src="js/wordwall-templates-admin.js?v=20260718"></script>
-<script src="js/groups-admin.js?v=20260718"></script>
-<script src="js/students-admin.js?v=20260718"></script>
-<script src="js/assignments-admin.js?v=20260718"></script>
-<script src="js/results-admin.js?v=20260718"></script>
-<script src="js/activity-toggles-admin.js?v=20260718"></script>
-<script src="js/curriculum-admin.js?v=20260718"></script>
-<script src="js/admin-app.js?v=20260718"></script>
+<script src="../js/data.js?v=20260718b"></script>
+<script src="../js/supabase-config.js?v=20260718b"></script>
+<script src="js/admin-auth.js?v=20260718b"></script>
+<script src="../js/curriculum-data.js?v=20260718b"></script>
+<script src="js/content-admin.js?v=20260718b"></script>
+<script src="js/sentences-admin.js?v=20260718b"></script>
+<script src="js/viet-literacy-admin.js?v=20260718b"></script>
+<script src="js/speaking-admin.js?v=20260718b"></script>
+<script src="js/wordwall-admin.js?v=20260718b"></script>
+<script src="js/wordwall-templates-admin.js?v=20260718b"></script>
+<script src="js/groups-admin.js?v=20260718b"></script>
+<script src="js/students-admin.js?v=20260718b"></script>
+<script src="js/assignments-admin.js?v=20260718b"></script>
+<script src="js/results-admin.js?v=20260718b"></script>
+<script src="js/activity-toggles-admin.js?v=20260718b"></script>
+<script src="js/curriculum-admin.js?v=20260718b"></script>
+<script src="js/admin-app.js?v=20260718b"></script>
 </body>
 </html>

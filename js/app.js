@@ -361,8 +361,14 @@ async function renderMainContent() {
     loading.textContent = "Đang tải nội dung...";
     main.appendChild(loading);
 
-    var isSentenceActivity = activity.id.indexOf("s") === 0;
-    var items = isSentenceActivity ? await loadSentencesForUnit(unit.id) : await loadVocabForUnit(unit.id);
+    var items;
+    if (activity.source === "viet-literacy") {
+      items = await loadVietLiteracyForUnit(unit.id, activity.tier);
+    } else if (activity.id.indexOf("s") === 0) {
+      items = await loadSentencesForUnit(unit.id);
+    } else {
+      items = await loadVocabForUnit(unit.id);
+    }
 
     if (!state.selectedActivity || state.selectedActivity.unit.id !== unit.id || state.selectedActivity.activity.id !== activity.id) {
       return;
@@ -379,12 +385,13 @@ async function renderMainContent() {
 
     main.innerHTML = "";
 
+    var hl = activity.tier === "word" ? unit.highlightTarget : null;
     if (activity.type === "flashcard") {
-      renderFlashcard(main, breadcrumbText, items);
+      renderFlashcard(main, breadcrumbText, items, hl);
     } else if (activity.type === "flip-card") {
       renderFlipCard(main, breadcrumbText, items, unit.id);
     } else if (activity.type === "quiz") {
-      renderQuiz(main, breadcrumbText, items, unit.id, activity.maxQuestions, activity.format);
+      renderQuiz(main, breadcrumbText, items, unit.id, activity.maxQuestions, activity.format, hl);
     } else if (activity.type === "missing-letter") {
       renderMissingLetter(main, breadcrumbText, items, unit.id, activity.maxQuestions);
     } else if (activity.type === "typing") {
