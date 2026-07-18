@@ -108,7 +108,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
 
     if (line) {
       var lineEl = document.createElement("div");
-      lineEl.className = "quiz-question-word" + (hasVisual ? "" : " no-visual");
+      lineEl.className = "quiz-question-word" + (hasVisual ? "" : " no-visual") + (q.item.vi ? "" : " viet-literacy-word");
       if (highlightTarget && line === q.item.en) {
         appendTextWithHighlight(lineEl, line, highlightTarget);
       } else {
@@ -129,6 +129,9 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
       btn.appendChild(buildVisualElement(option, "quiz-option-visual"));
     } else {
       var label = document.createElement("span");
+      if (!option.vi) {
+        label.className = "viet-literacy-word";
+      }
       if (config.answerType === "meaning") {
         label.textContent = capitalizeFirst(option.vi);
       } else if (highlightTarget) {

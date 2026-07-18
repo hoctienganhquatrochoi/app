@@ -772,7 +772,8 @@ function switchVietLiteracyTab(tier) {
 
 function updateNewUnitContentTypeFields() {
   var isVietLiteracy = document.getElementById("newUnitContentType").value === "viet-literacy";
-  document.getElementById("newUnitHighlightField").style.display = isVietLiteracy ? "" : "none";
+  document.getElementById("newUnitNameField").style.display = isVietLiteracy ? "none" : "";
+  document.getElementById("addUnitBtnField").style.display = isVietLiteracy ? "none" : "";
   document.getElementById("bulkUnitCreateBox").style.display = isVietLiteracy ? "" : "none";
 }
 

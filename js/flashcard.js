@@ -35,7 +35,7 @@ function renderFlashcard(container, breadcrumbText, items, highlightTarget) {
     }
 
     var line = document.createElement("div");
-    line.className = "fc-word" + (hasVisual ? "" : " no-visual");
+    line.className = "fc-word" + (hasVisual ? "" : " no-visual") + (item.vi ? "" : " viet-literacy-word");
     if (item.vi) {
       line.textContent = item.en + " " + (item.phonetic || "") + " - " + capitalizeFirst(item.vi);
     } else {
