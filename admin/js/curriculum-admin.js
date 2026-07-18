@@ -728,6 +728,10 @@ function selectUnitForComposing(unitId) {
   document.getElementById("vietLiteracyComposeSubPanel").style.display = isVietLiteracy ? "" : "none";
 
   if (isVietLiteracy) {
+    document.getElementById("vocabComposeSubPanel").style.display = "none";
+    document.getElementById("sentenceComposeSubPanel").style.display = "none";
+    document.getElementById("speakingComposeSubPanel").style.display = "none";
+    document.getElementById("wordwallComposeSubPanel").style.display = "none";
     switchVietLiteracyTab("letter");
   } else {
     switchComposeSubTab("vocab");
