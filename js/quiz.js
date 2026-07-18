@@ -122,7 +122,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
 
   function buildOption(q, config, option) {
     var btn = document.createElement("button");
-    btn.className = "quiz-option" + (config.answerType === "image" ? " quiz-option-image" : "");
+    btn.className = "quiz-option" + (config.answerType === "image" ? " quiz-option-image" : "") + (option.vi ? "" : " viet-literacy-option");
     btn.type = "button";
 
     if (config.answerType === "image") {

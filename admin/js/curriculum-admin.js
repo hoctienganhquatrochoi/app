@@ -623,6 +623,18 @@ function buildUnitEditRow(unit) {
   nameTd.appendChild(nameInput);
   tr.appendChild(nameTd);
 
+  var highlightInput = null;
+  if (unit.content_type === "viet-literacy") {
+    var highlightTd = document.createElement("td");
+    highlightInput = document.createElement("input");
+    highlightInput.type = "text";
+    highlightInput.className = "admin-inline-input";
+    highlightInput.value = unit.highlightTarget || "";
+    highlightInput.placeholder = "Chữ/vần trọng tâm";
+    highlightTd.appendChild(highlightInput);
+    tr.appendChild(highlightTd);
+  }
+
   var classTd = document.createElement("td");
   var classSelect = document.createElement("select");
   classSelect.className = "admin-inline-input";
@@ -666,10 +678,14 @@ function buildUnitEditRow(unit) {
       window.alert("Lớp này chưa có Môn học nào");
       return;
     }
-    var result = await supabaseClient.from("game_units").update({
+    var updatePayload = {
       name: newName,
       subject_id: subjectSelect.value
-    }).eq("id", unit.id);
+    };
+    if (highlightInput) {
+      updatePayload.highlight_target = highlightInput.value.trim();
+    }
+    var result = await supabaseClient.from("game_units").update(updatePayload).eq("id", unit.id);
     if (result.error) {
       window.alert("Lỗi lưu: " + result.error.message);
       return;

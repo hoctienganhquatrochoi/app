@@ -607,7 +607,7 @@ html, body {
 }
 
 .fc-word.viet-literacy-word.no-visual {
-  font-size: 76px;
+  font-size: 110px;
 }
 
 .fc-audio-btn {
@@ -873,11 +873,11 @@ html, body {
 }
 
 .quiz-question-word.viet-literacy-word.no-visual {
-  font-size: 68px;
+  font-size: 90px;
 }
 
 .quiz-option .viet-literacy-word {
-  font-size: 1.5em;
+  font-size: 48px;
   text-transform: none;
 }
 
@@ -931,6 +931,17 @@ html, body {
 .quiz-option:not(.quiz-option-image):nth-child(2) { background: #E1566A; }
 .quiz-option:not(.quiz-option-image):nth-child(3) { background: #F0973D; }
 .quiz-option:not(.quiz-option-image):nth-child(4) { background: #4FAE6D; }
+
+.quiz-option.viet-literacy-option:not(.quiz-option-image) {
+  background: #FFFFFF;
+  border: 5px solid #CCC;
+  color: #1B4332;
+}
+
+.quiz-option.viet-literacy-option:not(.quiz-option-image):nth-child(1) { border-color: #4A90D2; }
+.quiz-option.viet-literacy-option:not(.quiz-option-image):nth-child(2) { border-color: #E1566A; }
+.quiz-option.viet-literacy-option:not(.quiz-option-image):nth-child(3) { border-color: #F0973D; }
+.quiz-option.viet-literacy-option:not(.quiz-option-image):nth-child(4) { border-color: #4FAE6D; }
 
 .quiz-option-visual {
   width: 100%;
@@ -1420,6 +1431,15 @@ html, body {
   }
   .quiz-option {
     font-size: 20px;
+  }
+  .fc-word.viet-literacy-word.no-visual {
+    font-size: 64px;
+  }
+  .quiz-question-word.viet-literacy-word.no-visual {
+    font-size: 54px;
+  }
+  .quiz-option .viet-literacy-word {
+    font-size: 32px;
   }
 }
 

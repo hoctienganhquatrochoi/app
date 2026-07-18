@@ -2,6 +2,7 @@ function renderFlashcard(container, breadcrumbText, items, highlightTarget) {
   var index = 0;
   var startedAt = new Date();
   var tabTracker = startTabSwitchTracker();
+  items = shuffleArray(items);
 
   function draw() {
     container.innerHTML = "";
@@ -115,6 +116,7 @@ function renderFlashcard(container, breadcrumbText, items, highlightTarget) {
     againBtn.type = "button";
     againBtn.textContent = "Học lại";
     againBtn.addEventListener("click", function () {
+      items = shuffleArray(items);
       index = 0;
       startedAt = new Date();
       tabTracker = startTabSwitchTracker();
