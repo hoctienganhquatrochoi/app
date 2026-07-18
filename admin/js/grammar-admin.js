@@ -1,3 +1,7 @@
+function stripLeadingNumbering(text) {
+  return (text || "").replace(/^\s*(câu|question)?\s*\d+\s*[\.\):]\s*/i, "").trim();
+}
+
 /* ---------- Trắc nghiệm ngữ pháp (grammar MCQ, gạch chân đáp án) ---------- */
 
 function setBulkGrammarMcqStatus(text) {
@@ -201,7 +205,7 @@ function parseGrammarMcqBulkBlock(block) {
     } else if (wrongMatch) {
       wrongAnswers = wrongMatch[1].split(",").map(function (w) { return w.trim(); }).filter(function (w) { return w; });
     } else if (!question) {
-      question = line;
+      question = stripLeadingNumbering(line);
     }
   });
 
@@ -455,7 +459,7 @@ async function handleDeleteAllGrammarTyping() {
 function parseGrammarTypingBulkLine(line) {
   var parts = line.split("|").map(function (p) { return p.trim(); });
   return {
-    prompt: parts[0] || "",
+    prompt: stripLeadingNumbering(parts[0] || ""),
     answer: parts[1] || ""
   };
 }
