@@ -112,7 +112,7 @@ function renderSentenceTable(rows) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  var headers = ["Câu tiếng Anh", "Nghĩa tiếng Việt", "Audio", ""];
+  var headers = ["Câu tiếng Anh", "Phiên âm", "Nghĩa tiếng Việt", "Audio", ""];
   var i;
   for (i = 0; i < headers.length; i++) {
     var th = document.createElement("th");
@@ -143,6 +143,7 @@ function buildSentenceRow(row) {
 
   var tr = document.createElement("tr");
   tr.appendChild(makeTd(row.sentence_en));
+  tr.appendChild(makeTd(row.phonetic));
   tr.appendChild(makeTd(row.meaning_vi));
   tr.appendChild(makeAudioTd(row.audio_en_url));
 
@@ -176,9 +177,11 @@ function buildSentenceEditRow(row) {
   tr.className = "editing-row";
 
   var sentenceTd = makeInputTd(row.sentence_en);
+  var phoneticTd = makeInputTd(row.phonetic);
   var meaningTd = makeInputTd(row.meaning_vi);
 
   tr.appendChild(sentenceTd);
+  tr.appendChild(phoneticTd);
   tr.appendChild(meaningTd);
   tr.appendChild(makeAudioTd(row.audio_en_url));
 
@@ -200,6 +203,7 @@ function buildSentenceEditRow(row) {
 
   saveBtn.addEventListener("click", async function () {
     var newSentenceEn = sentenceTd.inputEl.value.trim();
+    var newPhonetic = phoneticTd.inputEl.value.trim();
     var newMeaningVi = meaningTd.inputEl.value.trim();
 
     if (!newSentenceEn || !newMeaningVi) {
@@ -213,6 +217,7 @@ function buildSentenceEditRow(row) {
     var textChanged = newSentenceEn !== row.sentence_en;
     var updatePayload = {
       sentence_en: newSentenceEn,
+      phonetic: newPhonetic,
       meaning_vi: newMeaningVi
     };
 
@@ -250,14 +255,16 @@ function buildSentenceBulkEditRow(row) {
   tr.className = "editing-row";
 
   var sentenceTd = makeInputTd(row.sentence_en);
+  var phoneticTd = makeInputTd(row.phonetic);
   var meaningTd = makeInputTd(row.meaning_vi);
 
   tr.appendChild(sentenceTd);
+  tr.appendChild(phoneticTd);
   tr.appendChild(meaningTd);
   tr.appendChild(makeAudioTd(row.audio_en_url));
   tr.appendChild(document.createElement("td"));
 
-  sentenceBulkEditRefs.push({ row: row, sentenceTd: sentenceTd, meaningTd: meaningTd });
+  sentenceBulkEditRefs.push({ row: row, sentenceTd: sentenceTd, phoneticTd: phoneticTd, meaningTd: meaningTd });
 
   return tr;
 }
@@ -268,6 +275,7 @@ async function handleSaveAllSentences() {
   for (i = 0; i < sentenceBulkEditRefs.length; i++) {
     var ref = sentenceBulkEditRefs[i];
     var newSentenceEn = ref.sentenceTd.inputEl.value.trim();
+    var newPhonetic = ref.phoneticTd.inputEl.value.trim();
     var newMeaningVi = ref.meaningTd.inputEl.value.trim();
     if (!newSentenceEn || !newMeaningVi) {
       continue;
@@ -275,7 +283,7 @@ async function handleSaveAllSentences() {
 
     statusEl.textContent = "Đang lưu " + (i + 1) + "/" + sentenceBulkEditRefs.length + "...";
 
-    var updatePayload = { sentence_en: newSentenceEn, meaning_vi: newMeaningVi };
+    var updatePayload = { sentence_en: newSentenceEn, phonetic: newPhonetic, meaning_vi: newMeaningVi };
     if (newSentenceEn !== ref.row.sentence_en) {
       var noop = function () {};
       updatePayload.audio_en_url = await generateAudio(newSentenceEn, "en-US", ref.row.unit_id + "/" + ref.row.id + "_en.mp3", noop);
@@ -303,10 +311,28 @@ async function deleteSentence(id) {
 }
 
 function parseSentenceBulkLine(line) {
-  var parts = line.split("|");
+  if (line.indexOf("|") !== -1) {
+    var parts = line.split("|");
+    return {
+      sentence_en: (parts[0] || "").trim(),
+      phonetic: (parts[1] || "").trim(),
+      meaning_vi: (parts[2] || "").trim()
+    };
+  }
+
+  var slashMatch = line.match(/^(.+?)\s+\/([^/]+)\/\s*[-–]?\s*(.*)$/);
+  if (slashMatch) {
+    return {
+      sentence_en: slashMatch[1].trim(),
+      phonetic: "/" + slashMatch[2].trim() + "/",
+      meaning_vi: slashMatch[3].trim()
+    };
+  }
+
   return {
-    sentence_en: (parts[0] || "").trim(),
-    meaning_vi: (parts[1] || "").trim()
+    sentence_en: line.trim(),
+    phonetic: "",
+    meaning_vi: ""
   };
 }
 
@@ -354,6 +380,9 @@ async function handleBulkAddSentences(e) {
     var item = validItems[i];
     setBulkSentenceStatus("Đang xử lý " + (i + 1) + "/" + validItems.length + ": " + item.sentence_en + "...");
 
+    if (!item.phonetic) {
+      item.phonetic = await lookupPhonetic(item.sentence_en);
+    }
     if (!item.meaning_vi) {
       item.meaning_vi = await translateToVietnamese(item.sentence_en, setBulkSentenceStatus);
     }
@@ -364,6 +393,7 @@ async function handleBulkAddSentences(e) {
         unit_id: unitId,
         sort_order: nextSortOrder + i,
         sentence_en: item.sentence_en,
+        phonetic: item.phonetic,
         meaning_vi: item.meaning_vi
       })
       .select()

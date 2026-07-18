@@ -254,10 +254,12 @@ school bag /ˈskuːl bæɡ/ cặp đi học"></textarea>
                 <h3>Nhập hàng loạt</h3>
                 <p class="admin-hint">
                   Câu tiếng Anh dùng để ôn mẫu câu của Unit này, tách riêng khỏi Từ vựng để Quiz không trộn từ đơn
-                  và câu dài. Định dạng mỗi dòng: <code>câu tiếng Anh | nghĩa tiếng Việt</code>. Không cần phiên âm.
+                  và câu dài. Định dạng giống hệt bên Từ vựng, mỗi dòng: <code>câu tiếng Anh /phiên âm/ nghĩa tiếng Việt</code> —
+                  có sẵn danh sách dạng này thì dán thẳng vào. Chỉ có câu tiếng Anh thì gõ mỗi dòng 1 câu, hệ thống tự
+                  tra phiên âm và tự dịch nghĩa. Cũng chấp nhận định dạng cũ <code>câu | phiên âm | nghĩa tiếng Việt</code>.
                 </p>
-                <textarea class="admin-textarea" id="bulkSentenceTextarea" rows="8" placeholder="I have two brothers. | Tôi có hai anh em trai.
-What time is it? | Mấy giờ rồi?"></textarea>
+                <textarea class="admin-textarea" id="bulkSentenceTextarea" rows="8" placeholder="I have two brothers. | | Tôi có hai anh em trai.
+What time is it?"></textarea>
                 <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả + tạo âm thanh</button>
                 <div class="admin-status" id="bulkSentenceStatus"></div>
               </form>
