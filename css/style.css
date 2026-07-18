@@ -473,14 +473,16 @@ html, body {
 }
 
 .activity-section-divider {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #7A8B82;
-  padding: 10px 10px 4px;
-  margin-top: 4px;
-  border-top: 1px solid #E5E0D5;
+  letter-spacing: 0.6px;
+  color: #2D6A4F;
+  background: #DCEAE2;
+  padding: 6px 10px;
+  margin: 10px 6px 6px;
+  border-radius: 8px;
+  border-top: none;
 }
 
 /* ---------- Play screen mock ---------- */
