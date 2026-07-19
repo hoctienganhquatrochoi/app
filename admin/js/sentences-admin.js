@@ -83,14 +83,15 @@ async function handleDeleteAllSentences() {
   if (!window.confirm("Xóa toàn bộ " + currentSentenceRows.length + " mẫu câu trong Unit này? Không thể khôi phục.")) {
     return;
   }
-  await Promise.all(currentSentenceRows.map(function (row) {
-    return deleteAudioFileForUrl(row.audio_en_url);
-  }));
+  var rows = currentSentenceRows;
   var result = await supabaseClient.from("game_sentences").delete().eq("unit_id", unitId);
   if (result.error) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
+  await Promise.all(rows.map(function (row) {
+    return deleteAudioFileForUrl(row.audio_en_url);
+  }));
   loadSentenceTable();
   loadCurriculumData().then(loadActivityToggles);
 }
@@ -304,12 +305,12 @@ async function deleteSentence(row) {
   if (!window.confirm("Xóa câu này?")) {
     return;
   }
-  await deleteAudioFileForUrl(row.audio_en_url);
   var result = await supabaseClient.from("game_sentences").delete().eq("id", row.id);
   if (result.error) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
+  await deleteAudioFileForUrl(row.audio_en_url);
   loadSentenceTable();
   loadCurriculumData().then(loadActivityToggles);
 }

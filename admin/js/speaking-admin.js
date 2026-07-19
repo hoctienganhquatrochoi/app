@@ -131,14 +131,14 @@ async function deleteSpeakingTest(name, count) {
   }
   var unitId = document.getElementById("unitSelect").value;
   var rowsResult = await supabaseClient.from("game_speaking_questions").select("audio_question_url").eq("unit_id", unitId).eq("test_name", name);
-  await Promise.all((rowsResult.data || []).map(function (row) {
-    return deleteAudioFileForUrl(row.audio_question_url);
-  }));
   var result = await supabaseClient.from("game_speaking_questions").delete().eq("unit_id", unitId).eq("test_name", name);
   if (result.error) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
+  await Promise.all((rowsResult.data || []).map(function (row) {
+    return deleteAudioFileForUrl(row.audio_question_url);
+  }));
   await loadSpeakingTestList();
   loadSpeakingTable();
 }
@@ -348,12 +348,12 @@ async function deleteSpeaking(row) {
   if (!window.confirm("Xóa câu hỏi này?")) {
     return;
   }
-  await deleteAudioFileForUrl(row.audio_question_url);
   var result = await supabaseClient.from("game_speaking_questions").delete().eq("id", row.id);
   if (result.error) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
+  await deleteAudioFileForUrl(row.audio_question_url);
   loadSpeakingTestList();
   loadSpeakingTable();
 }

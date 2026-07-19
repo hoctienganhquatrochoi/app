@@ -846,17 +846,26 @@ function describeUnitContentCounts(counts) {
 }
 
 async function deleteUnitAndContent(unitId, counts) {
-  if (counts.vocab > 0 || counts.sentence > 0 || counts.speaking > 0) {
-    await deleteUnitAudioFolder(unitId);
-  }
   if (counts.vocab > 0) {
+    var vocabRows = await supabaseClient.from("game_vocab").select("audio_en_url, audio_vi_url").eq("unit_id", unitId);
     await supabaseClient.from("game_vocab").delete().eq("unit_id", unitId);
+    await Promise.all((vocabRows.data || []).map(function (row) {
+      return Promise.all([deleteAudioFileForUrl(row.audio_en_url), deleteAudioFileForUrl(row.audio_vi_url)]);
+    }));
   }
   if (counts.sentence > 0) {
+    var sentenceRows = await supabaseClient.from("game_sentences").select("audio_en_url").eq("unit_id", unitId);
     await supabaseClient.from("game_sentences").delete().eq("unit_id", unitId);
+    await Promise.all((sentenceRows.data || []).map(function (row) {
+      return deleteAudioFileForUrl(row.audio_en_url);
+    }));
   }
   if (counts.speaking > 0) {
+    var speakingRows = await supabaseClient.from("game_speaking_questions").select("audio_question_url").eq("unit_id", unitId);
     await supabaseClient.from("game_speaking_questions").delete().eq("unit_id", unitId);
+    await Promise.all((speakingRows.data || []).map(function (row) {
+      return deleteAudioFileForUrl(row.audio_question_url);
+    }));
   }
   if (counts.grammarMcq > 0) {
     await supabaseClient.from("game_grammar_mcq").delete().eq("unit_id", unitId);
