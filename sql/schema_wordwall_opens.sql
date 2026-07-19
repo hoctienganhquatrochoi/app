@@ -7,3 +7,7 @@ create table if not exists game_wordwall_opens (
 );
 
 alter table game_wordwall_opens disable row level security;
+
+-- Thêm cột lưu thời gian học sinh ở lại màn Wordwall (giây), để phân biệt
+-- "mở rồi thoát ngay" với "mở và làm bài thật".
+alter table game_wordwall_opens add column if not exists duration_seconds int;

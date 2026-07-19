@@ -348,6 +348,7 @@ var vocabActivityTypes = ["flashcard", "flip-card", "quiz", "missing-letter", "t
 
 async function renderMainContent() {
   var main = document.getElementById("mainContent");
+  stopActiveWordwallTracker();
   main.innerHTML = "";
 
   if (!state.selectedActivity) {

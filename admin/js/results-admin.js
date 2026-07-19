@@ -333,10 +333,11 @@ function renderGroupHistory(attempts, opens, showRanking) {
       dateIso: row.submitted_at
     };
   }).concat(opens.map(function (row) {
+    var durationLabel = row.duration_seconds != null ? " (" + formatSecondsVN(row.duration_seconds) + ")" : " (đã mở)";
     return {
       studentName: row.game_students ? row.game_students.full_name : "(đã xóa tài khoản)",
       unitLabel: unitLabelById[row.unit_id] || row.unit_id,
-      activityLabel: "Wordwall: " + row.wordwall_name + " (đã mở)",
+      activityLabel: "Wordwall: " + row.wordwall_name + durationLabel,
       scoreLabel: "—",
       score: null,
       total: null,

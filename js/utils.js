@@ -187,14 +187,19 @@ function buildResultMeta(activityLabel) {
   return wrap;
 }
 
+function formatSecondsVN(totalSeconds) {
+  var seconds = Math.max(0, Math.floor(totalSeconds || 0));
+  var minutes = Math.floor(seconds / 60);
+  var rem = seconds % 60;
+  if (minutes > 0) {
+    return minutes + " phút " + rem + " giây";
+  }
+  return rem + " giây";
+}
+
 function formatDurationVN(startedAt) {
   var totalSeconds = Math.max(0, Math.floor((new Date() - startedAt) / 1000));
-  var minutes = Math.floor(totalSeconds / 60);
-  var seconds = totalSeconds % 60;
-  if (minutes > 0) {
-    return minutes + " phút " + seconds + " giây";
-  }
-  return seconds + " giây";
+  return formatSecondsVN(totalSeconds);
 }
 
 function buildDurationLine(startedAt) {
