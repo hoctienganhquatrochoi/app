@@ -1,6 +1,10 @@
 var GRAMMAR_TYPING_CORRECT_DELAY_MS = 1200;
 var GRAMMAR_TYPING_WRONG_DELAY_MS = 2000;
 
+function normalizeGrammarTypingAnswer(str) {
+  return (str || "").trim().replace(/\s+/g, " ");
+}
+
 function renderGrammarTyping(container, breadcrumbText, items, unitId) {
   var pool = shuffleArray(items);
   var qIndex = 0;
@@ -98,7 +102,7 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId) {
       return;
     }
     var item = pool[qIndex];
-    var isCorrect = normalizeFreeTypingAnswer(value) === normalizeFreeTypingAnswer(item.answer);
+    var isCorrect = normalizeGrammarTypingAnswer(value) === normalizeGrammarTypingAnswer(item.answer);
     lastCorrect = isCorrect;
     lastAnswerValue = value;
     answered = true;

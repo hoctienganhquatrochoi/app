@@ -319,12 +319,25 @@ async function handleAddClass() {
 }
 
 async function handleDeleteClass(classId) {
-  if ((DATA.subjectsByClass[classId] || []).length > 0) {
-    window.alert("Lớp này còn Môn học, hãy xóa hết Môn học trong lớp trước.");
-    return;
-  }
   var cls = findClassById(classId);
-  if (!window.confirm("Xóa lớp \"" + (cls ? cls.name : classId) + "\"?")) {
+  var subjects = DATA.subjectsByClass[classId] || [];
+
+  if (subjects.length > 0) {
+    var totalUnits = subjects.reduce(function (sum, s) { return sum + s.units.length; }, 0);
+    if (!window.confirm("Lớp này còn " + subjects.length + " Môn học (" + totalUnits + " Unit). Xóa Lớp sẽ xóa luôn tất cả Môn học, Unit và nội dung bên trong, không thể khôi phục. Bạn có chắc chắn muốn xóa?")) {
+      return;
+    }
+    setCurriculumStatus("Đang xóa " + subjects.length + " Môn học...");
+    var i, j;
+    for (i = 0; i < subjects.length; i++) {
+      var subject = subjects[i];
+      for (j = 0; j < subject.units.length; j++) {
+        var counts = await getUnitContentCounts(subject.units[j].id);
+        await deleteUnitAndContent(subject.units[j].id, counts);
+      }
+      await supabaseClient.from("game_subjects").delete().eq("id", subject.id);
+    }
+  } else if (!window.confirm("Xóa lớp \"" + (cls ? cls.name : classId) + "\"?")) {
     return;
   }
 
