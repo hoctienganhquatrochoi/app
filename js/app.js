@@ -449,9 +449,9 @@ async function renderMainContent() {
     } else if (activity.type === "grammar-typing") {
       grammarItems = await loadGrammarTypingForUnit(unit.id, activity.setName);
     } else if (activity.type === "grammar-matching") {
-      grammarItems = await loadGrammarMatchingForUnit(unit.id);
+      grammarItems = await loadGrammarMatchingForUnit(unit.id, activity.setName);
     } else {
-      grammarItems = await loadGrammarDragfillForUnit(unit.id);
+      grammarItems = await loadGrammarDragfillForUnit(unit.id, activity.setName);
     }
 
     if (!state.selectedActivity || state.selectedActivity.unit.id !== unit.id || state.selectedActivity.activity.id !== activity.id) {

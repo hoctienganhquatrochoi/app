@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260719e">
-<link rel="stylesheet" href="css/admin.css?v=20260719e">
+<link rel="stylesheet" href="../css/style.css?v=20260719f">
+<link rel="stylesheet" href="css/admin.css?v=20260719f">
 </head>
 <body>
 
@@ -429,10 +429,30 @@ Tôi có hai anh em trai. | I have two brothers."></textarea>
             </div>
 
             <div id="grammarMatchingComposeSubPanel" style="display:none">
+              <p class="admin-hint">Mỗi Unit có thể có nhiều bài "Nối câu" riêng (VD "IOE3-04", "IOE3-09") để dễ quản lý — mỗi bài sẽ hiện thành 1 mục riêng trong menu học sinh, giống như Wordwall.</p>
+
+              <div class="admin-form" id="grammarMatchingSetManageBox">
+                <h3>Quản lý bài</h3>
+                <div id="grammarMatchingSetListWrap"></div>
+                <div class="admin-form-row">
+                  <div class="admin-field">
+                    <label>Tên bài mới</label>
+                    <input type="text" id="newGrammarMatchingSetName" placeholder="VD: IOE3-09">
+                  </div>
+                  <div class="admin-field admin-field-btn">
+                    <button type="button" class="admin-btn-primary" id="addGrammarMatchingSetBtn">+ Thêm bài</button>
+                  </div>
+                </div>
+                <div class="admin-status" id="grammarMatchingSetStatus"></div>
+              </div>
+
+              <label class="admin-label" for="grammarMatchingSetSelect">Đang soạn cặp cho bài</label>
+              <select class="admin-select" id="grammarMatchingSetSelect"></select>
+
               <form class="admin-form" id="bulkAddGrammarMatchingForm">
                 <h3>Nhập hàng loạt</h3>
                 <p class="admin-hint">
-                  Mỗi dòng 1 cặp, cách nhau bằng dấu <code>|</code>: <code>Vế trái | Vế phải</code>. Học sinh bấm 1 ô bên trái rồi 1 ô bên phải để nối — hệ thống tự xáo trộn vị trí cột phải.
+                  Mỗi dòng 1 cặp, cách nhau bằng dấu <code>|</code>: <code>Vế trái | Vế phải</code>. Học sinh bấm 1 ô bên trái rồi 1 ô bên phải để nối — hệ thống tự xáo trộn vị trí cột phải. Cặp sẽ được thêm vào bài đang chọn ở trên.
                 </p>
                 <textarea class="admin-textarea" id="bulkGrammarMatchingTextarea" rows="8" placeholder="This is | my friend Lan.
 And this is | my mother.
@@ -448,12 +468,32 @@ I'm | eight."></textarea>
             </div>
 
             <div id="grammarDragfillComposeSubPanel" style="display:none">
+              <p class="admin-hint">Mỗi Unit có thể có nhiều bài "Điền từ vào chỗ trống" riêng (VD "IOE3-04", "IOE3-09") để dễ quản lý — mỗi bài sẽ hiện thành 1 mục riêng trong menu học sinh, giống như Wordwall.</p>
+
+              <div class="admin-form" id="grammarDragfillSetManageBox">
+                <h3>Quản lý bài</h3>
+                <div id="grammarDragfillSetListWrap"></div>
+                <div class="admin-form-row">
+                  <div class="admin-field">
+                    <label>Tên bài mới</label>
+                    <input type="text" id="newGrammarDragfillSetName" placeholder="VD: IOE3-09">
+                  </div>
+                  <div class="admin-field admin-field-btn">
+                    <button type="button" class="admin-btn-primary" id="addGrammarDragfillSetBtn">+ Thêm bài</button>
+                  </div>
+                </div>
+                <div class="admin-status" id="grammarDragfillSetStatus"></div>
+              </div>
+
+              <label class="admin-label" for="grammarDragfillSetSelect">Đang soạn câu cho bài</label>
+              <select class="admin-select" id="grammarDragfillSetSelect"></select>
+
               <form class="admin-form" id="bulkAddGrammarDragfillForm">
                 <h3>Nhập hàng loạt</h3>
                 <p class="admin-hint">
                   Mỗi câu 4 dòng, cách các câu bằng 1 dòng trống: dòng 1 câu hỏi tiếng Anh (đánh dấu chỗ trống bằng dấu gạch dưới liên tiếp, VD <code>_____</code>),
                   dòng 2 nghĩa tiếng Việt, dòng 3 <code>Đáp án đúng: ...</code>, dòng 4 <code>Đáp án sai: ...</code> (nhiều đáp án sai cách nhau bằng dấu phẩy).
-                  Học sinh bấm chọn 1 ô trong các ô đáp án phía trên để điền vào chỗ trống, bấm Enter để kiểm tra và chuyển câu tiếp theo.
+                  Học sinh bấm chọn 1 ô trong các ô đáp án phía trên để điền vào chỗ trống, bấm Enter để kiểm tra và chuyển câu tiếp theo. Câu sẽ được thêm vào bài đang chọn ở trên.
                 </p>
                 <textarea class="admin-textarea" id="bulkGrammarDragfillTextarea" rows="10" placeholder="Where are the _____?
 Những cây đèn để bàn ở đâu?
@@ -654,22 +694,22 @@ Những cây đèn để bàn ở đâu?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260719e"></script>
-<script src="../js/supabase-config.js?v=20260719e"></script>
-<script src="js/admin-auth.js?v=20260719e"></script>
-<script src="../js/curriculum-data.js?v=20260719e"></script>
-<script src="js/content-admin.js?v=20260719e"></script>
-<script src="js/sentences-admin.js?v=20260719e"></script>
-<script src="js/grammar-admin.js?v=20260719e"></script>
-<script src="js/speaking-admin.js?v=20260719e"></script>
-<script src="js/wordwall-admin.js?v=20260719e"></script>
-<script src="js/wordwall-templates-admin.js?v=20260719e"></script>
-<script src="js/groups-admin.js?v=20260719e"></script>
-<script src="js/students-admin.js?v=20260719e"></script>
-<script src="js/assignments-admin.js?v=20260719e"></script>
-<script src="js/results-admin.js?v=20260719e"></script>
-<script src="js/activity-toggles-admin.js?v=20260719e"></script>
-<script src="js/curriculum-admin.js?v=20260719e"></script>
-<script src="js/admin-app.js?v=20260719e"></script>
+<script src="../js/data.js?v=20260719f"></script>
+<script src="../js/supabase-config.js?v=20260719f"></script>
+<script src="js/admin-auth.js?v=20260719f"></script>
+<script src="../js/curriculum-data.js?v=20260719f"></script>
+<script src="js/content-admin.js?v=20260719f"></script>
+<script src="js/sentences-admin.js?v=20260719f"></script>
+<script src="js/grammar-admin.js?v=20260719f"></script>
+<script src="js/speaking-admin.js?v=20260719f"></script>
+<script src="js/wordwall-admin.js?v=20260719f"></script>
+<script src="js/wordwall-templates-admin.js?v=20260719f"></script>
+<script src="js/groups-admin.js?v=20260719f"></script>
+<script src="js/students-admin.js?v=20260719f"></script>
+<script src="js/assignments-admin.js?v=20260719f"></script>
+<script src="js/results-admin.js?v=20260719f"></script>
+<script src="js/activity-toggles-admin.js?v=20260719f"></script>
+<script src="js/curriculum-admin.js?v=20260719f"></script>
+<script src="js/admin-app.js?v=20260719f"></script>
 </body>
 </html>

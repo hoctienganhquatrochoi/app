@@ -44,6 +44,9 @@ create table if not exists game_grammar_matching (
 alter table game_grammar_matching disable row level security;
 create index if not exists game_grammar_matching_unit_idx on game_grammar_matching(unit_id);
 
+alter table game_grammar_matching add column if not exists set_name text not null default 'Nối câu';
+create index if not exists game_grammar_matching_unit_set_idx on game_grammar_matching(unit_id, set_name);
+
 create table if not exists game_grammar_dragfill (
   id uuid primary key default gen_random_uuid(),
   unit_id text not null,
@@ -57,6 +60,9 @@ create table if not exists game_grammar_dragfill (
 
 alter table game_grammar_dragfill disable row level security;
 create index if not exists game_grammar_dragfill_unit_idx on game_grammar_dragfill(unit_id);
+
+alter table game_grammar_dragfill add column if not exists set_name text not null default 'Điền từ vào chỗ trống';
+create index if not exists game_grammar_dragfill_unit_set_idx on game_grammar_dragfill(unit_id, set_name);
 
 -- Nếu dòng disable RLS báo lỗi 42501, chạy lại riêng dòng đó trong 1 query mới
 -- (lỗi này hay gặp với bảng mới trong project này).

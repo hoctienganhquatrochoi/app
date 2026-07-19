@@ -2,230 +2,262 @@ function stripLeadingNumbering(text) {
   return (text || "").replace(/^\s*(câu|question)?\s*\d+\s*[\.\):]\s*/i, "").trim();
 }
 
+/* ---------- Shared "nhiều bài riêng theo tên" (named batch) manager for grammar tables ---------- */
+
+function createGrammarSetManager(table, elIds, countLabel) {
+  var state = { names: [], counts: {}, editingName: null };
+  var onSelectChange = function () {};
+
+  function setStatus(text) {
+    var el = document.getElementById(elIds.status);
+    if (el) {
+      el.textContent = text || "";
+    }
+  }
+
+  async function loadSetList() {
+    var unitId = document.getElementById("unitSelect").value;
+    var wrap = document.getElementById(elIds.listWrap);
+    wrap.textContent = "Đang tải...";
+
+    var result = await supabaseClient.from(table).select("set_name").eq("unit_id", unitId);
+    if (result.error) {
+      wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
+      return;
+    }
+
+    var counts = {};
+    var order = [];
+    result.data.forEach(function (row) {
+      if (!counts[row.set_name]) {
+        counts[row.set_name] = 0;
+        order.push(row.set_name);
+      }
+      counts[row.set_name]++;
+    });
+
+    state.names = order;
+    state.counts = counts;
+    renderList();
+    populateSelect();
+  }
+
+  function renderList() {
+    var wrap = document.getElementById(elIds.listWrap);
+    wrap.innerHTML = "";
+
+    if (!state.names.length) {
+      var empty = document.createElement("div");
+      empty.className = "admin-status";
+      empty.textContent = "Unit này chưa có bài nào, tạo bài mới bên dưới.";
+      wrap.appendChild(empty);
+      return;
+    }
+
+    var tableEl = document.createElement("table");
+    tableEl.className = "admin-table";
+    var tbody = document.createElement("tbody");
+
+    state.names.forEach(function (name) {
+      tbody.appendChild(state.editingName === name ? buildEditRow(name) : buildRow(name));
+    });
+
+    tableEl.appendChild(tbody);
+    wrap.appendChild(tableEl);
+  }
+
+  function buildRow(name) {
+    var tr = document.createElement("tr");
+
+    var nameTd = document.createElement("td");
+    nameTd.textContent = name;
+    tr.appendChild(nameTd);
+
+    var countTd = document.createElement("td");
+    countTd.textContent = state.counts[name] + " " + countLabel;
+    tr.appendChild(countTd);
+
+    var actionsTd = document.createElement("td");
+
+    var editBtn = document.createElement("button");
+    editBtn.className = "admin-btn-secondary";
+    editBtn.type = "button";
+    editBtn.textContent = "Sửa tên";
+    editBtn.addEventListener("click", function () {
+      state.editingName = name;
+      renderList();
+    });
+    actionsTd.appendChild(editBtn);
+
+    var delBtn = document.createElement("button");
+    delBtn.className = "admin-btn-danger";
+    delBtn.type = "button";
+    delBtn.textContent = "Xóa bài";
+    delBtn.addEventListener("click", function () {
+      deleteSet(name);
+    });
+    actionsTd.appendChild(delBtn);
+    tr.appendChild(actionsTd);
+
+    return tr;
+  }
+
+  function buildEditRow(name) {
+    var tr = document.createElement("tr");
+    tr.className = "editing-row";
+
+    var nameTd = makeInputTd(name);
+    tr.appendChild(nameTd);
+
+    var countTd = document.createElement("td");
+    countTd.textContent = state.counts[name] + " " + countLabel;
+    tr.appendChild(countTd);
+
+    var actionsTd = document.createElement("td");
+
+    var saveBtn = document.createElement("button");
+    saveBtn.className = "admin-btn-primary";
+    saveBtn.type = "button";
+    saveBtn.textContent = "Lưu";
+    saveBtn.addEventListener("click", function () {
+      var newName = nameTd.inputEl.value.trim();
+      if (!newName) {
+        window.alert("Tên bài không được để trống");
+        return;
+      }
+      renameSet(name, newName);
+    });
+    actionsTd.appendChild(saveBtn);
+
+    var cancelBtn = document.createElement("button");
+    cancelBtn.className = "admin-btn-danger";
+    cancelBtn.type = "button";
+    cancelBtn.textContent = "Hủy";
+    cancelBtn.addEventListener("click", function () {
+      state.editingName = null;
+      renderList();
+    });
+    actionsTd.appendChild(cancelBtn);
+    tr.appendChild(actionsTd);
+
+    return tr;
+  }
+
+  function populateSelect() {
+    var select = document.getElementById(elIds.select);
+    var previous = select.value;
+    select.innerHTML = "";
+
+    state.names.forEach(function (name) {
+      var opt = document.createElement("option");
+      opt.value = name;
+      opt.text = name;
+      select.appendChild(opt);
+    });
+
+    if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
+      select.value = previous;
+    }
+  }
+
+  function handleAddSet() {
+    var input = document.getElementById(elIds.newNameInput);
+    var name = input.value.trim();
+
+    if (!name) {
+      window.alert("Nhập tên bài");
+      return;
+    }
+
+    if (state.names.indexOf(name) !== -1) {
+      document.getElementById(elIds.select).value = name;
+      onSelectChange();
+      setStatus("Bài \"" + name + "\" đã có sẵn, đã chuyển sang bài này.");
+      input.value = "";
+      return;
+    }
+
+    state.names.push(name);
+    populateSelect();
+    document.getElementById(elIds.select).value = name;
+    onSelectChange();
+    input.value = "";
+    setStatus("Đã tạo bài \"" + name + "\" — nhập câu ở khung bên dưới để lưu.");
+  }
+
+  async function deleteSet(name) {
+    var count = state.counts[name];
+    if (!window.confirm("Xóa bài \"" + name + "\" cùng toàn bộ " + count + " " + countLabel + " trong bài này?")) {
+      return;
+    }
+    var unitId = document.getElementById("unitSelect").value;
+    var result = await supabaseClient.from(table).delete().eq("unit_id", unitId).eq("set_name", name);
+    if (result.error) {
+      window.alert("Lỗi xóa: " + result.error.message);
+      return;
+    }
+    await loadSetList();
+    onSelectChange();
+    loadCurriculumData().then(loadActivityToggles);
+  }
+
+  async function renameSet(oldName, newName) {
+    if (oldName === newName) {
+      state.editingName = null;
+      renderList();
+      return;
+    }
+    if (state.names.indexOf(newName) !== -1) {
+      window.alert("Đã có bài tên \"" + newName + "\" rồi, chọn tên khác.");
+      return;
+    }
+    var unitId = document.getElementById("unitSelect").value;
+    var result = await supabaseClient.from(table).update({ set_name: newName }).eq("unit_id", unitId).eq("set_name", oldName);
+    if (result.error) {
+      window.alert("Lỗi lưu: " + result.error.message);
+      return;
+    }
+    state.editingName = null;
+    await loadSetList();
+    document.getElementById(elIds.select).value = newName;
+    onSelectChange();
+    loadCurriculumData().then(loadActivityToggles);
+  }
+
+  return {
+    loadSetList: loadSetList,
+    handleAddSet: handleAddSet,
+    getSelectedName: function () {
+      return document.getElementById(elIds.select).value;
+    },
+    setOnSelectChange: function (fn) {
+      onSelectChange = fn;
+    }
+  };
+}
+
 /* ---------- Trắc nghiệm ngữ pháp (grammar MCQ, gạch chân đáp án, nhiều bài riêng theo tên) ---------- */
 
 function setBulkGrammarMcqStatus(text) {
   document.getElementById("bulkGrammarMcqStatus").textContent = text;
 }
 
-function setGrammarMcqSetStatus(text) {
-  document.getElementById("grammarMcqSetStatus").textContent = text || "";
-}
-
-var currentGrammarMcqSetNames = [];
-var currentGrammarMcqSetCounts = {};
-var editingGrammarMcqSetName = null;
-
-async function loadGrammarMcqSetList() {
-  var unitId = document.getElementById("unitSelect").value;
-  var wrap = document.getElementById("grammarMcqSetListWrap");
-  wrap.textContent = "Đang tải...";
-
-  var result = await supabaseClient
-    .from("game_grammar_mcq")
-    .select("set_name")
-    .eq("unit_id", unitId);
-
-  if (result.error) {
-    wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
-    return;
-  }
-
-  var counts = {};
-  var order = [];
-  result.data.forEach(function (row) {
-    if (!counts[row.set_name]) {
-      counts[row.set_name] = 0;
-      order.push(row.set_name);
-    }
-    counts[row.set_name]++;
-  });
-
-  currentGrammarMcqSetNames = order;
-  currentGrammarMcqSetCounts = counts;
-  renderGrammarMcqSetList(order, counts);
-  populateGrammarMcqSetSelect();
-}
-
-function renderGrammarMcqSetList(names, counts) {
-  var wrap = document.getElementById("grammarMcqSetListWrap");
-  wrap.innerHTML = "";
-
-  if (!names.length) {
-    var empty = document.createElement("div");
-    empty.className = "admin-status";
-    empty.textContent = "Unit này chưa có bài nào, tạo bài mới bên dưới.";
-    wrap.appendChild(empty);
-    return;
-  }
-
-  var table = document.createElement("table");
-  table.className = "admin-table";
-  var tbody = document.createElement("tbody");
-
-  names.forEach(function (name) {
-    tbody.appendChild(editingGrammarMcqSetName === name ? buildGrammarMcqSetEditRow(name, counts[name]) : buildGrammarMcqSetRow(name, counts[name]));
-  });
-
-  table.appendChild(tbody);
-  wrap.appendChild(table);
-}
-
-function buildGrammarMcqSetRow(name, count) {
-  var tr = document.createElement("tr");
-
-  var nameTd = document.createElement("td");
-  nameTd.textContent = name;
-  tr.appendChild(nameTd);
-
-  var countTd = document.createElement("td");
-  countTd.textContent = count + " câu";
-  tr.appendChild(countTd);
-
-  var actionsTd = document.createElement("td");
-
-  var editBtn = document.createElement("button");
-  editBtn.className = "admin-btn-secondary";
-  editBtn.type = "button";
-  editBtn.textContent = "Sửa tên";
-  editBtn.addEventListener("click", function () {
-    editingGrammarMcqSetName = name;
-    renderGrammarMcqSetList(currentGrammarMcqSetNames, currentGrammarMcqSetCounts);
-  });
-  actionsTd.appendChild(editBtn);
-
-  var delBtn = document.createElement("button");
-  delBtn.className = "admin-btn-danger";
-  delBtn.type = "button";
-  delBtn.textContent = "Xóa bài";
-  delBtn.addEventListener("click", function () {
-    deleteGrammarMcqSet(name, count);
-  });
-  actionsTd.appendChild(delBtn);
-  tr.appendChild(actionsTd);
-
-  return tr;
-}
-
-function buildGrammarMcqSetEditRow(name, count) {
-  var tr = document.createElement("tr");
-  tr.className = "editing-row";
-
-  var nameTd = makeInputTd(name);
-  tr.appendChild(nameTd);
-
-  var countTd = document.createElement("td");
-  countTd.textContent = count + " câu";
-  tr.appendChild(countTd);
-
-  var actionsTd = document.createElement("td");
-
-  var saveBtn = document.createElement("button");
-  saveBtn.className = "admin-btn-primary";
-  saveBtn.type = "button";
-  saveBtn.textContent = "Lưu";
-  saveBtn.addEventListener("click", function () {
-    var newName = nameTd.inputEl.value.trim();
-    if (!newName) {
-      window.alert("Tên bài không được để trống");
-      return;
-    }
-    renameGrammarMcqSet(name, newName);
-  });
-  actionsTd.appendChild(saveBtn);
-
-  var cancelBtn = document.createElement("button");
-  cancelBtn.className = "admin-btn-danger";
-  cancelBtn.type = "button";
-  cancelBtn.textContent = "Hủy";
-  cancelBtn.addEventListener("click", function () {
-    editingGrammarMcqSetName = null;
-    renderGrammarMcqSetList(currentGrammarMcqSetNames, currentGrammarMcqSetCounts);
-  });
-  actionsTd.appendChild(cancelBtn);
-  tr.appendChild(actionsTd);
-
-  return tr;
-}
-
-async function renameGrammarMcqSet(oldName, newName) {
-  if (oldName === newName) {
-    editingGrammarMcqSetName = null;
-    renderGrammarMcqSetList(currentGrammarMcqSetNames, currentGrammarMcqSetCounts);
-    return;
-  }
-  if (currentGrammarMcqSetNames.indexOf(newName) !== -1) {
-    window.alert("Đã có bài tên \"" + newName + "\" rồi, chọn tên khác.");
-    return;
-  }
-  var unitId = document.getElementById("unitSelect").value;
-  var result = await supabaseClient.from("game_grammar_mcq").update({ set_name: newName }).eq("unit_id", unitId).eq("set_name", oldName);
-  if (result.error) {
-    window.alert("Lỗi lưu: " + result.error.message);
-    return;
-  }
-  editingGrammarMcqSetName = null;
-  await loadGrammarMcqSetList();
-  document.getElementById("grammarMcqSetSelect").value = newName;
+var grammarMcqSetManager = createGrammarSetManager("game_grammar_mcq", {
+  listWrap: "grammarMcqSetListWrap",
+  select: "grammarMcqSetSelect",
+  newNameInput: "newGrammarMcqSetName",
+  status: "grammarMcqSetStatus"
+}, "câu");
+grammarMcqSetManager.setOnSelectChange(function () {
   loadGrammarMcqTable();
-  loadCurriculumData().then(loadActivityToggles);
-}
+});
 
-function populateGrammarMcqSetSelect() {
-  var select = document.getElementById("grammarMcqSetSelect");
-  var previous = select.value;
-  select.innerHTML = "";
-
-  currentGrammarMcqSetNames.forEach(function (name) {
-    var opt = document.createElement("option");
-    opt.value = name;
-    opt.text = name;
-    select.appendChild(opt);
-  });
-
-  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
-    select.value = previous;
-  }
+function loadGrammarMcqSetList() {
+  return grammarMcqSetManager.loadSetList();
 }
 
 function handleAddGrammarMcqSet() {
-  var input = document.getElementById("newGrammarMcqSetName");
-  var name = input.value.trim();
-
-  if (!name) {
-    window.alert("Nhập tên bài");
-    return;
-  }
-
-  if (currentGrammarMcqSetNames.indexOf(name) !== -1) {
-    document.getElementById("grammarMcqSetSelect").value = name;
-    loadGrammarMcqTable();
-    setGrammarMcqSetStatus("Bài \"" + name + "\" đã có sẵn, đã chuyển sang bài này.");
-    input.value = "";
-    return;
-  }
-
-  currentGrammarMcqSetNames.push(name);
-  populateGrammarMcqSetSelect();
-  document.getElementById("grammarMcqSetSelect").value = name;
-  loadGrammarMcqTable();
-  input.value = "";
-  setGrammarMcqSetStatus("Đã tạo bài \"" + name + "\" — nhập câu ở khung bên dưới để lưu.");
-}
-
-async function deleteGrammarMcqSet(name, count) {
-  if (!window.confirm("Xóa bài \"" + name + "\" cùng toàn bộ " + count + " câu trong bài này?")) {
-    return;
-  }
-  var unitId = document.getElementById("unitSelect").value;
-  var result = await supabaseClient.from("game_grammar_mcq").delete().eq("unit_id", unitId).eq("set_name", name);
-  if (result.error) {
-    window.alert("Lỗi xóa: " + result.error.message);
-    return;
-  }
-  await loadGrammarMcqSetList();
-  loadGrammarMcqTable();
-  loadCurriculumData().then(loadActivityToggles);
+  grammarMcqSetManager.handleAddSet();
 }
 
 var currentGrammarMcqRows = [];
@@ -514,224 +546,22 @@ function setBulkGrammarTypingStatus(text) {
   document.getElementById("bulkGrammarTypingStatus").textContent = text;
 }
 
-function setGrammarTypingSetStatus(text) {
-  document.getElementById("grammarTypingSetStatus").textContent = text || "";
-}
-
-var currentGrammarTypingSetNames = [];
-var currentGrammarTypingSetCounts = {};
-var editingGrammarTypingSetName = null;
-
-async function loadGrammarTypingSetList() {
-  var unitId = document.getElementById("unitSelect").value;
-  var wrap = document.getElementById("grammarTypingSetListWrap");
-  wrap.textContent = "Đang tải...";
-
-  var result = await supabaseClient
-    .from("game_grammar_typing")
-    .select("set_name")
-    .eq("unit_id", unitId);
-
-  if (result.error) {
-    wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
-    return;
-  }
-
-  var counts = {};
-  var order = [];
-  result.data.forEach(function (row) {
-    if (!counts[row.set_name]) {
-      counts[row.set_name] = 0;
-      order.push(row.set_name);
-    }
-    counts[row.set_name]++;
-  });
-
-  currentGrammarTypingSetNames = order;
-  currentGrammarTypingSetCounts = counts;
-  renderGrammarTypingSetList(order, counts);
-  populateGrammarTypingSetSelect();
-}
-
-function renderGrammarTypingSetList(names, counts) {
-  var wrap = document.getElementById("grammarTypingSetListWrap");
-  wrap.innerHTML = "";
-
-  if (!names.length) {
-    var empty = document.createElement("div");
-    empty.className = "admin-status";
-    empty.textContent = "Unit này chưa có bài nào, tạo bài mới bên dưới.";
-    wrap.appendChild(empty);
-    return;
-  }
-
-  var table = document.createElement("table");
-  table.className = "admin-table";
-  var tbody = document.createElement("tbody");
-
-  names.forEach(function (name) {
-    tbody.appendChild(editingGrammarTypingSetName === name ? buildGrammarTypingSetEditRow(name, counts[name]) : buildGrammarTypingSetRow(name, counts[name]));
-  });
-
-  table.appendChild(tbody);
-  wrap.appendChild(table);
-}
-
-function buildGrammarTypingSetRow(name, count) {
-  var tr = document.createElement("tr");
-
-  var nameTd = document.createElement("td");
-  nameTd.textContent = name;
-  tr.appendChild(nameTd);
-
-  var countTd = document.createElement("td");
-  countTd.textContent = count + " câu";
-  tr.appendChild(countTd);
-
-  var actionsTd = document.createElement("td");
-
-  var editBtn = document.createElement("button");
-  editBtn.className = "admin-btn-secondary";
-  editBtn.type = "button";
-  editBtn.textContent = "Sửa tên";
-  editBtn.addEventListener("click", function () {
-    editingGrammarTypingSetName = name;
-    renderGrammarTypingSetList(currentGrammarTypingSetNames, currentGrammarTypingSetCounts);
-  });
-  actionsTd.appendChild(editBtn);
-
-  var delBtn = document.createElement("button");
-  delBtn.className = "admin-btn-danger";
-  delBtn.type = "button";
-  delBtn.textContent = "Xóa bài";
-  delBtn.addEventListener("click", function () {
-    deleteGrammarTypingSet(name, count);
-  });
-  actionsTd.appendChild(delBtn);
-  tr.appendChild(actionsTd);
-
-  return tr;
-}
-
-function buildGrammarTypingSetEditRow(name, count) {
-  var tr = document.createElement("tr");
-  tr.className = "editing-row";
-
-  var nameTd = makeInputTd(name);
-  tr.appendChild(nameTd);
-
-  var countTd = document.createElement("td");
-  countTd.textContent = count + " câu";
-  tr.appendChild(countTd);
-
-  var actionsTd = document.createElement("td");
-
-  var saveBtn = document.createElement("button");
-  saveBtn.className = "admin-btn-primary";
-  saveBtn.type = "button";
-  saveBtn.textContent = "Lưu";
-  saveBtn.addEventListener("click", function () {
-    var newName = nameTd.inputEl.value.trim();
-    if (!newName) {
-      window.alert("Tên bài không được để trống");
-      return;
-    }
-    renameGrammarTypingSet(name, newName);
-  });
-  actionsTd.appendChild(saveBtn);
-
-  var cancelBtn = document.createElement("button");
-  cancelBtn.className = "admin-btn-danger";
-  cancelBtn.type = "button";
-  cancelBtn.textContent = "Hủy";
-  cancelBtn.addEventListener("click", function () {
-    editingGrammarTypingSetName = null;
-    renderGrammarTypingSetList(currentGrammarTypingSetNames, currentGrammarTypingSetCounts);
-  });
-  actionsTd.appendChild(cancelBtn);
-  tr.appendChild(actionsTd);
-
-  return tr;
-}
-
-async function renameGrammarTypingSet(oldName, newName) {
-  if (oldName === newName) {
-    editingGrammarTypingSetName = null;
-    renderGrammarTypingSetList(currentGrammarTypingSetNames, currentGrammarTypingSetCounts);
-    return;
-  }
-  if (currentGrammarTypingSetNames.indexOf(newName) !== -1) {
-    window.alert("Đã có bài tên \"" + newName + "\" rồi, chọn tên khác.");
-    return;
-  }
-  var unitId = document.getElementById("unitSelect").value;
-  var result = await supabaseClient.from("game_grammar_typing").update({ set_name: newName }).eq("unit_id", unitId).eq("set_name", oldName);
-  if (result.error) {
-    window.alert("Lỗi lưu: " + result.error.message);
-    return;
-  }
-  editingGrammarTypingSetName = null;
-  await loadGrammarTypingSetList();
-  document.getElementById("grammarTypingSetSelect").value = newName;
+var grammarTypingSetManager = createGrammarSetManager("game_grammar_typing", {
+  listWrap: "grammarTypingSetListWrap",
+  select: "grammarTypingSetSelect",
+  newNameInput: "newGrammarTypingSetName",
+  status: "grammarTypingSetStatus"
+}, "câu");
+grammarTypingSetManager.setOnSelectChange(function () {
   loadGrammarTypingTable();
-  loadCurriculumData().then(loadActivityToggles);
-}
+});
 
-function populateGrammarTypingSetSelect() {
-  var select = document.getElementById("grammarTypingSetSelect");
-  var previous = select.value;
-  select.innerHTML = "";
-
-  currentGrammarTypingSetNames.forEach(function (name) {
-    var opt = document.createElement("option");
-    opt.value = name;
-    opt.text = name;
-    select.appendChild(opt);
-  });
-
-  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
-    select.value = previous;
-  }
+function loadGrammarTypingSetList() {
+  return grammarTypingSetManager.loadSetList();
 }
 
 function handleAddGrammarTypingSet() {
-  var input = document.getElementById("newGrammarTypingSetName");
-  var name = input.value.trim();
-
-  if (!name) {
-    window.alert("Nhập tên bài");
-    return;
-  }
-
-  if (currentGrammarTypingSetNames.indexOf(name) !== -1) {
-    document.getElementById("grammarTypingSetSelect").value = name;
-    loadGrammarTypingTable();
-    setGrammarTypingSetStatus("Bài \"" + name + "\" đã có sẵn, đã chuyển sang bài này.");
-    input.value = "";
-    return;
-  }
-
-  currentGrammarTypingSetNames.push(name);
-  populateGrammarTypingSetSelect();
-  document.getElementById("grammarTypingSetSelect").value = name;
-  loadGrammarTypingTable();
-  input.value = "";
-  setGrammarTypingSetStatus("Đã tạo bài \"" + name + "\" — nhập câu ở khung bên dưới để lưu.");
-}
-
-async function deleteGrammarTypingSet(name, count) {
-  if (!window.confirm("Xóa bài \"" + name + "\" cùng toàn bộ " + count + " câu trong bài này?")) {
-    return;
-  }
-  var unitId = document.getElementById("unitSelect").value;
-  var result = await supabaseClient.from("game_grammar_typing").delete().eq("unit_id", unitId).eq("set_name", name);
-  if (result.error) {
-    window.alert("Lỗi xóa: " + result.error.message);
-    return;
-  }
-  await loadGrammarTypingSetList();
-  loadGrammarTypingTable();
-  loadCurriculumData().then(loadActivityToggles);
+  grammarTypingSetManager.handleAddSet();
 }
 
 var currentGrammarTypingRows = [];
@@ -989,10 +819,28 @@ async function handleBulkAddGrammarTyping(e) {
   loadCurriculumData().then(loadActivityToggles);
 }
 
-/* ---------- Nối câu (matching pairs, vế trái / vế phải) ---------- */
+/* ---------- Nối câu (matching pairs, vế trái / vế phải, nhiều bài riêng theo tên) ---------- */
 
 function setBulkGrammarMatchingStatus(text) {
   document.getElementById("bulkGrammarMatchingStatus").textContent = text;
+}
+
+var grammarMatchingSetManager = createGrammarSetManager("game_grammar_matching", {
+  listWrap: "grammarMatchingSetListWrap",
+  select: "grammarMatchingSetSelect",
+  newNameInput: "newGrammarMatchingSetName",
+  status: "grammarMatchingSetStatus"
+}, "cặp");
+grammarMatchingSetManager.setOnSelectChange(function () {
+  loadGrammarMatchingTable();
+});
+
+function loadGrammarMatchingSetList() {
+  return grammarMatchingSetManager.loadSetList();
+}
+
+function handleAddGrammarMatchingSet() {
+  grammarMatchingSetManager.handleAddSet();
 }
 
 var currentGrammarMatchingRows = [];
@@ -1000,8 +848,9 @@ var editingGrammarMatchingId = null;
 
 async function loadGrammarMatchingTable() {
   var unitId = document.getElementById("unitSelect").value;
+  var setName = document.getElementById("grammarMatchingSetSelect").value;
   var wrap = document.getElementById("grammarMatchingTableWrap");
-  if (!unitId) {
+  if (!setName) {
     wrap.innerHTML = "";
     return;
   }
@@ -1011,6 +860,7 @@ async function loadGrammarMatchingTable() {
     .from("game_grammar_matching")
     .select("*")
     .eq("unit_id", unitId)
+    .eq("set_name", setName)
     .order("sort_order", { ascending: true });
 
   if (result.error) {
@@ -1039,7 +889,7 @@ function renderGrammarMatchingTable(rows) {
   var deleteAllBtn = document.createElement("button");
   deleteAllBtn.className = "admin-btn-danger";
   deleteAllBtn.type = "button";
-  deleteAllBtn.textContent = "Xóa tất cả";
+  deleteAllBtn.textContent = "Xóa tất cả trong bài này";
   deleteAllBtn.addEventListener("click", handleDeleteAllGrammarMatching);
   toolbar.appendChild(deleteAllBtn);
   wrap.appendChild(toolbar);
@@ -1156,20 +1006,23 @@ async function deleteGrammarMatchingItem(id) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
+  await loadGrammarMatchingSetList();
   loadGrammarMatchingTable();
   loadCurriculumData().then(loadActivityToggles);
 }
 
 async function handleDeleteAllGrammarMatching() {
   var unitId = document.getElementById("unitSelect").value;
-  if (!window.confirm("Xóa toàn bộ " + currentGrammarMatchingRows.length + " cặp nối trong Unit này? Không thể khôi phục.")) {
+  var setName = document.getElementById("grammarMatchingSetSelect").value;
+  if (!window.confirm("Xóa toàn bộ " + currentGrammarMatchingRows.length + " cặp nối trong bài \"" + setName + "\"? Không thể khôi phục.")) {
     return;
   }
-  var result = await supabaseClient.from("game_grammar_matching").delete().eq("unit_id", unitId);
+  var result = await supabaseClient.from("game_grammar_matching").delete().eq("unit_id", unitId).eq("set_name", setName);
   if (result.error) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
+  await loadGrammarMatchingSetList();
   loadGrammarMatchingTable();
   loadCurriculumData().then(loadActivityToggles);
 }
@@ -1186,15 +1039,21 @@ async function handleBulkAddGrammarMatching(e) {
   e.preventDefault();
 
   var unitId = document.getElementById("unitSelect").value;
+  var setName = document.getElementById("grammarMatchingSetSelect").value;
   var text = document.getElementById("bulkGrammarMatchingTextarea").value;
   var lines = text.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+
+  if (!setName) {
+    window.alert("Chưa có bài nào — tạo bài ở mục \"Quản lý bài\" bên trên trước");
+    return;
+  }
 
   if (!lines.length) {
     window.alert("Chưa dán dữ liệu nào.");
     return;
   }
 
-  var existingCountResult = await supabaseClient.from("game_grammar_matching").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var existingCountResult = await supabaseClient.from("game_grammar_matching").select("id", { count: "exact", head: true }).eq("unit_id", unitId).eq("set_name", setName);
   var nextSortOrder = existingCountResult.count || 0;
 
   var successCount = 0;
@@ -1211,6 +1070,7 @@ async function handleBulkAddGrammarMatching(e) {
 
     var insertResult = await supabaseClient.from("game_grammar_matching").insert({
       unit_id: unitId,
+      set_name: setName,
       sort_order: nextSortOrder + successCount,
       left_text: item.left_text,
       right_text: item.right_text
@@ -1234,13 +1094,32 @@ async function handleBulkAddGrammarMatching(e) {
 
   document.getElementById("bulkGrammarMatchingTextarea").value = "";
   loadGrammarMatchingTable();
+  loadGrammarMatchingSetList();
   loadCurriculumData().then(loadActivityToggles);
 }
 
-/* ---------- Điền từ vào chỗ trống - kéo thả (drag-fill, EN + VI) ---------- */
+/* ---------- Điền từ vào chỗ trống - kéo thả (drag-fill, EN + VI, nhiều bài riêng theo tên) ---------- */
 
 function setBulkGrammarDragfillStatus(text) {
   document.getElementById("bulkGrammarDragfillStatus").textContent = text;
+}
+
+var grammarDragfillSetManager = createGrammarSetManager("game_grammar_dragfill", {
+  listWrap: "grammarDragfillSetListWrap",
+  select: "grammarDragfillSetSelect",
+  newNameInput: "newGrammarDragfillSetName",
+  status: "grammarDragfillSetStatus"
+}, "câu");
+grammarDragfillSetManager.setOnSelectChange(function () {
+  loadGrammarDragfillTable();
+});
+
+function loadGrammarDragfillSetList() {
+  return grammarDragfillSetManager.loadSetList();
+}
+
+function handleAddGrammarDragfillSet() {
+  grammarDragfillSetManager.handleAddSet();
 }
 
 var currentGrammarDragfillRows = [];
@@ -1248,8 +1127,9 @@ var editingGrammarDragfillId = null;
 
 async function loadGrammarDragfillTable() {
   var unitId = document.getElementById("unitSelect").value;
+  var setName = document.getElementById("grammarDragfillSetSelect").value;
   var wrap = document.getElementById("grammarDragfillTableWrap");
-  if (!unitId) {
+  if (!setName) {
     wrap.innerHTML = "";
     return;
   }
@@ -1259,6 +1139,7 @@ async function loadGrammarDragfillTable() {
     .from("game_grammar_dragfill")
     .select("*")
     .eq("unit_id", unitId)
+    .eq("set_name", setName)
     .order("sort_order", { ascending: true });
 
   if (result.error) {
@@ -1287,7 +1168,7 @@ function renderGrammarDragfillTable(rows) {
   var deleteAllBtn = document.createElement("button");
   deleteAllBtn.className = "admin-btn-danger";
   deleteAllBtn.type = "button";
-  deleteAllBtn.textContent = "Xóa tất cả";
+  deleteAllBtn.textContent = "Xóa tất cả trong bài này";
   deleteAllBtn.addEventListener("click", handleDeleteAllGrammarDragfill);
   toolbar.appendChild(deleteAllBtn);
   wrap.appendChild(toolbar);
@@ -1413,20 +1294,23 @@ async function deleteGrammarDragfillItem(id) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
+  await loadGrammarDragfillSetList();
   loadGrammarDragfillTable();
   loadCurriculumData().then(loadActivityToggles);
 }
 
 async function handleDeleteAllGrammarDragfill() {
   var unitId = document.getElementById("unitSelect").value;
-  if (!window.confirm("Xóa toàn bộ " + currentGrammarDragfillRows.length + " câu trong Unit này? Không thể khôi phục.")) {
+  var setName = document.getElementById("grammarDragfillSetSelect").value;
+  if (!window.confirm("Xóa toàn bộ " + currentGrammarDragfillRows.length + " câu trong bài \"" + setName + "\"? Không thể khôi phục.")) {
     return;
   }
-  var result = await supabaseClient.from("game_grammar_dragfill").delete().eq("unit_id", unitId);
+  var result = await supabaseClient.from("game_grammar_dragfill").delete().eq("unit_id", unitId).eq("set_name", setName);
   if (result.error) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
+  await loadGrammarDragfillSetList();
   loadGrammarDragfillTable();
   loadCurriculumData().then(loadActivityToggles);
 }
@@ -1466,15 +1350,21 @@ async function handleBulkAddGrammarDragfill(e) {
   e.preventDefault();
 
   var unitId = document.getElementById("unitSelect").value;
+  var setName = document.getElementById("grammarDragfillSetSelect").value;
   var text = document.getElementById("bulkGrammarDragfillTextarea").value;
   var items = parseGrammarDragfillBulkText(text);
+
+  if (!setName) {
+    window.alert("Chưa có bài nào — tạo bài ở mục \"Quản lý bài\" bên trên trước");
+    return;
+  }
 
   if (!items.length) {
     window.alert("Chưa dán dữ liệu nào.");
     return;
   }
 
-  var existingCountResult = await supabaseClient.from("game_grammar_dragfill").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var existingCountResult = await supabaseClient.from("game_grammar_dragfill").select("id", { count: "exact", head: true }).eq("unit_id", unitId).eq("set_name", setName);
   var nextSortOrder = existingCountResult.count || 0;
 
   var successCount = 0;
@@ -1491,6 +1381,7 @@ async function handleBulkAddGrammarDragfill(e) {
 
     var insertResult = await supabaseClient.from("game_grammar_dragfill").insert({
       unit_id: unitId,
+      set_name: setName,
       sort_order: nextSortOrder + successCount,
       question_en: item.question_en,
       question_vi: item.question_vi,
@@ -1516,5 +1407,6 @@ async function handleBulkAddGrammarDragfill(e) {
 
   document.getElementById("bulkGrammarDragfillTextarea").value = "";
   loadGrammarDragfillTable();
+  loadGrammarDragfillSetList();
   loadCurriculumData().then(loadActivityToggles);
 }

@@ -23,14 +23,6 @@ var SENTENCE_ACTIVITY_TEMPLATE = [
   { id: "s18", name: "Nghe - Đánh máy (câu)", type: "free-typing", mode: "audio", locked: false }
 ];
 
-var GRAMMAR_MATCHING_ACTIVITY_TEMPLATE = [
-  { id: "gx1", name: "Nối câu", type: "grammar-matching", locked: false }
-];
-
-var GRAMMAR_DRAGFILL_ACTIVITY_TEMPLATE = [
-  { id: "gd1", name: "Điền từ vào chỗ trống", type: "grammar-dragfill", locked: false }
-];
-
 function buildNamedSetActivities(rows, idPrefix, type) {
   var byUnit = {};
   var seen = {};
@@ -89,16 +81,10 @@ async function loadCurriculumData() {
   var grammarMcqByUnit = buildNamedSetActivities(grammarMcqUnitsResult.data || [], "gm_", "grammar-mcq");
   var grammarTypingUnitsResult = await supabaseClient.from("game_grammar_typing").select("unit_id, set_name").order("sort_order", { ascending: true });
   var grammarTypingByUnit = buildNamedSetActivities(grammarTypingUnitsResult.data || [], "gt_", "grammar-typing");
-  var grammarMatchingUnitsResult = await supabaseClient.from("game_grammar_matching").select("unit_id");
-  var unitsWithGrammarMatching = {};
-  (grammarMatchingUnitsResult.data || []).forEach(function (row) {
-    unitsWithGrammarMatching[row.unit_id] = true;
-  });
-  var grammarDragfillUnitsResult = await supabaseClient.from("game_grammar_dragfill").select("unit_id");
-  var unitsWithGrammarDragfill = {};
-  (grammarDragfillUnitsResult.data || []).forEach(function (row) {
-    unitsWithGrammarDragfill[row.unit_id] = true;
-  });
+  var grammarMatchingUnitsResult = await supabaseClient.from("game_grammar_matching").select("unit_id, set_name").order("sort_order", { ascending: true });
+  var grammarMatchingByUnit = buildNamedSetActivities(grammarMatchingUnitsResult.data || [], "gx_", "grammar-matching");
+  var grammarDragfillUnitsResult = await supabaseClient.from("game_grammar_dragfill").select("unit_id, set_name").order("sort_order", { ascending: true });
+  var grammarDragfillByUnit = buildNamedSetActivities(grammarDragfillUnitsResult.data || [], "gd_", "grammar-dragfill");
   var classes = (classesResult.data || []).map(function (row) {
     return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order };
   });
@@ -130,8 +116,8 @@ async function loadCurriculumData() {
       .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
       .concat(grammarMcqByUnit[urow.id] || [])
       .concat(grammarTypingByUnit[urow.id] || [])
-      .concat(unitsWithGrammarMatching[urow.id] ? GRAMMAR_MATCHING_ACTIVITY_TEMPLATE : [])
-      .concat(unitsWithGrammarDragfill[urow.id] ? GRAMMAR_DRAGFILL_ACTIVITY_TEMPLATE : [])
+      .concat(grammarMatchingByUnit[urow.id] || [])
+      .concat(grammarDragfillByUnit[urow.id] || [])
       .concat(wordwallByUnit[urow.id] || []);
     subj.units.push(unit);
   }

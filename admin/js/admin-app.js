@@ -33,8 +33,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   loadSentenceTable();
   loadGrammarMcqSetList().then(loadGrammarMcqTable);
   loadGrammarTypingSetList().then(loadGrammarTypingTable);
-  loadGrammarMatchingTable();
-  loadGrammarDragfillTable();
+  loadGrammarMatchingSetList().then(loadGrammarMatchingTable);
+  loadGrammarDragfillSetList().then(loadGrammarDragfillTable);
   loadSpeakingTestList().then(loadSpeakingTable);
   loadWordwallList();
   loadWordwallTemplates();
@@ -52,8 +52,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("unitSelect").addEventListener("change", function () {
     loadGrammarTypingSetList().then(loadGrammarTypingTable);
   });
-  document.getElementById("unitSelect").addEventListener("change", loadGrammarMatchingTable);
-  document.getElementById("unitSelect").addEventListener("change", loadGrammarDragfillTable);
+  document.getElementById("unitSelect").addEventListener("change", function () {
+    loadGrammarMatchingSetList().then(loadGrammarMatchingTable);
+  });
+  document.getElementById("unitSelect").addEventListener("change", function () {
+    loadGrammarDragfillSetList().then(loadGrammarDragfillTable);
+  });
   document.getElementById("unitSelect").addEventListener("change", function () {
     loadSpeakingTestList().then(loadSpeakingTable);
   });
@@ -74,7 +78,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("addGrammarTypingSetBtn").addEventListener("click", handleAddGrammarTypingSet);
   document.getElementById("grammarTypingSetSelect").addEventListener("change", loadGrammarTypingTable);
   document.getElementById("bulkAddGrammarMatchingForm").addEventListener("submit", handleBulkAddGrammarMatching);
+  document.getElementById("addGrammarMatchingSetBtn").addEventListener("click", handleAddGrammarMatchingSet);
+  document.getElementById("grammarMatchingSetSelect").addEventListener("change", loadGrammarMatchingTable);
   document.getElementById("bulkAddGrammarDragfillForm").addEventListener("submit", handleBulkAddGrammarDragfill);
+  document.getElementById("addGrammarDragfillSetBtn").addEventListener("click", handleAddGrammarDragfillSet);
+  document.getElementById("grammarDragfillSetSelect").addEventListener("change", loadGrammarDragfillTable);
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);
   document.getElementById("addStudentForm").addEventListener("submit", handleAddStudent);
   document.getElementById("addTeachingGroupBtn").addEventListener("click", handleAddTeachingGroup);
