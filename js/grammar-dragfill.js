@@ -29,7 +29,7 @@ function buildGrammarDragfillQuestions(items) {
 }
 
 function renderGrammarDragfill(container, breadcrumbText, items, unitId) {
-  var questions, qIndex, score, filledOption, answered, lastCorrect, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap;
+  var questions, qIndex, score, filledOption, answered, lastCorrect, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
 
   function resetState() {
     questions = buildGrammarDragfillQuestions(items);
@@ -54,6 +54,7 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId) {
     }
     if (answered) {
       if (lastCorrect) {
+        clearTimeout(advanceTimeoutId);
         goNext();
       }
     } else if (filledOption) {
@@ -132,6 +133,28 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId) {
       wrap.appendChild(viEl);
     }
 
+    if (!answered) {
+      var checkBtn = document.createElement("button");
+      checkBtn.className = "quiz-continue-btn";
+      checkBtn.type = "button";
+      checkBtn.textContent = "Kiểm tra";
+      checkBtn.disabled = !filledOption;
+      checkBtn.addEventListener("click", function () {
+        submitAnswer();
+      });
+      wrap.appendChild(checkBtn);
+    } else if (lastCorrect) {
+      var nextBtn = document.createElement("button");
+      nextBtn.className = "quiz-continue-btn";
+      nextBtn.type = "button";
+      nextBtn.textContent = "Câu tiếp theo →";
+      nextBtn.addEventListener("click", function () {
+        clearTimeout(advanceTimeoutId);
+        goNext();
+      });
+      wrap.appendChild(nextBtn);
+    }
+
     wrap.appendChild(buildProgressFooter(qIndex + 1, questions.length));
     container.appendChild(wrap);
     currentWrap = wrap;
@@ -177,9 +200,9 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId) {
     draw();
 
     if (lastCorrect) {
-      setTimeout(goNext, GRAMMAR_DRAGFILL_CORRECT_DELAY_MS);
+      advanceTimeoutId = setTimeout(goNext, GRAMMAR_DRAGFILL_CORRECT_DELAY_MS);
     } else {
-      setTimeout(retry, GRAMMAR_DRAGFILL_CORRECT_DELAY_MS);
+      advanceTimeoutId = setTimeout(retry, GRAMMAR_DRAGFILL_CORRECT_DELAY_MS);
     }
   }
 
