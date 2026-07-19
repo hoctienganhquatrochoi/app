@@ -14,6 +14,9 @@ create table if not exists game_grammar_mcq (
 alter table game_grammar_mcq disable row level security;
 create index if not exists game_grammar_mcq_unit_idx on game_grammar_mcq(unit_id);
 
+alter table game_grammar_mcq add column if not exists set_name text not null default 'Trắc nghiệm ngữ pháp';
+create index if not exists game_grammar_mcq_unit_set_idx on game_grammar_mcq(unit_id, set_name);
+
 create table if not exists game_grammar_typing (
   id uuid primary key default gen_random_uuid(),
   unit_id text not null,

@@ -2,10 +2,230 @@ function stripLeadingNumbering(text) {
   return (text || "").replace(/^\s*(câu|question)?\s*\d+\s*[\.\):]\s*/i, "").trim();
 }
 
-/* ---------- Trắc nghiệm ngữ pháp (grammar MCQ, gạch chân đáp án) ---------- */
+/* ---------- Trắc nghiệm ngữ pháp (grammar MCQ, gạch chân đáp án, nhiều bài riêng theo tên) ---------- */
 
 function setBulkGrammarMcqStatus(text) {
   document.getElementById("bulkGrammarMcqStatus").textContent = text;
+}
+
+function setGrammarMcqSetStatus(text) {
+  document.getElementById("grammarMcqSetStatus").textContent = text || "";
+}
+
+var currentGrammarMcqSetNames = [];
+var currentGrammarMcqSetCounts = {};
+var editingGrammarMcqSetName = null;
+
+async function loadGrammarMcqSetList() {
+  var unitId = document.getElementById("unitSelect").value;
+  var wrap = document.getElementById("grammarMcqSetListWrap");
+  wrap.textContent = "Đang tải...";
+
+  var result = await supabaseClient
+    .from("game_grammar_mcq")
+    .select("set_name")
+    .eq("unit_id", unitId);
+
+  if (result.error) {
+    wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
+    return;
+  }
+
+  var counts = {};
+  var order = [];
+  result.data.forEach(function (row) {
+    if (!counts[row.set_name]) {
+      counts[row.set_name] = 0;
+      order.push(row.set_name);
+    }
+    counts[row.set_name]++;
+  });
+
+  currentGrammarMcqSetNames = order;
+  currentGrammarMcqSetCounts = counts;
+  renderGrammarMcqSetList(order, counts);
+  populateGrammarMcqSetSelect();
+}
+
+function renderGrammarMcqSetList(names, counts) {
+  var wrap = document.getElementById("grammarMcqSetListWrap");
+  wrap.innerHTML = "";
+
+  if (!names.length) {
+    var empty = document.createElement("div");
+    empty.className = "admin-status";
+    empty.textContent = "Unit này chưa có bài nào, tạo bài mới bên dưới.";
+    wrap.appendChild(empty);
+    return;
+  }
+
+  var table = document.createElement("table");
+  table.className = "admin-table";
+  var tbody = document.createElement("tbody");
+
+  names.forEach(function (name) {
+    tbody.appendChild(editingGrammarMcqSetName === name ? buildGrammarMcqSetEditRow(name, counts[name]) : buildGrammarMcqSetRow(name, counts[name]));
+  });
+
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+}
+
+function buildGrammarMcqSetRow(name, count) {
+  var tr = document.createElement("tr");
+
+  var nameTd = document.createElement("td");
+  nameTd.textContent = name;
+  tr.appendChild(nameTd);
+
+  var countTd = document.createElement("td");
+  countTd.textContent = count + " câu";
+  tr.appendChild(countTd);
+
+  var actionsTd = document.createElement("td");
+
+  var editBtn = document.createElement("button");
+  editBtn.className = "admin-btn-secondary";
+  editBtn.type = "button";
+  editBtn.textContent = "Sửa tên";
+  editBtn.addEventListener("click", function () {
+    editingGrammarMcqSetName = name;
+    renderGrammarMcqSetList(currentGrammarMcqSetNames, currentGrammarMcqSetCounts);
+  });
+  actionsTd.appendChild(editBtn);
+
+  var delBtn = document.createElement("button");
+  delBtn.className = "admin-btn-danger";
+  delBtn.type = "button";
+  delBtn.textContent = "Xóa bài";
+  delBtn.addEventListener("click", function () {
+    deleteGrammarMcqSet(name, count);
+  });
+  actionsTd.appendChild(delBtn);
+  tr.appendChild(actionsTd);
+
+  return tr;
+}
+
+function buildGrammarMcqSetEditRow(name, count) {
+  var tr = document.createElement("tr");
+  tr.className = "editing-row";
+
+  var nameTd = makeInputTd(name);
+  tr.appendChild(nameTd);
+
+  var countTd = document.createElement("td");
+  countTd.textContent = count + " câu";
+  tr.appendChild(countTd);
+
+  var actionsTd = document.createElement("td");
+
+  var saveBtn = document.createElement("button");
+  saveBtn.className = "admin-btn-primary";
+  saveBtn.type = "button";
+  saveBtn.textContent = "Lưu";
+  saveBtn.addEventListener("click", function () {
+    var newName = nameTd.inputEl.value.trim();
+    if (!newName) {
+      window.alert("Tên bài không được để trống");
+      return;
+    }
+    renameGrammarMcqSet(name, newName);
+  });
+  actionsTd.appendChild(saveBtn);
+
+  var cancelBtn = document.createElement("button");
+  cancelBtn.className = "admin-btn-danger";
+  cancelBtn.type = "button";
+  cancelBtn.textContent = "Hủy";
+  cancelBtn.addEventListener("click", function () {
+    editingGrammarMcqSetName = null;
+    renderGrammarMcqSetList(currentGrammarMcqSetNames, currentGrammarMcqSetCounts);
+  });
+  actionsTd.appendChild(cancelBtn);
+  tr.appendChild(actionsTd);
+
+  return tr;
+}
+
+async function renameGrammarMcqSet(oldName, newName) {
+  if (oldName === newName) {
+    editingGrammarMcqSetName = null;
+    renderGrammarMcqSetList(currentGrammarMcqSetNames, currentGrammarMcqSetCounts);
+    return;
+  }
+  if (currentGrammarMcqSetNames.indexOf(newName) !== -1) {
+    window.alert("Đã có bài tên \"" + newName + "\" rồi, chọn tên khác.");
+    return;
+  }
+  var unitId = document.getElementById("unitSelect").value;
+  var result = await supabaseClient.from("game_grammar_mcq").update({ set_name: newName }).eq("unit_id", unitId).eq("set_name", oldName);
+  if (result.error) {
+    window.alert("Lỗi lưu: " + result.error.message);
+    return;
+  }
+  editingGrammarMcqSetName = null;
+  await loadGrammarMcqSetList();
+  document.getElementById("grammarMcqSetSelect").value = newName;
+  loadGrammarMcqTable();
+  loadCurriculumData().then(loadActivityToggles);
+}
+
+function populateGrammarMcqSetSelect() {
+  var select = document.getElementById("grammarMcqSetSelect");
+  var previous = select.value;
+  select.innerHTML = "";
+
+  currentGrammarMcqSetNames.forEach(function (name) {
+    var opt = document.createElement("option");
+    opt.value = name;
+    opt.text = name;
+    select.appendChild(opt);
+  });
+
+  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
+    select.value = previous;
+  }
+}
+
+function handleAddGrammarMcqSet() {
+  var input = document.getElementById("newGrammarMcqSetName");
+  var name = input.value.trim();
+
+  if (!name) {
+    window.alert("Nhập tên bài");
+    return;
+  }
+
+  if (currentGrammarMcqSetNames.indexOf(name) !== -1) {
+    document.getElementById("grammarMcqSetSelect").value = name;
+    loadGrammarMcqTable();
+    setGrammarMcqSetStatus("Bài \"" + name + "\" đã có sẵn, đã chuyển sang bài này.");
+    input.value = "";
+    return;
+  }
+
+  currentGrammarMcqSetNames.push(name);
+  populateGrammarMcqSetSelect();
+  document.getElementById("grammarMcqSetSelect").value = name;
+  loadGrammarMcqTable();
+  input.value = "";
+  setGrammarMcqSetStatus("Đã tạo bài \"" + name + "\" — nhập câu ở khung bên dưới để lưu.");
+}
+
+async function deleteGrammarMcqSet(name, count) {
+  if (!window.confirm("Xóa bài \"" + name + "\" cùng toàn bộ " + count + " câu trong bài này?")) {
+    return;
+  }
+  var unitId = document.getElementById("unitSelect").value;
+  var result = await supabaseClient.from("game_grammar_mcq").delete().eq("unit_id", unitId).eq("set_name", name);
+  if (result.error) {
+    window.alert("Lỗi xóa: " + result.error.message);
+    return;
+  }
+  await loadGrammarMcqSetList();
+  loadGrammarMcqTable();
+  loadCurriculumData().then(loadActivityToggles);
 }
 
 var currentGrammarMcqRows = [];
@@ -13,8 +233,9 @@ var editingGrammarMcqId = null;
 
 async function loadGrammarMcqTable() {
   var unitId = document.getElementById("unitSelect").value;
+  var setName = document.getElementById("grammarMcqSetSelect").value;
   var wrap = document.getElementById("grammarMcqTableWrap");
-  if (!unitId) {
+  if (!setName) {
     wrap.innerHTML = "";
     return;
   }
@@ -24,6 +245,7 @@ async function loadGrammarMcqTable() {
     .from("game_grammar_mcq")
     .select("*")
     .eq("unit_id", unitId)
+    .eq("set_name", setName)
     .order("sort_order", { ascending: true });
 
   if (result.error) {
@@ -52,7 +274,7 @@ function renderGrammarMcqTable(rows) {
   var deleteAllBtn = document.createElement("button");
   deleteAllBtn.className = "admin-btn-danger";
   deleteAllBtn.type = "button";
-  deleteAllBtn.textContent = "Xóa tất cả trắc nghiệm";
+  deleteAllBtn.textContent = "Xóa tất cả trắc nghiệm trong bài này";
   deleteAllBtn.addEventListener("click", handleDeleteAllGrammarMcq);
   toolbar.appendChild(deleteAllBtn);
   wrap.appendChild(toolbar);
@@ -173,20 +395,23 @@ async function deleteGrammarMcqItem(id) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
+  await loadGrammarMcqSetList();
   loadGrammarMcqTable();
   loadCurriculumData().then(loadActivityToggles);
 }
 
 async function handleDeleteAllGrammarMcq() {
   var unitId = document.getElementById("unitSelect").value;
-  if (!window.confirm("Xóa toàn bộ " + currentGrammarMcqRows.length + " câu trắc nghiệm trong Unit này? Không thể khôi phục.")) {
+  var setName = document.getElementById("grammarMcqSetSelect").value;
+  if (!window.confirm("Xóa toàn bộ " + currentGrammarMcqRows.length + " câu trắc nghiệm trong bài \"" + setName + "\"? Không thể khôi phục.")) {
     return;
   }
-  var result = await supabaseClient.from("game_grammar_mcq").delete().eq("unit_id", unitId);
+  var result = await supabaseClient.from("game_grammar_mcq").delete().eq("unit_id", unitId).eq("set_name", setName);
   if (result.error) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
+  await loadGrammarMcqSetList();
   loadGrammarMcqTable();
   loadCurriculumData().then(loadActivityToggles);
 }
@@ -223,15 +448,21 @@ async function handleBulkAddGrammarMcq(e) {
   e.preventDefault();
 
   var unitId = document.getElementById("unitSelect").value;
+  var setName = document.getElementById("grammarMcqSetSelect").value;
   var text = document.getElementById("bulkGrammarMcqTextarea").value;
   var items = parseGrammarMcqBulkText(text);
+
+  if (!setName) {
+    window.alert("Chưa có bài nào — tạo bài ở mục \"Quản lý bài\" bên trên trước");
+    return;
+  }
 
   if (!items.length) {
     window.alert("Chưa dán dữ liệu nào.");
     return;
   }
 
-  var existingCountResult = await supabaseClient.from("game_grammar_mcq").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var existingCountResult = await supabaseClient.from("game_grammar_mcq").select("id", { count: "exact", head: true }).eq("unit_id", unitId).eq("set_name", setName);
   var nextSortOrder = existingCountResult.count || 0;
 
   var successCount = 0;
@@ -248,6 +479,7 @@ async function handleBulkAddGrammarMcq(e) {
 
     var insertResult = await supabaseClient.from("game_grammar_mcq").insert({
       unit_id: unitId,
+      set_name: setName,
       sort_order: nextSortOrder + successCount,
       question: item.question,
       correct_answer: item.correct_answer,
@@ -272,6 +504,7 @@ async function handleBulkAddGrammarMcq(e) {
 
   document.getElementById("bulkGrammarMcqTextarea").value = "";
   loadGrammarMcqTable();
+  loadGrammarMcqSetList();
   loadCurriculumData().then(loadActivityToggles);
 }
 

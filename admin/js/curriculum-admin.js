@@ -768,7 +768,7 @@ function switchComposeSubTab(target) {
   if (target === "sentence") {
     loadSentenceTable();
   } else if (target === "grammarMcq") {
-    loadGrammarMcqTable();
+    loadGrammarMcqSetList().then(loadGrammarMcqTable);
   } else if (target === "grammarTyping") {
     loadGrammarTypingSetList().then(loadGrammarTypingTable);
   } else if (target === "grammarMatching") {

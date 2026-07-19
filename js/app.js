@@ -453,7 +453,7 @@ async function renderMainContent() {
 
     var grammarItems;
     if (activity.type === "grammar-mcq") {
-      grammarItems = await loadGrammarMcqForUnit(unit.id);
+      grammarItems = await loadGrammarMcqForUnit(unit.id, activity.setName);
     } else if (activity.type === "grammar-typing") {
       grammarItems = await loadGrammarTypingForUnit(unit.id, activity.setName);
     } else if (activity.type === "grammar-matching") {

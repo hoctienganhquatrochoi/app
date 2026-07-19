@@ -23,10 +23,6 @@ var SENTENCE_ACTIVITY_TEMPLATE = [
   { id: "s18", name: "Nghe - Đánh máy (câu)", type: "free-typing", mode: "audio", locked: false }
 ];
 
-var GRAMMAR_MCQ_ACTIVITY_TEMPLATE = [
-  { id: "gm1", name: "Trắc nghiệm ngữ pháp", type: "grammar-mcq", locked: false }
-];
-
 var GRAMMAR_MATCHING_ACTIVITY_TEMPLATE = [
   { id: "gx1", name: "Nối câu", type: "grammar-matching", locked: false }
 ];
@@ -35,7 +31,7 @@ var GRAMMAR_DRAGFILL_ACTIVITY_TEMPLATE = [
   { id: "gd1", name: "Điền từ vào chỗ trống", type: "grammar-dragfill", locked: false }
 ];
 
-function buildGrammarTypingActivities(rows) {
+function buildNamedSetActivities(rows, idPrefix, type) {
   var byUnit = {};
   var seen = {};
   rows.forEach(function (row) {
@@ -48,9 +44,9 @@ function buildGrammarTypingActivities(rows) {
       byUnit[row.unit_id] = [];
     }
     byUnit[row.unit_id].push({
-      id: "gt_" + row.set_name,
+      id: idPrefix + row.set_name,
       name: row.set_name,
-      type: "grammar-typing",
+      type: type,
       setName: row.set_name,
       locked: false
     });
@@ -89,13 +85,10 @@ async function loadCurriculumData() {
   (sentenceUnitsResult.data || []).forEach(function (row) {
     unitsWithSentences[row.unit_id] = true;
   });
-  var grammarMcqUnitsResult = await supabaseClient.from("game_grammar_mcq").select("unit_id");
-  var unitsWithGrammarMcq = {};
-  (grammarMcqUnitsResult.data || []).forEach(function (row) {
-    unitsWithGrammarMcq[row.unit_id] = true;
-  });
+  var grammarMcqUnitsResult = await supabaseClient.from("game_grammar_mcq").select("unit_id, set_name").order("sort_order", { ascending: true });
+  var grammarMcqByUnit = buildNamedSetActivities(grammarMcqUnitsResult.data || [], "gm_", "grammar-mcq");
   var grammarTypingUnitsResult = await supabaseClient.from("game_grammar_typing").select("unit_id, set_name").order("sort_order", { ascending: true });
-  var grammarTypingByUnit = buildGrammarTypingActivities(grammarTypingUnitsResult.data || []);
+  var grammarTypingByUnit = buildNamedSetActivities(grammarTypingUnitsResult.data || [], "gt_", "grammar-typing");
   var grammarMatchingUnitsResult = await supabaseClient.from("game_grammar_matching").select("unit_id");
   var unitsWithGrammarMatching = {};
   (grammarMatchingUnitsResult.data || []).forEach(function (row) {
@@ -135,7 +128,7 @@ async function loadCurriculumData() {
     var unit = { id: urow.id, subject_id: urow.subject_id, class_id: subj.class_id, name: urow.name, content_type: urow.content_type, is_demo: !!urow.is_demo, sort_order: urow.sort_order, progress: "" };
     unit.activities = VOCAB_ACTIVITY_TEMPLATE
       .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
-      .concat(unitsWithGrammarMcq[urow.id] ? GRAMMAR_MCQ_ACTIVITY_TEMPLATE : [])
+      .concat(grammarMcqByUnit[urow.id] || [])
       .concat(grammarTypingByUnit[urow.id] || [])
       .concat(unitsWithGrammarMatching[urow.id] ? GRAMMAR_MATCHING_ACTIVITY_TEMPLATE : [])
       .concat(unitsWithGrammarDragfill[urow.id] ? GRAMMAR_DRAGFILL_ACTIVITY_TEMPLATE : [])

@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260719c">
-<link rel="stylesheet" href="css/admin.css?v=20260719c">
+<link rel="stylesheet" href="../css/style.css?v=20260719d">
+<link rel="stylesheet" href="css/admin.css?v=20260719d">
 </head>
 <body>
 
@@ -350,13 +350,33 @@ What's this? | It's a pen."></textarea>
             </div>
 
             <div id="grammarMcqComposeSubPanel" style="display:none">
+              <p class="admin-hint">Mỗi Unit có thể có nhiều bài "Trắc nghiệm ngữ pháp" riêng (VD "IOE3-04", "IOE3-09") để dễ quản lý — mỗi bài sẽ hiện thành 1 mục riêng trong menu học sinh, giống như Wordwall.</p>
+
+              <div class="admin-form" id="grammarMcqSetManageBox">
+                <h3>Quản lý bài</h3>
+                <div id="grammarMcqSetListWrap"></div>
+                <div class="admin-form-row">
+                  <div class="admin-field">
+                    <label>Tên bài mới</label>
+                    <input type="text" id="newGrammarMcqSetName" placeholder="VD: IOE3-09">
+                  </div>
+                  <div class="admin-field admin-field-btn">
+                    <button type="button" class="admin-btn-primary" id="addGrammarMcqSetBtn">+ Thêm bài</button>
+                  </div>
+                </div>
+                <div class="admin-status" id="grammarMcqSetStatus"></div>
+              </div>
+
+              <label class="admin-label" for="grammarMcqSetSelect">Đang soạn câu cho bài</label>
+              <select class="admin-select" id="grammarMcqSetSelect"></select>
+
               <form class="admin-form" id="bulkAddGrammarMcqForm">
                 <h3>Nhập hàng loạt</h3>
                 <p class="admin-hint">
                   Mỗi câu 3 dòng, cách các câu bằng 1 dòng trống: dòng 1 là câu hỏi (có thể để trống nếu chỉ cần chọn đáp án),
                   dòng 2 <code>Đáp án đúng: ...</code>, dòng 3 <code>Đáp án sai: ...</code> (nhiều đáp án sai cách nhau bằng dấu phẩy).
                   Hệ thống tự xáo trộn vị trí đáp án và thứ tự câu hỏi cho học sinh. Để gạch chân 1 phần chữ, đặt dấu gạch dưới <code>_</code>
-                  ở hai đầu phần đó — VD <code>gr_ea_t</code> sẽ hiện "great" với "ea" được gạch chân.
+                  ở hai đầu phần đó — VD <code>gr_ea_t</code> sẽ hiện "great" với "ea" được gạch chân. Câu sẽ được thêm vào bài đang chọn ở trên.
                 </p>
                 <textarea class="admin-textarea" id="bulkGrammarMcqTextarea" rows="10" placeholder="Tom and Lucy are my _________.
 Đáp án đúng: friends
@@ -634,22 +654,22 @@ Những cây đèn để bàn ở đâu?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260719c"></script>
-<script src="../js/supabase-config.js?v=20260719c"></script>
-<script src="js/admin-auth.js?v=20260719c"></script>
-<script src="../js/curriculum-data.js?v=20260719c"></script>
-<script src="js/content-admin.js?v=20260719c"></script>
-<script src="js/sentences-admin.js?v=20260719c"></script>
-<script src="js/grammar-admin.js?v=20260719c"></script>
-<script src="js/speaking-admin.js?v=20260719c"></script>
-<script src="js/wordwall-admin.js?v=20260719c"></script>
-<script src="js/wordwall-templates-admin.js?v=20260719c"></script>
-<script src="js/groups-admin.js?v=20260719c"></script>
-<script src="js/students-admin.js?v=20260719c"></script>
-<script src="js/assignments-admin.js?v=20260719c"></script>
-<script src="js/results-admin.js?v=20260719c"></script>
-<script src="js/activity-toggles-admin.js?v=20260719c"></script>
-<script src="js/curriculum-admin.js?v=20260719c"></script>
-<script src="js/admin-app.js?v=20260719c"></script>
+<script src="../js/data.js?v=20260719d"></script>
+<script src="../js/supabase-config.js?v=20260719d"></script>
+<script src="js/admin-auth.js?v=20260719d"></script>
+<script src="../js/curriculum-data.js?v=20260719d"></script>
+<script src="js/content-admin.js?v=20260719d"></script>
+<script src="js/sentences-admin.js?v=20260719d"></script>
+<script src="js/grammar-admin.js?v=20260719d"></script>
+<script src="js/speaking-admin.js?v=20260719d"></script>
+<script src="js/wordwall-admin.js?v=20260719d"></script>
+<script src="js/wordwall-templates-admin.js?v=20260719d"></script>
+<script src="js/groups-admin.js?v=20260719d"></script>
+<script src="js/students-admin.js?v=20260719d"></script>
+<script src="js/assignments-admin.js?v=20260719d"></script>
+<script src="js/results-admin.js?v=20260719d"></script>
+<script src="js/activity-toggles-admin.js?v=20260719d"></script>
+<script src="js/curriculum-admin.js?v=20260719d"></script>
+<script src="js/admin-app.js?v=20260719d"></script>
 </body>
 </html>
