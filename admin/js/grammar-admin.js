@@ -286,6 +286,8 @@ function setGrammarTypingSetStatus(text) {
 }
 
 var currentGrammarTypingSetNames = [];
+var currentGrammarTypingSetCounts = {};
+var editingGrammarTypingSetName = null;
 
 async function loadGrammarTypingSetList() {
   var unitId = document.getElementById("unitSelect").value;
@@ -313,6 +315,7 @@ async function loadGrammarTypingSetList() {
   });
 
   currentGrammarTypingSetNames = order;
+  currentGrammarTypingSetCounts = counts;
   renderGrammarTypingSetList(order, counts);
   populateGrammarTypingSetSelect();
 }
@@ -334,32 +337,111 @@ function renderGrammarTypingSetList(names, counts) {
   var tbody = document.createElement("tbody");
 
   names.forEach(function (name) {
-    var tr = document.createElement("tr");
-
-    var nameTd = document.createElement("td");
-    nameTd.textContent = name;
-    tr.appendChild(nameTd);
-
-    var countTd = document.createElement("td");
-    countTd.textContent = counts[name] + " câu";
-    tr.appendChild(countTd);
-
-    var actionsTd = document.createElement("td");
-    var delBtn = document.createElement("button");
-    delBtn.className = "admin-btn-danger";
-    delBtn.type = "button";
-    delBtn.textContent = "Xóa bài";
-    delBtn.addEventListener("click", function () {
-      deleteGrammarTypingSet(name, counts[name]);
-    });
-    actionsTd.appendChild(delBtn);
-    tr.appendChild(actionsTd);
-
-    tbody.appendChild(tr);
+    tbody.appendChild(editingGrammarTypingSetName === name ? buildGrammarTypingSetEditRow(name, counts[name]) : buildGrammarTypingSetRow(name, counts[name]));
   });
 
   table.appendChild(tbody);
   wrap.appendChild(table);
+}
+
+function buildGrammarTypingSetRow(name, count) {
+  var tr = document.createElement("tr");
+
+  var nameTd = document.createElement("td");
+  nameTd.textContent = name;
+  tr.appendChild(nameTd);
+
+  var countTd = document.createElement("td");
+  countTd.textContent = count + " câu";
+  tr.appendChild(countTd);
+
+  var actionsTd = document.createElement("td");
+
+  var editBtn = document.createElement("button");
+  editBtn.className = "admin-btn-secondary";
+  editBtn.type = "button";
+  editBtn.textContent = "Sửa tên";
+  editBtn.addEventListener("click", function () {
+    editingGrammarTypingSetName = name;
+    renderGrammarTypingSetList(currentGrammarTypingSetNames, currentGrammarTypingSetCounts);
+  });
+  actionsTd.appendChild(editBtn);
+
+  var delBtn = document.createElement("button");
+  delBtn.className = "admin-btn-danger";
+  delBtn.type = "button";
+  delBtn.textContent = "Xóa bài";
+  delBtn.addEventListener("click", function () {
+    deleteGrammarTypingSet(name, count);
+  });
+  actionsTd.appendChild(delBtn);
+  tr.appendChild(actionsTd);
+
+  return tr;
+}
+
+function buildGrammarTypingSetEditRow(name, count) {
+  var tr = document.createElement("tr");
+  tr.className = "editing-row";
+
+  var nameTd = makeInputTd(name);
+  tr.appendChild(nameTd);
+
+  var countTd = document.createElement("td");
+  countTd.textContent = count + " câu";
+  tr.appendChild(countTd);
+
+  var actionsTd = document.createElement("td");
+
+  var saveBtn = document.createElement("button");
+  saveBtn.className = "admin-btn-primary";
+  saveBtn.type = "button";
+  saveBtn.textContent = "Lưu";
+  saveBtn.addEventListener("click", function () {
+    var newName = nameTd.inputEl.value.trim();
+    if (!newName) {
+      window.alert("Tên bài không được để trống");
+      return;
+    }
+    renameGrammarTypingSet(name, newName);
+  });
+  actionsTd.appendChild(saveBtn);
+
+  var cancelBtn = document.createElement("button");
+  cancelBtn.className = "admin-btn-danger";
+  cancelBtn.type = "button";
+  cancelBtn.textContent = "Hủy";
+  cancelBtn.addEventListener("click", function () {
+    editingGrammarTypingSetName = null;
+    renderGrammarTypingSetList(currentGrammarTypingSetNames, currentGrammarTypingSetCounts);
+  });
+  actionsTd.appendChild(cancelBtn);
+  tr.appendChild(actionsTd);
+
+  return tr;
+}
+
+async function renameGrammarTypingSet(oldName, newName) {
+  if (oldName === newName) {
+    editingGrammarTypingSetName = null;
+    renderGrammarTypingSetList(currentGrammarTypingSetNames, currentGrammarTypingSetCounts);
+    return;
+  }
+  if (currentGrammarTypingSetNames.indexOf(newName) !== -1) {
+    window.alert("Đã có bài tên \"" + newName + "\" rồi, chọn tên khác.");
+    return;
+  }
+  var unitId = document.getElementById("unitSelect").value;
+  var result = await supabaseClient.from("game_grammar_typing").update({ set_name: newName }).eq("unit_id", unitId).eq("set_name", oldName);
+  if (result.error) {
+    window.alert("Lỗi lưu: " + result.error.message);
+    return;
+  }
+  editingGrammarTypingSetName = null;
+  await loadGrammarTypingSetList();
+  document.getElementById("grammarTypingSetSelect").value = newName;
+  loadGrammarTypingTable();
+  loadCurriculumData().then(loadActivityToggles);
 }
 
 function populateGrammarTypingSetSelect() {
