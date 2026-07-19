@@ -143,7 +143,6 @@ function appendActivityListItems(listEl, unit, activities, disabledIds, needsAcc
   var i;
   var sawOther = false;
   var sentenceDividerInserted = false;
-  var grammarDividerInserted = false;
   for (i = 0; i < activities.length; i++) {
     if (disabledIds.indexOf(activities[i].id) !== -1) {
       continue;
@@ -157,13 +156,6 @@ function appendActivityListItems(listEl, unit, activities, disabledIds, needsAcc
       sentenceDivider.textContent = "Luyện câu";
       listEl.appendChild(sentenceDivider);
       sentenceDividerInserted = true;
-    }
-    if (isGrammar && sawOther && !grammarDividerInserted) {
-      var grammarDivider = document.createElement("div");
-      grammarDivider.className = "activity-section-divider";
-      grammarDivider.textContent = "Ngữ pháp";
-      listEl.appendChild(grammarDivider);
-      grammarDividerInserted = true;
     }
     if (!isSentence && !isGrammar) {
       sawOther = true;
