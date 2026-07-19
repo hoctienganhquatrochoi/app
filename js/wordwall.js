@@ -33,6 +33,9 @@ function startWordwallTracker(rowId) {
   }, WORDWALL_HEARTBEAT_MS);
 
   return {
+    flush: function () {
+      updateWordwallDuration(rowId, startedAt);
+    },
     stop: function () {
       clearInterval(intervalId);
       updateWordwallDuration(rowId, startedAt);
@@ -44,6 +47,12 @@ function stopActiveWordwallTracker() {
   if (activeWordwallTracker) {
     activeWordwallTracker.stop();
     activeWordwallTracker = null;
+  }
+}
+
+function flushActiveWordwallTracker() {
+  if (activeWordwallTracker) {
+    activeWordwallTracker.flush();
   }
 }
 
@@ -72,4 +81,14 @@ async function renderWordwallActivity(container, breadcrumbText, embedUrl, unitI
 
 window.addEventListener("beforeunload", function () {
   stopActiveWordwallTracker();
+});
+
+window.addEventListener("pagehide", function () {
+  stopActiveWordwallTracker();
+});
+
+document.addEventListener("visibilitychange", function () {
+  if (document.hidden) {
+    flushActiveWordwallTracker();
+  }
 });
