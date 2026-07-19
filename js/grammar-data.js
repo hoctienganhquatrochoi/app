@@ -33,3 +33,15 @@ async function loadGrammarMatchingForUnit(unitId) {
   }
   return result.data;
 }
+
+async function loadGrammarDragfillForUnit(unitId) {
+  var result = await supabaseClient
+    .from("game_grammar_dragfill")
+    .select("*")
+    .eq("unit_id", unitId)
+    .order("sort_order", { ascending: true });
+  if (result.error) {
+    return [];
+  }
+  return result.data;
+}

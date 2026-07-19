@@ -770,3 +770,285 @@ async function handleBulkAddGrammarMatching(e) {
   loadGrammarMatchingTable();
   loadCurriculumData().then(loadActivityToggles);
 }
+
+/* ---------- Điền từ vào chỗ trống - kéo thả (drag-fill, EN + VI) ---------- */
+
+function setBulkGrammarDragfillStatus(text) {
+  document.getElementById("bulkGrammarDragfillStatus").textContent = text;
+}
+
+var currentGrammarDragfillRows = [];
+var editingGrammarDragfillId = null;
+
+async function loadGrammarDragfillTable() {
+  var unitId = document.getElementById("unitSelect").value;
+  var wrap = document.getElementById("grammarDragfillTableWrap");
+  if (!unitId) {
+    wrap.innerHTML = "";
+    return;
+  }
+  wrap.textContent = "Đang tải...";
+
+  var result = await supabaseClient
+    .from("game_grammar_dragfill")
+    .select("*")
+    .eq("unit_id", unitId)
+    .order("sort_order", { ascending: true });
+
+  if (result.error) {
+    wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
+    return;
+  }
+
+  renderGrammarDragfillTable(result.data);
+}
+
+function renderGrammarDragfillTable(rows) {
+  currentGrammarDragfillRows = rows;
+  var wrap = document.getElementById("grammarDragfillTableWrap");
+  wrap.innerHTML = "";
+
+  if (!rows.length) {
+    var empty = document.createElement("div");
+    empty.className = "admin-status";
+    empty.textContent = "Unit này chưa có câu nào.";
+    wrap.appendChild(empty);
+    return;
+  }
+
+  var toolbar = document.createElement("div");
+  toolbar.className = "admin-table-toolbar";
+  var deleteAllBtn = document.createElement("button");
+  deleteAllBtn.className = "admin-btn-danger";
+  deleteAllBtn.type = "button";
+  deleteAllBtn.textContent = "Xóa tất cả";
+  deleteAllBtn.addEventListener("click", handleDeleteAllGrammarDragfill);
+  toolbar.appendChild(deleteAllBtn);
+  wrap.appendChild(toolbar);
+
+  var table = document.createElement("table");
+  table.className = "admin-table";
+
+  var thead = document.createElement("thead");
+  var headRow = document.createElement("tr");
+  ["Câu hỏi (EN)", "Nghĩa (VI)", "Đáp án đúng", "Đáp án sai", ""].forEach(function (h) {
+    var th = document.createElement("th");
+    th.textContent = h;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  var tbody = document.createElement("tbody");
+  rows.forEach(function (row) {
+    tbody.appendChild(editingGrammarDragfillId === row.id ? buildGrammarDragfillEditRow(row) : buildGrammarDragfillRow(row));
+  });
+  table.appendChild(tbody);
+
+  wrap.appendChild(table);
+}
+
+function buildGrammarDragfillRow(row) {
+  var tr = document.createElement("tr");
+  tr.appendChild(makeTd(row.question_en));
+  tr.appendChild(makeTd(row.question_vi));
+  tr.appendChild(makeTd(row.correct_answer));
+  tr.appendChild(makeTd((row.wrong_answers || []).join(", ")));
+
+  var actionsTd = document.createElement("td");
+
+  var editBtn = document.createElement("button");
+  editBtn.className = "admin-btn-secondary";
+  editBtn.type = "button";
+  editBtn.textContent = "Sửa";
+  editBtn.addEventListener("click", function () {
+    editingGrammarDragfillId = row.id;
+    renderGrammarDragfillTable(currentGrammarDragfillRows);
+  });
+  actionsTd.appendChild(editBtn);
+
+  var delBtn = document.createElement("button");
+  delBtn.className = "admin-btn-danger";
+  delBtn.type = "button";
+  delBtn.textContent = "Xóa";
+  delBtn.addEventListener("click", function () {
+    deleteGrammarDragfillItem(row.id);
+  });
+  actionsTd.appendChild(delBtn);
+  tr.appendChild(actionsTd);
+
+  return tr;
+}
+
+function buildGrammarDragfillEditRow(row) {
+  var tr = document.createElement("tr");
+  tr.className = "editing-row";
+
+  var enTd = makeInputTd(row.question_en);
+  var viTd = makeInputTd(row.question_vi);
+  var correctTd = makeInputTd(row.correct_answer);
+  var wrongTd = makeInputTd((row.wrong_answers || []).join(", "));
+
+  tr.appendChild(enTd);
+  tr.appendChild(viTd);
+  tr.appendChild(correctTd);
+  tr.appendChild(wrongTd);
+
+  var actionsTd = document.createElement("td");
+
+  var saveBtn = document.createElement("button");
+  saveBtn.className = "admin-btn-primary";
+  saveBtn.type = "button";
+  saveBtn.textContent = "Lưu";
+  saveBtn.addEventListener("click", async function () {
+    var newEn = enTd.inputEl.value.trim();
+    var correctAnswer = correctTd.inputEl.value.trim();
+    var wrongAnswers = wrongTd.inputEl.value.split(",").map(function (w) { return w.trim(); }).filter(function (w) { return w; });
+    if (!newEn || !correctAnswer || !wrongAnswers.length) {
+      window.alert("Câu hỏi, đáp án đúng và đáp án sai không được để trống");
+      return;
+    }
+    var result = await supabaseClient.from("game_grammar_dragfill").update({
+      question_en: newEn,
+      question_vi: viTd.inputEl.value.trim(),
+      correct_answer: correctAnswer,
+      wrong_answers: wrongAnswers
+    }).eq("id", row.id);
+
+    if (result.error) {
+      window.alert("Lỗi lưu: " + result.error.message);
+      return;
+    }
+    editingGrammarDragfillId = null;
+    loadGrammarDragfillTable();
+  });
+  actionsTd.appendChild(saveBtn);
+
+  var cancelBtn = document.createElement("button");
+  cancelBtn.className = "admin-btn-danger";
+  cancelBtn.type = "button";
+  cancelBtn.textContent = "Hủy";
+  cancelBtn.addEventListener("click", function () {
+    editingGrammarDragfillId = null;
+    renderGrammarDragfillTable(currentGrammarDragfillRows);
+  });
+  actionsTd.appendChild(cancelBtn);
+  tr.appendChild(actionsTd);
+
+  return tr;
+}
+
+async function deleteGrammarDragfillItem(id) {
+  if (!window.confirm("Xóa câu này?")) {
+    return;
+  }
+  var result = await supabaseClient.from("game_grammar_dragfill").delete().eq("id", id);
+  if (result.error) {
+    window.alert("Lỗi xóa: " + result.error.message);
+    return;
+  }
+  loadGrammarDragfillTable();
+  loadCurriculumData().then(loadActivityToggles);
+}
+
+async function handleDeleteAllGrammarDragfill() {
+  var unitId = document.getElementById("unitSelect").value;
+  if (!window.confirm("Xóa toàn bộ " + currentGrammarDragfillRows.length + " câu trong Unit này? Không thể khôi phục.")) {
+    return;
+  }
+  var result = await supabaseClient.from("game_grammar_dragfill").delete().eq("unit_id", unitId);
+  if (result.error) {
+    window.alert("Lỗi xóa: " + result.error.message);
+    return;
+  }
+  loadGrammarDragfillTable();
+  loadCurriculumData().then(loadActivityToggles);
+}
+
+function parseGrammarDragfillBulkBlock(block) {
+  var lines = block.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+  var questionEn = "";
+  var questionVi = "";
+  var correctAnswer = "";
+  var wrongAnswers = [];
+
+  lines.forEach(function (line) {
+    var correctMatch = line.match(/^đáp\s*án\s*đúng\s*:\s*(.*)$/i);
+    var wrongMatch = line.match(/^đáp\s*án\s*sai\s*:\s*(.*)$/i);
+    if (correctMatch) {
+      correctAnswer = correctMatch[1].trim();
+    } else if (wrongMatch) {
+      wrongAnswers = wrongMatch[1].split(",").map(function (w) { return w.trim(); }).filter(function (w) { return w; });
+    } else if (!questionEn) {
+      questionEn = stripLeadingNumbering(line);
+    } else if (!questionVi) {
+      questionVi = line;
+    }
+  });
+
+  return { question_en: questionEn, question_vi: questionVi, correct_answer: correctAnswer, wrong_answers: wrongAnswers };
+}
+
+function parseGrammarDragfillBulkText(text) {
+  var blocks = text.split(/\n\s*\n/);
+  return blocks.map(parseGrammarDragfillBulkBlock).filter(function (item) {
+    return item.question_en || item.correct_answer || item.wrong_answers.length;
+  });
+}
+
+async function handleBulkAddGrammarDragfill(e) {
+  e.preventDefault();
+
+  var unitId = document.getElementById("unitSelect").value;
+  var text = document.getElementById("bulkGrammarDragfillTextarea").value;
+  var items = parseGrammarDragfillBulkText(text);
+
+  if (!items.length) {
+    window.alert("Chưa dán dữ liệu nào.");
+    return;
+  }
+
+  var existingCountResult = await supabaseClient.from("game_grammar_dragfill").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var nextSortOrder = existingCountResult.count || 0;
+
+  var successCount = 0;
+  var invalidBlocks = [];
+  var saveErrors = [];
+  var i;
+  for (i = 0; i < items.length; i++) {
+    var item = items[i];
+    if (!item.question_en || !item.correct_answer || !item.wrong_answers.length) {
+      invalidBlocks.push(i + 1);
+      continue;
+    }
+    setBulkGrammarDragfillStatus("Đang xử lý " + (i + 1) + "/" + items.length + "...");
+
+    var insertResult = await supabaseClient.from("game_grammar_dragfill").insert({
+      unit_id: unitId,
+      sort_order: nextSortOrder + successCount,
+      question_en: item.question_en,
+      question_vi: item.question_vi,
+      correct_answer: item.correct_answer,
+      wrong_answers: item.wrong_answers
+    });
+
+    if (insertResult.error) {
+      saveErrors.push("câu " + (i + 1) + ": " + insertResult.error.message);
+      continue;
+    }
+    successCount++;
+  }
+
+  var summary = "Xong! Đã thêm " + successCount + "/" + items.length + " câu.";
+  if (invalidBlocks.length) {
+    summary += " Bỏ qua câu thiếu dữ liệu: câu " + invalidBlocks.join(", ") + ".";
+  }
+  if (saveErrors.length) {
+    summary += " Lỗi lưu — " + saveErrors.join("; ") + ".";
+  }
+  setBulkGrammarDragfillStatus(summary);
+
+  document.getElementById("bulkGrammarDragfillTextarea").value = "";
+  loadGrammarDragfillTable();
+  loadCurriculumData().then(loadActivityToggles);
+}

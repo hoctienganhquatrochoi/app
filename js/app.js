@@ -150,7 +150,7 @@ function appendActivityListItems(listEl, unit, activities, disabledIds, needsAcc
     }
     var id = activities[i].id;
     var isSentence = id.indexOf("s") === 0;
-    var isGrammar = id.indexOf("gm") === 0 || id.indexOf("gt") === 0 || id.indexOf("gx") === 0;
+    var isGrammar = id.indexOf("gm") === 0 || id.indexOf("gt") === 0 || id.indexOf("gx") === 0 || id.indexOf("gd") === 0;
     if (isSentence && sawOther && !sentenceDividerInserted) {
       var sentenceDivider = document.createElement("div");
       sentenceDivider.className = "activity-section-divider";
@@ -445,7 +445,7 @@ async function renderMainContent() {
     return;
   }
 
-  if (activity.type === "grammar-mcq" || activity.type === "grammar-typing" || activity.type === "grammar-matching") {
+  if (activity.type === "grammar-mcq" || activity.type === "grammar-typing" || activity.type === "grammar-matching" || activity.type === "grammar-dragfill") {
     var grammarLoading = document.createElement("div");
     grammarLoading.className = "placeholder";
     grammarLoading.textContent = "Đang tải nội dung...";
@@ -456,8 +456,10 @@ async function renderMainContent() {
       grammarItems = await loadGrammarMcqForUnit(unit.id);
     } else if (activity.type === "grammar-typing") {
       grammarItems = await loadGrammarTypingForUnit(unit.id);
-    } else {
+    } else if (activity.type === "grammar-matching") {
       grammarItems = await loadGrammarMatchingForUnit(unit.id);
+    } else {
+      grammarItems = await loadGrammarDragfillForUnit(unit.id);
     }
 
     if (!state.selectedActivity || state.selectedActivity.unit.id !== unit.id || state.selectedActivity.activity.id !== activity.id) {
@@ -478,8 +480,10 @@ async function renderMainContent() {
       renderGrammarMcq(main, breadcrumbText, grammarItems, unit.id);
     } else if (activity.type === "grammar-typing") {
       renderGrammarTyping(main, breadcrumbText, grammarItems, unit.id);
-    } else {
+    } else if (activity.type === "grammar-matching") {
       renderGrammarMatching(main, breadcrumbText, grammarItems, unit.id);
+    } else {
+      renderGrammarDragfill(main, breadcrumbText, grammarItems, unit.id);
     }
     return;
   }

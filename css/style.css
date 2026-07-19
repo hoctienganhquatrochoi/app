@@ -1025,6 +1025,104 @@ html, body {
   background: #FBE0E0;
 }
 
+.dragfill-wrap {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.dragfill-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  margin: 18px 0 28px;
+}
+
+.dragfill-tile {
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1B4332;
+  cursor: pointer;
+  background: #F4E9CB;
+  box-shadow: 0 3px 0 rgba(27, 67, 50, 0.15);
+}
+
+.dragfill-tile:nth-child(4n+1) { background: #A7D8E8; }
+.dragfill-tile:nth-child(4n+2) { background: #F6C6D0; }
+.dragfill-tile:nth-child(4n+3) { background: #FBE1A6; }
+.dragfill-tile:nth-child(4n+4) { background: #C8E6C9; }
+
+.dragfill-tile:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.dragfill-question {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1B4332;
+  line-height: 1.6;
+}
+
+.dragfill-blank {
+  display: inline-block;
+  min-width: 90px;
+  padding: 4px 14px;
+  margin: 0 6px;
+  border: 3px dashed #F0973D;
+  border-radius: 10px;
+  background: #FFF8EC;
+  color: #1B4332;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.dragfill-blank.filled {
+  border-style: solid;
+}
+
+.dragfill-blank.correct {
+  border-color: #2D6A4F;
+  background: #DCEAE2;
+  cursor: default;
+}
+
+.dragfill-blank.wrong {
+  border-color: #E63946;
+  background: #FBE0E0;
+  cursor: default;
+}
+
+.dragfill-feedback-icon {
+  font-size: 64px;
+  font-weight: 900;
+  margin-top: 14px;
+}
+
+.dragfill-correct-icon {
+  color: #2D6A4F;
+}
+
+.dragfill-wrong-icon {
+  color: #E63946;
+}
+
+.dragfill-hint {
+  font-size: 16px;
+  color: #E63946;
+  margin-top: 6px;
+}
+
+.dragfill-vi {
+  font-size: 20px;
+  color: #7A8B82;
+  margin-top: 16px;
+}
+
 .quiz-continue-wrap {
   margin-top: 24px;
 }

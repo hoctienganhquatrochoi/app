@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   loadGrammarMcqTable();
   loadGrammarTypingTable();
   loadGrammarMatchingTable();
+  loadGrammarDragfillTable();
   loadSpeakingTestList().then(loadSpeakingTable);
   loadWordwallList();
   loadWordwallTemplates();
@@ -48,6 +49,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("unitSelect").addEventListener("change", loadGrammarMcqTable);
   document.getElementById("unitSelect").addEventListener("change", loadGrammarTypingTable);
   document.getElementById("unitSelect").addEventListener("change", loadGrammarMatchingTable);
+  document.getElementById("unitSelect").addEventListener("change", loadGrammarDragfillTable);
   document.getElementById("unitSelect").addEventListener("change", function () {
     loadSpeakingTestList().then(loadSpeakingTable);
   });
@@ -64,6 +66,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("bulkAddGrammarMcqForm").addEventListener("submit", handleBulkAddGrammarMcq);
   document.getElementById("bulkAddGrammarTypingForm").addEventListener("submit", handleBulkAddGrammarTyping);
   document.getElementById("bulkAddGrammarMatchingForm").addEventListener("submit", handleBulkAddGrammarMatching);
+  document.getElementById("bulkAddGrammarDragfillForm").addEventListener("submit", handleBulkAddGrammarDragfill);
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);
   document.getElementById("addStudentForm").addEventListener("submit", handleAddStudent);
   document.getElementById("addTeachingGroupBtn").addEventListener("click", handleAddTeachingGroup);
