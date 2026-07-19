@@ -655,6 +655,18 @@ function parseBulkText(text) {
   return items;
 }
 
+async function buildVocabAudioLookup() {
+  var result = await supabaseClient.from("game_vocab").select("word_en, audio_en_url").not("audio_en_url", "is", null);
+  var lookup = {};
+  (result.data || []).forEach(function (row) {
+    var key = stripParenthetical(row.word_en).trim().toLowerCase();
+    if (key && !lookup[key]) {
+      lookup[key] = row.audio_en_url;
+    }
+  });
+  return lookup;
+}
+
 async function handleBulkAdd(e) {
   e.preventDefault();
 
@@ -680,13 +692,16 @@ async function handleBulkAdd(e) {
 
   var existingCountResult = await supabaseClient.from("game_vocab").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var nextSortOrder = existingCountResult.count || 0;
+  var audioLookup = await buildVocabAudioLookup();
 
   var successCount = 0;
+  var reusedCount = 0;
   for (i = 0; i < validItems.length; i++) {
     var item = validItems[i];
     setBulkStatus("Đang xử lý " + (i + 1) + "/" + validItems.length + ": " + item.word_en + "...");
 
     var spokenWordEn = stripParenthetical(item.word_en);
+    var audioKey = spokenWordEn.trim().toLowerCase();
 
     if (!item.phonetic) {
       item.phonetic = await lookupPhonetic(spokenWordEn);
@@ -714,7 +729,16 @@ async function handleBulkAdd(e) {
 
     var row = insertResult.data;
 
-    var audioEnUrl = await generateAudio(spokenWordEn, "en-US", unitId + "/" + row.id + "_en.mp3", setBulkStatus);
+    var audioEnUrl;
+    if (audioLookup[audioKey]) {
+      audioEnUrl = audioLookup[audioKey];
+      reusedCount++;
+    } else {
+      audioEnUrl = await generateAudio(spokenWordEn, "en-US", unitId + "/" + row.id + "_en.mp3", setBulkStatus);
+      if (audioEnUrl) {
+        audioLookup[audioKey] = audioEnUrl;
+      }
+    }
 
     await supabaseClient
       .from("game_vocab")
@@ -727,6 +751,9 @@ async function handleBulkAdd(e) {
   }
 
   var summary = "Xong! Đã thêm " + successCount + "/" + validItems.length + " từ.";
+  if (reusedCount > 0) {
+    summary += " Dùng lại âm thanh có sẵn cho " + reusedCount + " từ (đỡ tốn dung lượng).";
+  }
   if (invalidLines.length) {
     summary += " Bỏ qua dòng trống: dòng " + invalidLines.join(", ") + ".";
   }
