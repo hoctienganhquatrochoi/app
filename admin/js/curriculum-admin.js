@@ -762,6 +762,7 @@ function switchComposeSubTab(target) {
   document.getElementById("wordwallComposeSubPanel").style.display = target === "wordwall" ? "" : "none";
   document.getElementById("grammarMcqComposeSubPanel").style.display = target === "grammarMcq" ? "" : "none";
   document.getElementById("grammarTypingComposeSubPanel").style.display = target === "grammarTyping" ? "" : "none";
+  document.getElementById("grammarMatchingComposeSubPanel").style.display = target === "grammarMatching" ? "" : "none";
 
   if (target === "sentence") {
     loadSentenceTable();
@@ -769,6 +770,8 @@ function switchComposeSubTab(target) {
     loadGrammarMcqTable();
   } else if (target === "grammarTyping") {
     loadGrammarTypingTable();
+  } else if (target === "grammarMatching") {
+    loadGrammarMatchingTable();
   }
 }
 
@@ -829,12 +832,14 @@ async function getUnitContentCounts(unitId) {
   var speakingResult = await supabaseClient.from("game_speaking_questions").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var grammarMcqResult = await supabaseClient.from("game_grammar_mcq").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var grammarTypingResult = await supabaseClient.from("game_grammar_typing").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var grammarMatchingResult = await supabaseClient.from("game_grammar_matching").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   return {
     vocab: vocabResult.count || 0,
     sentence: sentenceResult.count || 0,
     speaking: speakingResult.count || 0,
     grammarMcq: grammarMcqResult.count || 0,
-    grammarTyping: grammarTypingResult.count || 0
+    grammarTyping: grammarTypingResult.count || 0,
+    grammarMatching: grammarMatchingResult.count || 0
   };
 }
 
@@ -854,6 +859,9 @@ function describeUnitContentCounts(counts) {
   }
   if (counts.grammarTyping > 0) {
     warnParts.push(counts.grammarTyping + " câu viết trả lời");
+  }
+  if (counts.grammarMatching > 0) {
+    warnParts.push(counts.grammarMatching + " cặp nối câu");
   }
   return warnParts;
 }
@@ -885,6 +893,9 @@ async function deleteUnitAndContent(unitId, counts) {
   }
   if (counts.grammarTyping > 0) {
     await supabaseClient.from("game_grammar_typing").delete().eq("unit_id", unitId);
+  }
+  if (counts.grammarMatching > 0) {
+    await supabaseClient.from("game_grammar_matching").delete().eq("unit_id", unitId);
   }
   await supabaseClient.from("game_unit_settings").delete().eq("unit_id", unitId);
   return await supabaseClient.from("game_units").delete().eq("id", unitId);

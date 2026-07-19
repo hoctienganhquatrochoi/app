@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260718u">
-<link rel="stylesheet" href="css/admin.css?v=20260718u">
+<link rel="stylesheet" href="../css/style.css?v=20260718v">
+<link rel="stylesheet" href="css/admin.css?v=20260718v">
 </head>
 <body>
 
@@ -233,6 +233,7 @@
               <button class="admin-subtab" type="button" data-composesubtab="wordwall">Wordwall</button>
               <button class="admin-subtab" type="button" data-composesubtab="grammarMcq">Trắc nghiệm ngữ pháp</button>
               <button class="admin-subtab" type="button" data-composesubtab="grammarTyping">Viết câu trả lời</button>
+              <button class="admin-subtab" type="button" data-composesubtab="grammarMatching">Nối câu</button>
             </nav>
 
             <div id="vocabComposeSubPanel">
@@ -384,6 +385,25 @@ Tôi có hai anh em trai. | I have two brothers."></textarea>
               </form>
 
               <div id="grammarTypingTableWrap"></div>
+            </div>
+
+            <div id="grammarMatchingComposeSubPanel" style="display:none">
+              <form class="admin-form" id="bulkAddGrammarMatchingForm">
+                <h3>Nhập hàng loạt</h3>
+                <p class="admin-hint">
+                  Mỗi dòng 1 cặp, cách nhau bằng dấu <code>|</code>: <code>Vế trái | Vế phải</code>. Học sinh bấm 1 ô bên trái rồi 1 ô bên phải để nối — hệ thống tự xáo trộn vị trí cột phải.
+                </p>
+                <textarea class="admin-textarea" id="bulkGrammarMatchingTextarea" rows="8" placeholder="This is | my friend Lan.
+And this is | my mother.
+Hi, Lan. Nice | to meet you.
+Nice to | meet you too.
+How | old are you?
+I'm | eight."></textarea>
+                <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả</button>
+                <div class="admin-status" id="bulkGrammarMatchingStatus"></div>
+              </form>
+
+              <div id="grammarMatchingTableWrap"></div>
             </div>
           </div>
         </div>
@@ -574,22 +594,22 @@ Tôi có hai anh em trai. | I have two brothers."></textarea>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260718u"></script>
-<script src="../js/supabase-config.js?v=20260718u"></script>
-<script src="js/admin-auth.js?v=20260718u"></script>
-<script src="../js/curriculum-data.js?v=20260718u"></script>
-<script src="js/content-admin.js?v=20260718u"></script>
-<script src="js/sentences-admin.js?v=20260718u"></script>
-<script src="js/grammar-admin.js?v=20260718u"></script>
-<script src="js/speaking-admin.js?v=20260718u"></script>
-<script src="js/wordwall-admin.js?v=20260718u"></script>
-<script src="js/wordwall-templates-admin.js?v=20260718u"></script>
-<script src="js/groups-admin.js?v=20260718u"></script>
-<script src="js/students-admin.js?v=20260718u"></script>
-<script src="js/assignments-admin.js?v=20260718u"></script>
-<script src="js/results-admin.js?v=20260718u"></script>
-<script src="js/activity-toggles-admin.js?v=20260718u"></script>
-<script src="js/curriculum-admin.js?v=20260718u"></script>
-<script src="js/admin-app.js?v=20260718u"></script>
+<script src="../js/data.js?v=20260718v"></script>
+<script src="../js/supabase-config.js?v=20260718v"></script>
+<script src="js/admin-auth.js?v=20260718v"></script>
+<script src="../js/curriculum-data.js?v=20260718v"></script>
+<script src="js/content-admin.js?v=20260718v"></script>
+<script src="js/sentences-admin.js?v=20260718v"></script>
+<script src="js/grammar-admin.js?v=20260718v"></script>
+<script src="js/speaking-admin.js?v=20260718v"></script>
+<script src="js/wordwall-admin.js?v=20260718v"></script>
+<script src="js/wordwall-templates-admin.js?v=20260718v"></script>
+<script src="js/groups-admin.js?v=20260718v"></script>
+<script src="js/students-admin.js?v=20260718v"></script>
+<script src="js/assignments-admin.js?v=20260718v"></script>
+<script src="js/results-admin.js?v=20260718v"></script>
+<script src="js/activity-toggles-admin.js?v=20260718v"></script>
+<script src="js/curriculum-admin.js?v=20260718v"></script>
+<script src="js/admin-app.js?v=20260718v"></script>
 </body>
 </html>

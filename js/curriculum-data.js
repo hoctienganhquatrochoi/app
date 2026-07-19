@@ -31,6 +31,10 @@ var GRAMMAR_TYPING_ACTIVITY_TEMPLATE = [
   { id: "gt1", name: "Viết câu trả lời", type: "grammar-typing", locked: false }
 ];
 
+var GRAMMAR_MATCHING_ACTIVITY_TEMPLATE = [
+  { id: "gx1", name: "Nối câu", type: "grammar-matching", locked: false }
+];
+
 function buildWordwallActivities(rows) {
   var byUnit = {};
   rows.forEach(function (row) {
@@ -72,6 +76,11 @@ async function loadCurriculumData() {
   (grammarTypingUnitsResult.data || []).forEach(function (row) {
     unitsWithGrammarTyping[row.unit_id] = true;
   });
+  var grammarMatchingUnitsResult = await supabaseClient.from("game_grammar_matching").select("unit_id");
+  var unitsWithGrammarMatching = {};
+  (grammarMatchingUnitsResult.data || []).forEach(function (row) {
+    unitsWithGrammarMatching[row.unit_id] = true;
+  });
   var classes = (classesResult.data || []).map(function (row) {
     return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order };
   });
@@ -103,6 +112,7 @@ async function loadCurriculumData() {
       .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
       .concat(unitsWithGrammarMcq[urow.id] ? GRAMMAR_MCQ_ACTIVITY_TEMPLATE : [])
       .concat(unitsWithGrammarTyping[urow.id] ? GRAMMAR_TYPING_ACTIVITY_TEMPLATE : [])
+      .concat(unitsWithGrammarMatching[urow.id] ? GRAMMAR_MATCHING_ACTIVITY_TEMPLATE : [])
       .concat(wordwallByUnit[urow.id] || []);
     subj.units.push(unit);
   }

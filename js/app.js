@@ -150,7 +150,7 @@ function appendActivityListItems(listEl, unit, activities, disabledIds, needsAcc
     }
     var id = activities[i].id;
     var isSentence = id.indexOf("s") === 0;
-    var isGrammar = id.indexOf("gm") === 0 || id.indexOf("gt") === 0;
+    var isGrammar = id.indexOf("gm") === 0 || id.indexOf("gt") === 0 || id.indexOf("gx") === 0;
     if (isSentence && sawOther && !sentenceDividerInserted) {
       var sentenceDivider = document.createElement("div");
       sentenceDivider.className = "activity-section-divider";
@@ -444,15 +444,20 @@ async function renderMainContent() {
     return;
   }
 
-  if (activity.type === "grammar-mcq" || activity.type === "grammar-typing") {
+  if (activity.type === "grammar-mcq" || activity.type === "grammar-typing" || activity.type === "grammar-matching") {
     var grammarLoading = document.createElement("div");
     grammarLoading.className = "placeholder";
     grammarLoading.textContent = "Đang tải nội dung...";
     main.appendChild(grammarLoading);
 
-    var grammarItems = activity.type === "grammar-mcq"
-      ? await loadGrammarMcqForUnit(unit.id)
-      : await loadGrammarTypingForUnit(unit.id);
+    var grammarItems;
+    if (activity.type === "grammar-mcq") {
+      grammarItems = await loadGrammarMcqForUnit(unit.id);
+    } else if (activity.type === "grammar-typing") {
+      grammarItems = await loadGrammarTypingForUnit(unit.id);
+    } else {
+      grammarItems = await loadGrammarMatchingForUnit(unit.id);
+    }
 
     if (!state.selectedActivity || state.selectedActivity.unit.id !== unit.id || state.selectedActivity.activity.id !== activity.id) {
       return;
@@ -470,8 +475,10 @@ async function renderMainContent() {
     main.innerHTML = "";
     if (activity.type === "grammar-mcq") {
       renderGrammarMcq(main, breadcrumbText, grammarItems, unit.id);
-    } else {
+    } else if (activity.type === "grammar-typing") {
       renderGrammarTyping(main, breadcrumbText, grammarItems, unit.id);
+    } else {
+      renderGrammarMatching(main, breadcrumbText, grammarItems, unit.id);
     }
     return;
   }

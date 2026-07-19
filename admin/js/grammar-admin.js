@@ -522,3 +522,251 @@ async function handleBulkAddGrammarTyping(e) {
   loadGrammarTypingTable();
   loadCurriculumData().then(loadActivityToggles);
 }
+
+/* ---------- Nối câu (matching pairs, vế trái / vế phải) ---------- */
+
+function setBulkGrammarMatchingStatus(text) {
+  document.getElementById("bulkGrammarMatchingStatus").textContent = text;
+}
+
+var currentGrammarMatchingRows = [];
+var editingGrammarMatchingId = null;
+
+async function loadGrammarMatchingTable() {
+  var unitId = document.getElementById("unitSelect").value;
+  var wrap = document.getElementById("grammarMatchingTableWrap");
+  if (!unitId) {
+    wrap.innerHTML = "";
+    return;
+  }
+  wrap.textContent = "Đang tải...";
+
+  var result = await supabaseClient
+    .from("game_grammar_matching")
+    .select("*")
+    .eq("unit_id", unitId)
+    .order("sort_order", { ascending: true });
+
+  if (result.error) {
+    wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
+    return;
+  }
+
+  renderGrammarMatchingTable(result.data);
+}
+
+function renderGrammarMatchingTable(rows) {
+  currentGrammarMatchingRows = rows;
+  var wrap = document.getElementById("grammarMatchingTableWrap");
+  wrap.innerHTML = "";
+
+  if (!rows.length) {
+    var empty = document.createElement("div");
+    empty.className = "admin-status";
+    empty.textContent = "Unit này chưa có cặp nối nào.";
+    wrap.appendChild(empty);
+    return;
+  }
+
+  var toolbar = document.createElement("div");
+  toolbar.className = "admin-table-toolbar";
+  var deleteAllBtn = document.createElement("button");
+  deleteAllBtn.className = "admin-btn-danger";
+  deleteAllBtn.type = "button";
+  deleteAllBtn.textContent = "Xóa tất cả";
+  deleteAllBtn.addEventListener("click", handleDeleteAllGrammarMatching);
+  toolbar.appendChild(deleteAllBtn);
+  wrap.appendChild(toolbar);
+
+  var table = document.createElement("table");
+  table.className = "admin-table";
+
+  var thead = document.createElement("thead");
+  var headRow = document.createElement("tr");
+  ["Vế trái", "Vế phải", ""].forEach(function (h) {
+    var th = document.createElement("th");
+    th.textContent = h;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  var tbody = document.createElement("tbody");
+  rows.forEach(function (row) {
+    tbody.appendChild(editingGrammarMatchingId === row.id ? buildGrammarMatchingEditRow(row) : buildGrammarMatchingRow(row));
+  });
+  table.appendChild(tbody);
+
+  wrap.appendChild(table);
+}
+
+function buildGrammarMatchingRow(row) {
+  var tr = document.createElement("tr");
+  tr.appendChild(makeTd(row.left_text));
+  tr.appendChild(makeTd(row.right_text));
+
+  var actionsTd = document.createElement("td");
+
+  var editBtn = document.createElement("button");
+  editBtn.className = "admin-btn-secondary";
+  editBtn.type = "button";
+  editBtn.textContent = "Sửa";
+  editBtn.addEventListener("click", function () {
+    editingGrammarMatchingId = row.id;
+    renderGrammarMatchingTable(currentGrammarMatchingRows);
+  });
+  actionsTd.appendChild(editBtn);
+
+  var delBtn = document.createElement("button");
+  delBtn.className = "admin-btn-danger";
+  delBtn.type = "button";
+  delBtn.textContent = "Xóa";
+  delBtn.addEventListener("click", function () {
+    deleteGrammarMatchingItem(row.id);
+  });
+  actionsTd.appendChild(delBtn);
+  tr.appendChild(actionsTd);
+
+  return tr;
+}
+
+function buildGrammarMatchingEditRow(row) {
+  var tr = document.createElement("tr");
+  tr.className = "editing-row";
+
+  var leftTd = makeInputTd(row.left_text);
+  var rightTd = makeInputTd(row.right_text);
+
+  tr.appendChild(leftTd);
+  tr.appendChild(rightTd);
+
+  var actionsTd = document.createElement("td");
+
+  var saveBtn = document.createElement("button");
+  saveBtn.className = "admin-btn-primary";
+  saveBtn.type = "button";
+  saveBtn.textContent = "Lưu";
+  saveBtn.addEventListener("click", async function () {
+    var newLeft = leftTd.inputEl.value.trim();
+    var newRight = rightTd.inputEl.value.trim();
+    if (!newLeft || !newRight) {
+      window.alert("Vế trái và vế phải không được để trống");
+      return;
+    }
+    var result = await supabaseClient.from("game_grammar_matching").update({
+      left_text: newLeft,
+      right_text: newRight
+    }).eq("id", row.id);
+
+    if (result.error) {
+      window.alert("Lỗi lưu: " + result.error.message);
+      return;
+    }
+    editingGrammarMatchingId = null;
+    loadGrammarMatchingTable();
+  });
+  actionsTd.appendChild(saveBtn);
+
+  var cancelBtn = document.createElement("button");
+  cancelBtn.className = "admin-btn-danger";
+  cancelBtn.type = "button";
+  cancelBtn.textContent = "Hủy";
+  cancelBtn.addEventListener("click", function () {
+    editingGrammarMatchingId = null;
+    renderGrammarMatchingTable(currentGrammarMatchingRows);
+  });
+  actionsTd.appendChild(cancelBtn);
+  tr.appendChild(actionsTd);
+
+  return tr;
+}
+
+async function deleteGrammarMatchingItem(id) {
+  if (!window.confirm("Xóa cặp này?")) {
+    return;
+  }
+  var result = await supabaseClient.from("game_grammar_matching").delete().eq("id", id);
+  if (result.error) {
+    window.alert("Lỗi xóa: " + result.error.message);
+    return;
+  }
+  loadGrammarMatchingTable();
+  loadCurriculumData().then(loadActivityToggles);
+}
+
+async function handleDeleteAllGrammarMatching() {
+  var unitId = document.getElementById("unitSelect").value;
+  if (!window.confirm("Xóa toàn bộ " + currentGrammarMatchingRows.length + " cặp nối trong Unit này? Không thể khôi phục.")) {
+    return;
+  }
+  var result = await supabaseClient.from("game_grammar_matching").delete().eq("unit_id", unitId);
+  if (result.error) {
+    window.alert("Lỗi xóa: " + result.error.message);
+    return;
+  }
+  loadGrammarMatchingTable();
+  loadCurriculumData().then(loadActivityToggles);
+}
+
+function parseGrammarMatchingBulkLine(line) {
+  var parts = line.split("|").map(function (p) { return p.trim(); });
+  return {
+    left_text: stripLeadingNumbering(parts[0] || ""),
+    right_text: parts[1] || ""
+  };
+}
+
+async function handleBulkAddGrammarMatching(e) {
+  e.preventDefault();
+
+  var unitId = document.getElementById("unitSelect").value;
+  var text = document.getElementById("bulkGrammarMatchingTextarea").value;
+  var lines = text.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+
+  if (!lines.length) {
+    window.alert("Chưa dán dữ liệu nào.");
+    return;
+  }
+
+  var existingCountResult = await supabaseClient.from("game_grammar_matching").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var nextSortOrder = existingCountResult.count || 0;
+
+  var successCount = 0;
+  var invalidLines = [];
+  var saveErrors = [];
+  var i;
+  for (i = 0; i < lines.length; i++) {
+    var item = parseGrammarMatchingBulkLine(lines[i]);
+    if (!item.left_text || !item.right_text) {
+      invalidLines.push(i + 1);
+      continue;
+    }
+    setBulkGrammarMatchingStatus("Đang xử lý " + (i + 1) + "/" + lines.length + "...");
+
+    var insertResult = await supabaseClient.from("game_grammar_matching").insert({
+      unit_id: unitId,
+      sort_order: nextSortOrder + successCount,
+      left_text: item.left_text,
+      right_text: item.right_text
+    });
+
+    if (insertResult.error) {
+      saveErrors.push("dòng " + (i + 1) + ": " + insertResult.error.message);
+      continue;
+    }
+    successCount++;
+  }
+
+  var summary = "Xong! Đã thêm " + successCount + "/" + lines.length + " cặp.";
+  if (invalidLines.length) {
+    summary += " Bỏ qua dòng thiếu dữ liệu: dòng " + invalidLines.join(", ") + ".";
+  }
+  if (saveErrors.length) {
+    summary += " Lỗi lưu — " + saveErrors.join("; ") + ".";
+  }
+  setBulkGrammarMatchingStatus(summary);
+
+  document.getElementById("bulkGrammarMatchingTextarea").value = "";
+  loadGrammarMatchingTable();
+  loadCurriculumData().then(loadActivityToggles);
+}

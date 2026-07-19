@@ -26,5 +26,17 @@ create table if not exists game_grammar_typing (
 alter table game_grammar_typing disable row level security;
 create index if not exists game_grammar_typing_unit_idx on game_grammar_typing(unit_id);
 
+create table if not exists game_grammar_matching (
+  id uuid primary key default gen_random_uuid(),
+  unit_id text not null,
+  sort_order int not null default 0,
+  left_text text not null,
+  right_text text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table game_grammar_matching disable row level security;
+create index if not exists game_grammar_matching_unit_idx on game_grammar_matching(unit_id);
+
 -- Nếu dòng disable RLS báo lỗi 42501, chạy lại riêng dòng đó trong 1 query mới
 -- (lỗi này hay gặp với bảng mới trong project này).
