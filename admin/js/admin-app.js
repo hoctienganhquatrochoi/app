@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   loadVocabTable();
   loadSentenceTable();
   loadGrammarMcqTable();
-  loadGrammarTypingTable();
+  loadGrammarTypingSetList().then(loadGrammarTypingTable);
   loadGrammarMatchingTable();
   loadGrammarDragfillTable();
   loadSpeakingTestList().then(loadSpeakingTable);
@@ -47,7 +47,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("unitSelect").addEventListener("change", loadVocabTable);
   document.getElementById("unitSelect").addEventListener("change", loadSentenceTable);
   document.getElementById("unitSelect").addEventListener("change", loadGrammarMcqTable);
-  document.getElementById("unitSelect").addEventListener("change", loadGrammarTypingTable);
+  document.getElementById("unitSelect").addEventListener("change", function () {
+    loadGrammarTypingSetList().then(loadGrammarTypingTable);
+  });
   document.getElementById("unitSelect").addEventListener("change", loadGrammarMatchingTable);
   document.getElementById("unitSelect").addEventListener("change", loadGrammarDragfillTable);
   document.getElementById("unitSelect").addEventListener("change", function () {
@@ -65,6 +67,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("bulkAddSentenceForm").addEventListener("submit", handleBulkAddSentences);
   document.getElementById("bulkAddGrammarMcqForm").addEventListener("submit", handleBulkAddGrammarMcq);
   document.getElementById("bulkAddGrammarTypingForm").addEventListener("submit", handleBulkAddGrammarTyping);
+  document.getElementById("addGrammarTypingSetBtn").addEventListener("click", handleAddGrammarTypingSet);
+  document.getElementById("grammarTypingSetSelect").addEventListener("change", loadGrammarTypingTable);
   document.getElementById("bulkAddGrammarMatchingForm").addEventListener("submit", handleBulkAddGrammarMatching);
   document.getElementById("bulkAddGrammarDragfillForm").addEventListener("submit", handleBulkAddGrammarDragfill);
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);

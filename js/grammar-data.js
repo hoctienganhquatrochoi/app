@@ -10,12 +10,12 @@ async function loadGrammarMcqForUnit(unitId) {
   return result.data;
 }
 
-async function loadGrammarTypingForUnit(unitId) {
-  var result = await supabaseClient
-    .from("game_grammar_typing")
-    .select("*")
-    .eq("unit_id", unitId)
-    .order("sort_order", { ascending: true });
+async function loadGrammarTypingForUnit(unitId, setName) {
+  var query = supabaseClient.from("game_grammar_typing").select("*").eq("unit_id", unitId);
+  if (setName) {
+    query = query.eq("set_name", setName);
+  }
+  var result = await query.order("sort_order", { ascending: true });
   if (result.error) {
     return [];
   }

@@ -26,6 +26,9 @@ create table if not exists game_grammar_typing (
 alter table game_grammar_typing disable row level security;
 create index if not exists game_grammar_typing_unit_idx on game_grammar_typing(unit_id);
 
+alter table game_grammar_typing add column if not exists set_name text not null default 'Viết câu trả lời';
+create index if not exists game_grammar_typing_unit_set_idx on game_grammar_typing(unit_id, set_name);
+
 create table if not exists game_grammar_matching (
   id uuid primary key default gen_random_uuid(),
   unit_id text not null,

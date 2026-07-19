@@ -27,10 +27,6 @@ var GRAMMAR_MCQ_ACTIVITY_TEMPLATE = [
   { id: "gm1", name: "Trắc nghiệm ngữ pháp", type: "grammar-mcq", locked: false }
 ];
 
-var GRAMMAR_TYPING_ACTIVITY_TEMPLATE = [
-  { id: "gt1", name: "Viết câu trả lời", type: "grammar-typing", locked: false }
-];
-
 var GRAMMAR_MATCHING_ACTIVITY_TEMPLATE = [
   { id: "gx1", name: "Nối câu", type: "grammar-matching", locked: false }
 ];
@@ -38,6 +34,29 @@ var GRAMMAR_MATCHING_ACTIVITY_TEMPLATE = [
 var GRAMMAR_DRAGFILL_ACTIVITY_TEMPLATE = [
   { id: "gd1", name: "Điền từ vào chỗ trống", type: "grammar-dragfill", locked: false }
 ];
+
+function buildGrammarTypingActivities(rows) {
+  var byUnit = {};
+  var seen = {};
+  rows.forEach(function (row) {
+    var key = row.unit_id + "||" + row.set_name;
+    if (seen[key]) {
+      return;
+    }
+    seen[key] = true;
+    if (!byUnit[row.unit_id]) {
+      byUnit[row.unit_id] = [];
+    }
+    byUnit[row.unit_id].push({
+      id: "gt_" + row.set_name,
+      name: row.set_name,
+      type: "grammar-typing",
+      setName: row.set_name,
+      locked: false
+    });
+  });
+  return byUnit;
+}
 
 function buildWordwallActivities(rows) {
   var byUnit = {};
@@ -75,11 +94,8 @@ async function loadCurriculumData() {
   (grammarMcqUnitsResult.data || []).forEach(function (row) {
     unitsWithGrammarMcq[row.unit_id] = true;
   });
-  var grammarTypingUnitsResult = await supabaseClient.from("game_grammar_typing").select("unit_id");
-  var unitsWithGrammarTyping = {};
-  (grammarTypingUnitsResult.data || []).forEach(function (row) {
-    unitsWithGrammarTyping[row.unit_id] = true;
-  });
+  var grammarTypingUnitsResult = await supabaseClient.from("game_grammar_typing").select("unit_id, set_name").order("sort_order", { ascending: true });
+  var grammarTypingByUnit = buildGrammarTypingActivities(grammarTypingUnitsResult.data || []);
   var grammarMatchingUnitsResult = await supabaseClient.from("game_grammar_matching").select("unit_id");
   var unitsWithGrammarMatching = {};
   (grammarMatchingUnitsResult.data || []).forEach(function (row) {
@@ -120,7 +136,7 @@ async function loadCurriculumData() {
     unit.activities = VOCAB_ACTIVITY_TEMPLATE
       .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
       .concat(unitsWithGrammarMcq[urow.id] ? GRAMMAR_MCQ_ACTIVITY_TEMPLATE : [])
-      .concat(unitsWithGrammarTyping[urow.id] ? GRAMMAR_TYPING_ACTIVITY_TEMPLATE : [])
+      .concat(grammarTypingByUnit[urow.id] || [])
       .concat(unitsWithGrammarMatching[urow.id] ? GRAMMAR_MATCHING_ACTIVITY_TEMPLATE : [])
       .concat(unitsWithGrammarDragfill[urow.id] ? GRAMMAR_DRAGFILL_ACTIVITY_TEMPLATE : [])
       .concat(wordwallByUnit[urow.id] || []);

@@ -770,7 +770,7 @@ function switchComposeSubTab(target) {
   } else if (target === "grammarMcq") {
     loadGrammarMcqTable();
   } else if (target === "grammarTyping") {
-    loadGrammarTypingTable();
+    loadGrammarTypingSetList().then(loadGrammarTypingTable);
   } else if (target === "grammarMatching") {
     loadGrammarMatchingTable();
   } else if (target === "grammarDragfill") {

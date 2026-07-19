@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260718x">
-<link rel="stylesheet" href="css/admin.css?v=20260718x">
+<link rel="stylesheet" href="../css/style.css?v=20260719a">
+<link rel="stylesheet" href="css/admin.css?v=20260719a">
 </head>
 <body>
 
@@ -373,11 +373,31 @@ Choose the word that has the underlined letters pronounced differently.
             </div>
 
             <div id="grammarTypingComposeSubPanel" style="display:none">
+              <p class="admin-hint">Mỗi Unit có thể có nhiều bài "Viết câu trả lời" riêng (VD "IOE3-04", "IOE3-09") để dễ quản lý — mỗi bài sẽ hiện thành 1 mục riêng trong menu học sinh, giống như Wordwall.</p>
+
+              <div class="admin-form" id="grammarTypingSetManageBox">
+                <h3>Quản lý bài</h3>
+                <div id="grammarTypingSetListWrap"></div>
+                <div class="admin-form-row">
+                  <div class="admin-field">
+                    <label>Tên bài mới</label>
+                    <input type="text" id="newGrammarTypingSetName" placeholder="VD: IOE3-09">
+                  </div>
+                  <div class="admin-field admin-field-btn">
+                    <button type="button" class="admin-btn-primary" id="addGrammarTypingSetBtn">+ Thêm bài</button>
+                  </div>
+                </div>
+                <div class="admin-status" id="grammarTypingSetStatus"></div>
+              </div>
+
+              <label class="admin-label" for="grammarTypingSetSelect">Đang soạn câu cho bài</label>
+              <select class="admin-select" id="grammarTypingSetSelect"></select>
+
               <form class="admin-form" id="bulkAddGrammarTypingForm">
                 <h3>Nhập hàng loạt</h3>
                 <p class="admin-hint">
                   Mỗi dòng 1 câu, cách nhau bằng dấu <code>|</code>: <code>Câu hỏi | Đáp án</code>. Dùng được cho nhiều dạng: chuyển câu (khẳng định → phủ định), dịch Việt → Anh, v.v.
-                  Học sinh gõ tự do, không có gợi ý, không đọc âm thanh.
+                  Học sinh gõ tự do, không có gợi ý, không đọc âm thanh. Câu sẽ được thêm vào bài đang chọn ở trên.
                 </p>
                 <textarea class="admin-textarea" id="bulkGrammarTypingTextarea" rows="8" placeholder="I am a student. | I am not a student.
 Tôi có hai anh em trai. | I have two brothers."></textarea>
@@ -614,22 +634,22 @@ Những cây đèn để bàn ở đâu?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260718x"></script>
-<script src="../js/supabase-config.js?v=20260718x"></script>
-<script src="js/admin-auth.js?v=20260718x"></script>
-<script src="../js/curriculum-data.js?v=20260718x"></script>
-<script src="js/content-admin.js?v=20260718x"></script>
-<script src="js/sentences-admin.js?v=20260718x"></script>
-<script src="js/grammar-admin.js?v=20260718x"></script>
-<script src="js/speaking-admin.js?v=20260718x"></script>
-<script src="js/wordwall-admin.js?v=20260718x"></script>
-<script src="js/wordwall-templates-admin.js?v=20260718x"></script>
-<script src="js/groups-admin.js?v=20260718x"></script>
-<script src="js/students-admin.js?v=20260718x"></script>
-<script src="js/assignments-admin.js?v=20260718x"></script>
-<script src="js/results-admin.js?v=20260718x"></script>
-<script src="js/activity-toggles-admin.js?v=20260718x"></script>
-<script src="js/curriculum-admin.js?v=20260718x"></script>
-<script src="js/admin-app.js?v=20260718x"></script>
+<script src="../js/data.js?v=20260719a"></script>
+<script src="../js/supabase-config.js?v=20260719a"></script>
+<script src="js/admin-auth.js?v=20260719a"></script>
+<script src="../js/curriculum-data.js?v=20260719a"></script>
+<script src="js/content-admin.js?v=20260719a"></script>
+<script src="js/sentences-admin.js?v=20260719a"></script>
+<script src="js/grammar-admin.js?v=20260719a"></script>
+<script src="js/speaking-admin.js?v=20260719a"></script>
+<script src="js/wordwall-admin.js?v=20260719a"></script>
+<script src="js/wordwall-templates-admin.js?v=20260719a"></script>
+<script src="js/groups-admin.js?v=20260719a"></script>
+<script src="js/students-admin.js?v=20260719a"></script>
+<script src="js/assignments-admin.js?v=20260719a"></script>
+<script src="js/results-admin.js?v=20260719a"></script>
+<script src="js/activity-toggles-admin.js?v=20260719a"></script>
+<script src="js/curriculum-admin.js?v=20260719a"></script>
+<script src="js/admin-app.js?v=20260719a"></script>
 </body>
 </html>
