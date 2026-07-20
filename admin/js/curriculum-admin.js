@@ -638,13 +638,6 @@ function buildUnitRow(unit, pathLabel, idx, total) {
     }
     await refreshCurriculumEverywhere();
   }));
-  actionTd.appendChild(buildActionBtn("Giao bài", "admin-btn-secondary", function () {
-    switchTab("students");
-    document.getElementById("assignmentUnitSearch").value = "";
-    populateAssignmentUnitSelect();
-    document.getElementById("assignmentUnitSelect").value = unit.id;
-    document.getElementById("assignmentBox").scrollIntoView({ behavior: "smooth" });
-  }));
   actionTd.appendChild(buildActionBtn("Kết quả", "admin-btn-secondary", function () {
     switchTab("results");
     document.getElementById("resultsUnitSearch").value = "";
