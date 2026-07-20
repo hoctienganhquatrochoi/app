@@ -511,6 +511,8 @@ function renderResultsAssignmentList(rows) {
 }
 
 function jumpToAssignmentResults(assignmentRow) {
+  document.getElementById("resultsUnitSearch").value = "";
+  populateResultsUnitSelect();
   document.getElementById("resultsUnitSelect").value = assignmentRow.unit_id;
   document.getElementById("resultsActivitySelect").value = assignmentRow.activity_type;
   document.getElementById("resultsGroupFilter").value = assignmentRow.group_id;
