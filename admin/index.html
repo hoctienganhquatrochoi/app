@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260719p">
-<link rel="stylesheet" href="css/admin.css?v=20260719p">
+<link rel="stylesheet" href="../css/style.css?v=20260719q">
+<link rel="stylesheet" href="css/admin.css?v=20260719q">
 </head>
 <body>
 
@@ -68,6 +68,25 @@
     <div class="login-modal-actions">
       <button class="login-modal-btn login-modal-btn-cancel" id="cancelChangeAdminPasswordBtn" type="button">Hủy</button>
       <button class="login-modal-btn login-modal-btn-submit" id="submitChangeAdminPasswordBtn" type="button">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<div class="login-modal-overlay" id="quickAssignModalOverlay" style="display:none">
+  <div class="login-modal">
+    <h3>Giao bài: <span id="quickAssignActivityLabel"></span></h3>
+    <div class="admin-field">
+      <label>Nhóm học sinh</label>
+      <select id="quickAssignGroupSelect"></select>
+    </div>
+    <div class="admin-field">
+      <label>Hạn nộp</label>
+      <input type="datetime-local" id="quickAssignDueAt">
+    </div>
+    <div class="login-modal-status" id="quickAssignStatus"></div>
+    <div class="login-modal-actions">
+      <button class="login-modal-btn login-modal-btn-cancel" id="quickAssignCancelBtn" type="button">Hủy</button>
+      <button class="login-modal-btn login-modal-btn-submit" id="quickAssignSubmitBtn" type="button">Giao bài</button>
     </div>
   </div>
 </div>
@@ -756,23 +775,23 @@ What is Alex's family name?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260719p"></script>
-<script src="../js/supabase-config.js?v=20260719p"></script>
-<script src="js/admin-auth.js?v=20260719p"></script>
-<script src="../js/curriculum-data.js?v=20260719p"></script>
-<script src="js/content-admin.js?v=20260719p"></script>
-<script src="js/sentences-admin.js?v=20260719p"></script>
-<script src="js/grammar-admin.js?v=20260719p"></script>
-<script src="js/photo-quiz-admin.js?v=20260719p"></script>
-<script src="js/speaking-admin.js?v=20260719p"></script>
-<script src="js/wordwall-admin.js?v=20260719p"></script>
-<script src="js/wordwall-templates-admin.js?v=20260719p"></script>
-<script src="js/groups-admin.js?v=20260719p"></script>
-<script src="js/students-admin.js?v=20260719p"></script>
-<script src="js/assignments-admin.js?v=20260719p"></script>
-<script src="js/results-admin.js?v=20260719p"></script>
-<script src="js/activity-toggles-admin.js?v=20260719p"></script>
-<script src="js/curriculum-admin.js?v=20260719p"></script>
-<script src="js/admin-app.js?v=20260719p"></script>
+<script src="../js/data.js?v=20260719q"></script>
+<script src="../js/supabase-config.js?v=20260719q"></script>
+<script src="js/admin-auth.js?v=20260719q"></script>
+<script src="../js/curriculum-data.js?v=20260719q"></script>
+<script src="js/content-admin.js?v=20260719q"></script>
+<script src="js/sentences-admin.js?v=20260719q"></script>
+<script src="js/grammar-admin.js?v=20260719q"></script>
+<script src="js/photo-quiz-admin.js?v=20260719q"></script>
+<script src="js/speaking-admin.js?v=20260719q"></script>
+<script src="js/wordwall-admin.js?v=20260719q"></script>
+<script src="js/wordwall-templates-admin.js?v=20260719q"></script>
+<script src="js/groups-admin.js?v=20260719q"></script>
+<script src="js/students-admin.js?v=20260719q"></script>
+<script src="js/assignments-admin.js?v=20260719q"></script>
+<script src="js/results-admin.js?v=20260719q"></script>
+<script src="js/activity-toggles-admin.js?v=20260719q"></script>
+<script src="js/curriculum-admin.js?v=20260719q"></script>
+<script src="js/admin-app.js?v=20260719q"></script>
 </body>
 </html>

@@ -114,6 +114,17 @@ function renderActivityToggles(disabledIds) {
 
     row.appendChild(moveWrap);
 
+    if (mapActivityToAssignmentType(activity)) {
+      var assignBtn = document.createElement("button");
+      assignBtn.type = "button";
+      assignBtn.className = "admin-btn-secondary";
+      assignBtn.textContent = "Giao bài";
+      assignBtn.addEventListener("click", function () {
+        openQuickAssignModal(activity);
+      });
+      row.appendChild(assignBtn);
+    }
+
     listEl.appendChild(row);
   });
 }

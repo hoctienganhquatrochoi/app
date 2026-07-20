@@ -22,6 +22,123 @@ var ASSIGNMENT_BATCH_TABLES = {
   "photo-quiz": "game_photo_quiz_questions"
 };
 
+function mapActivityToAssignmentType(activity) {
+  if (activity.type === "typing") {
+    return activity.mode === "hint" ? "typing-hint" : "typing-blank";
+  }
+  if (activity.type === "free-typing") {
+    return "free-typing-" + activity.mode;
+  }
+  if (ASSIGNMENT_ACTIVITY_LABELS[activity.type] !== undefined) {
+    return activity.type;
+  }
+  return null;
+}
+
+function unitBreadcrumbLabel(unitId) {
+  var unit = findUnitById(unitId);
+  if (!unit) {
+    return "";
+  }
+  var subject = findSubjectById(unit.subject_id);
+  var cls = subject ? findClassById(subject.class_id) : null;
+  var parts = [];
+  if (cls) {
+    parts.push(cls.name);
+  }
+  if (subject) {
+    parts.push(subjectDisplayName(subject));
+  }
+  parts.push(unitDisplayName(unit));
+  return parts.join(" › ");
+}
+
+var quickAssignActivity = null;
+
+function populateQuickAssignGroupSelect() {
+  var select = document.getElementById("quickAssignGroupSelect");
+  select.innerHTML = "";
+  TEACHING_GROUPS.forEach(function (g) {
+    var opt = document.createElement("option");
+    opt.value = g.id;
+    opt.text = g.name;
+    select.appendChild(opt);
+  });
+}
+
+function openQuickAssignModal(activity) {
+  var activityType = mapActivityToAssignmentType(activity);
+  if (!activityType) {
+    return;
+  }
+  quickAssignActivity = activity;
+  document.getElementById("quickAssignActivityLabel").textContent = activity.name;
+  populateQuickAssignGroupSelect();
+  document.getElementById("quickAssignDueAt").value = "";
+  document.getElementById("quickAssignStatus").textContent = "";
+  document.getElementById("quickAssignModalOverlay").style.display = "flex";
+}
+
+function closeQuickAssignModal() {
+  document.getElementById("quickAssignModalOverlay").style.display = "none";
+  quickAssignActivity = null;
+}
+
+async function handleQuickAssignSubmit() {
+  if (!quickAssignActivity) {
+    return;
+  }
+  var groupId = document.getElementById("quickAssignGroupSelect").value;
+  var dueAtLocal = document.getElementById("quickAssignDueAt").value;
+  var statusEl = document.getElementById("quickAssignStatus");
+
+  if (!groupId) {
+    statusEl.textContent = "Chọn 1 Nhóm học sinh";
+    return;
+  }
+  if (!dueAtLocal) {
+    statusEl.textContent = "Chọn hạn nộp";
+    return;
+  }
+
+  statusEl.textContent = "Đang giao bài...";
+
+  var unitId = currentToggleUnitId;
+  var activityType = mapActivityToAssignmentType(quickAssignActivity);
+  var setName = quickAssignActivity.setName || null;
+  var activityLabel = ASSIGNMENT_ACTIVITY_LABELS[activityType] + (setName ? " (" + setName + ")" : "");
+
+  var result = await supabaseClient.from("game_assignments").insert({
+    group_id: groupId,
+    unit_id: unitId,
+    activity_type: activityType,
+    set_name: setName,
+    activity_name: unitBreadcrumbLabel(unitId) + " – " + activityLabel,
+    due_at: new Date(dueAtLocal).toISOString()
+  }).select().single();
+
+  if (result.error) {
+    statusEl.textContent = "Lỗi giao bài: " + result.error.message;
+    return;
+  }
+
+  var studentsResult = await supabaseClient.from("game_students").select("id").eq("group_id", groupId);
+  var studentIds = (studentsResult.data || []).map(function (s) { return s.id; });
+  if (studentIds.length) {
+    var accessRows = studentIds.map(function (id) {
+      return { assignment_id: result.data.id, student_id: id };
+    });
+    var accessResult = await supabaseClient.from("game_assignment_access").insert(accessRows);
+    if (accessResult.error) {
+      statusEl.textContent = "Đã giao bài nhưng lỗi mở khóa cho học sinh: " + accessResult.error.message;
+      return;
+    }
+  }
+
+  statusEl.textContent = "Đã giao bài cho " + studentIds.length + " học sinh trong nhóm ✓";
+  setTimeout(closeQuickAssignModal, 1200);
+}
+
 async function updateAssignmentSetNameField() {
   var unitId = document.getElementById("assignmentUnitSelect").value;
   var activityType = document.getElementById("assignmentActivitySelect").value;

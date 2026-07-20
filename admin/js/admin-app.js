@@ -148,6 +148,13 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
   document.getElementById("assignmentUnitSelect").addEventListener("change", updateAssignmentSetNameField);
   document.getElementById("assignmentActivitySelect").addEventListener("change", updateAssignmentSetNameField);
+  document.getElementById("quickAssignCancelBtn").addEventListener("click", closeQuickAssignModal);
+  document.getElementById("quickAssignSubmitBtn").addEventListener("click", handleQuickAssignSubmit);
+  document.getElementById("quickAssignModalOverlay").addEventListener("click", function (e) {
+    if (e.target === this) {
+      closeQuickAssignModal();
+    }
+  });
   document.getElementById("closeWordwallTemplateModalBtn").addEventListener("click", closeWordwallTemplateModal);
   document.getElementById("addWordwallTemplateBtn").addEventListener("click", handleAddWordwallTemplate);
   document.getElementById("addWordwallTemplateItemBtn").addEventListener("click", handleAddWordwallTemplateItem);
