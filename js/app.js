@@ -469,13 +469,13 @@ async function renderMainContent() {
 
     main.innerHTML = "";
     if (activity.type === "grammar-mcq") {
-      renderGrammarMcq(main, breadcrumbText, grammarItems, unit.id);
+      renderGrammarMcq(main, breadcrumbText, grammarItems, unit.id, activity.setName);
     } else if (activity.type === "grammar-typing") {
-      renderGrammarTyping(main, breadcrumbText, grammarItems, unit.id);
+      renderGrammarTyping(main, breadcrumbText, grammarItems, unit.id, activity.setName);
     } else if (activity.type === "grammar-matching") {
-      renderGrammarMatching(main, breadcrumbText, grammarItems, unit.id);
+      renderGrammarMatching(main, breadcrumbText, grammarItems, unit.id, activity.setName);
     } else {
-      renderGrammarDragfill(main, breadcrumbText, grammarItems, unit.id);
+      renderGrammarDragfill(main, breadcrumbText, grammarItems, unit.id, activity.setName);
     }
     return;
   }
@@ -502,7 +502,7 @@ async function renderMainContent() {
     }
 
     main.innerHTML = "";
-    renderPhotoQuiz(main, breadcrumbText, photoQuizSet.imageUrl, photoQuizSet.questions, unit.id);
+    renderPhotoQuiz(main, breadcrumbText, photoQuizSet.imageUrl, photoQuizSet.questions, unit.id, activity.setName);
     return;
   }
 

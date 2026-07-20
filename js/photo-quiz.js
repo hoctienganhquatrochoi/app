@@ -14,7 +14,7 @@ function buildPhotoQuizData(questions) {
   });
 }
 
-function renderPhotoQuiz(container, breadcrumbText, imageUrl, questions, unitId) {
+function renderPhotoQuiz(container, breadcrumbText, imageUrl, questions, unitId, setName) {
   var qData = buildPhotoQuizData(questions);
   var answers = new Array(qData.length).fill(null);
   var startedAt = new Date();
@@ -114,7 +114,7 @@ function renderPhotoQuiz(container, breadcrumbText, imageUrl, questions, unitId)
       });
     });
 
-    submitQuizAttempt(unitId, "photo-quiz", score, qData.length, startedAt, answersLog);
+    submitQuizAttempt(unitId, "photo-quiz", score, qData.length, startedAt, answersLog, setName);
     showResult(score, answersLog);
   }
 
@@ -146,7 +146,7 @@ function renderPhotoQuiz(container, breadcrumbText, imageUrl, questions, unitId)
     retryBtn.type = "button";
     retryBtn.textContent = "Làm lại";
     retryBtn.addEventListener("click", function () {
-      renderPhotoQuiz(container, breadcrumbText, imageUrl, questions, unitId);
+      renderPhotoQuiz(container, breadcrumbText, imageUrl, questions, unitId, setName);
     });
     wrap.appendChild(retryBtn);
 

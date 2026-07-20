@@ -5,7 +5,7 @@ function normalizeGrammarTypingAnswer(str) {
   return (str || "").trim().replace(/\s+/g, " ");
 }
 
-function renderGrammarTyping(container, breadcrumbText, items, unitId) {
+function renderGrammarTyping(container, breadcrumbText, items, unitId, setName) {
   var pool = shuffleArray(items);
   var qIndex = 0;
   var score = 0;
@@ -150,7 +150,7 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId) {
     clearInterval(timerIntervalId);
     tabTracker.stop();
     document.removeEventListener("keydown", handleGlobalKeydown);
-    submitQuizAttempt(unitId, "grammar-typing", score, pool.length, startedAt, answersLog);
+    submitQuizAttempt(unitId, "grammar-typing", score, pool.length, startedAt, answersLog, setName);
 
     container.innerHTML = "";
     var wrap = document.createElement("div");

@@ -14,6 +14,60 @@ var ASSIGNMENT_ACTIVITY_LABELS = {
   "photo-quiz": "Đọc/Nghe theo ảnh"
 };
 
+var ASSIGNMENT_BATCH_TABLES = {
+  "grammar-mcq": "game_grammar_mcq",
+  "grammar-typing": "game_grammar_typing",
+  "grammar-matching": "game_grammar_matching",
+  "grammar-dragfill": "game_grammar_dragfill",
+  "photo-quiz": "game_photo_quiz_questions"
+};
+
+async function updateAssignmentSetNameField() {
+  var unitId = document.getElementById("assignmentUnitSelect").value;
+  var activityType = document.getElementById("assignmentActivitySelect").value;
+  var field = document.getElementById("assignmentSetNameField");
+  var select = document.getElementById("assignmentSetNameSelect");
+  var table = ASSIGNMENT_BATCH_TABLES[activityType];
+
+  if (!table || !unitId) {
+    field.style.display = "none";
+    select.innerHTML = "";
+    return;
+  }
+
+  field.style.display = "";
+  select.innerHTML = "";
+  var loadingOpt = document.createElement("option");
+  loadingOpt.text = "Đang tải...";
+  select.appendChild(loadingOpt);
+
+  var result = await supabaseClient.from(table).select("set_name").eq("unit_id", unitId);
+  var names = [];
+  var seen = {};
+  (result.data || []).forEach(function (row) {
+    if (!seen[row.set_name]) {
+      seen[row.set_name] = true;
+      names.push(row.set_name);
+    }
+  });
+
+  select.innerHTML = "";
+  if (!names.length) {
+    var emptyOpt = document.createElement("option");
+    emptyOpt.value = "";
+    emptyOpt.text = "Unit này chưa có bài nào cho dạng này";
+    select.appendChild(emptyOpt);
+    return;
+  }
+
+  names.forEach(function (name) {
+    var opt = document.createElement("option");
+    opt.value = name;
+    opt.text = name;
+    select.appendChild(opt);
+  });
+}
+
 var ALL_UNITS_FLAT = [];
 
 function buildAllUnitsFlat() {
@@ -126,6 +180,8 @@ async function handleAddAssignment() {
   var unitId = document.getElementById("assignmentUnitSelect").value;
   var activityType = document.getElementById("assignmentActivitySelect").value;
   var dueAtLocal = document.getElementById("assignmentDueAt").value;
+  var isBatchType = !!ASSIGNMENT_BATCH_TABLES[activityType];
+  var setName = isBatchType ? document.getElementById("assignmentSetNameSelect").value : null;
 
   if (!groupId) {
     window.alert("Chọn 1 Nhóm học sinh cụ thể ở ô \"Lọc theo Nhóm học sinh\" bên trên trước");
@@ -135,6 +191,10 @@ async function handleAddAssignment() {
     window.alert("Chọn 1 Unit để giao bài");
     return;
   }
+  if (isBatchType && !setName) {
+    window.alert("Chọn 1 bài cụ thể ở ô \"Chọn bài\"");
+    return;
+  }
   if (!dueAtLocal) {
     window.alert("Chọn hạn nộp");
     return;
@@ -142,6 +202,7 @@ async function handleAddAssignment() {
 
   var unitSelect = document.getElementById("assignmentUnitSelect");
   var unitLabel = unitSelect.options[unitSelect.selectedIndex].text;
+  var activityLabel = ASSIGNMENT_ACTIVITY_LABELS[activityType] + (setName ? " (" + setName + ")" : "");
   var presentStudentIds = Array.prototype.map.call(
     document.querySelectorAll("#assignmentStudentAccessWrap input[type=checkbox]:checked"),
     function (cb) { return cb.value; }
@@ -153,7 +214,8 @@ async function handleAddAssignment() {
     group_id: groupId,
     unit_id: unitId,
     activity_type: activityType,
-    activity_name: unitLabel + " – " + ASSIGNMENT_ACTIVITY_LABELS[activityType],
+    set_name: setName,
+    activity_name: unitLabel + " – " + activityLabel,
     due_at: new Date(dueAtLocal).toISOString()
   }).select().single();
 
