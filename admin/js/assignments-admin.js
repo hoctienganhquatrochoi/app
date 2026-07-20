@@ -6,7 +6,12 @@ var ASSIGNMENT_ACTIVITY_LABELS = {
   "flip-card": "Thẻ lật",
   "free-typing-hint": "Nghe - Đánh máy (key)",
   "free-typing-blank": "Nghe đánh máy không key",
-  "free-typing-audio": "Nghe - Đánh máy"
+  "free-typing-audio": "Nghe - Đánh máy",
+  "grammar-mcq": "Trắc nghiệm ngữ pháp",
+  "grammar-typing": "Viết câu trả lời",
+  "grammar-matching": "Nối câu",
+  "grammar-dragfill": "Điền từ vào chỗ trống",
+  "photo-quiz": "Đọc/Nghe theo ảnh"
 };
 
 var ALL_UNITS_FLAT = [];
