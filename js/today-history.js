@@ -8,7 +8,12 @@ var TODAY_HISTORY_ACTIVITY_LABELS = {
   "free-typing-blank": "Nghe đánh máy không key",
   "free-typing-audio": "Nghe - Đánh máy",
   "flashcard": "Thẻ đọc",
-  "speaking": "Kiểm tra nói"
+  "speaking": "Kiểm tra nói",
+  "grammar-mcq": "Trắc nghiệm ngữ pháp",
+  "grammar-typing": "Viết câu trả lời",
+  "grammar-matching": "Nối câu",
+  "grammar-dragfill": "Điền từ vào chỗ trống",
+  "photo-quiz": "Đọc/Nghe theo ảnh"
 };
 
 function unitNameById(unitId) {

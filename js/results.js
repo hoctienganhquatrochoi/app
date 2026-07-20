@@ -18,16 +18,22 @@ async function submitQuizAttempt(unitId, activityType, score, total, startedAt, 
     return;
   }
 
-  var assignmentId = await findActiveAssignmentId(currentStudent.id, unitId, activityType);
-
-  await supabaseClient.from("game_quiz_attempts").insert({
+  var insertResult = await supabaseClient.from("game_quiz_attempts").insert({
     student_id: currentStudent.id,
     unit_id: unitId,
     activity_type: activityType,
     score: score,
     total: total,
     started_at: startedAt.toISOString(),
-    answers: answersLog,
-    assignment_id: assignmentId
-  });
+    answers: answersLog
+  }).select().single();
+
+  if (insertResult.error || !insertResult.data) {
+    return;
+  }
+
+  var assignmentId = await findActiveAssignmentId(currentStudent.id, unitId, activityType);
+  if (assignmentId) {
+    await supabaseClient.from("game_quiz_attempts").update({ assignment_id: assignmentId }).eq("id", insertResult.data.id);
+  }
 }
