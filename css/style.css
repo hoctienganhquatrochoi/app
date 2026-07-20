@@ -915,6 +915,10 @@ html, body {
 .quiz-option:not(.quiz-option-image):nth-child(3) { background: #F0973D; }
 .quiz-option:not(.quiz-option-image):nth-child(4) { background: #4FAE6D; }
 
+.quiz-option.quiz-option-meaning {
+  text-transform: none;
+}
+
 .quiz-option.grammar-mcq-option {
   text-transform: none;
 }
