@@ -480,6 +480,32 @@ async function renderMainContent() {
     return;
   }
 
+  if (activity.type === "photo-quiz") {
+    var photoLoading = document.createElement("div");
+    photoLoading.className = "placeholder";
+    photoLoading.textContent = "Đang tải nội dung...";
+    main.appendChild(photoLoading);
+
+    var photoQuizSet = await loadPhotoQuizSet(unit.id, activity.setName);
+
+    if (!state.selectedActivity || state.selectedActivity.unit.id !== unit.id || state.selectedActivity.activity.id !== activity.id) {
+      return;
+    }
+
+    if (!photoQuizSet.imageUrl && !photoQuizSet.questions.length) {
+      main.innerHTML = "";
+      var photoEmpty = document.createElement("div");
+      photoEmpty.className = "placeholder";
+      photoEmpty.textContent = "Unit này chưa có nội dung.";
+      main.appendChild(photoEmpty);
+      return;
+    }
+
+    main.innerHTML = "";
+    renderPhotoQuiz(main, breadcrumbText, photoQuizSet.imageUrl, photoQuizSet.questions, unit.id);
+    return;
+  }
+
   if (activity.type === "wordwall") {
     main.innerHTML = "";
     renderWordwallActivity(main, breadcrumbText, activity.embedUrl, unit.id, activity.name);

@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260719h">
-<link rel="stylesheet" href="css/admin.css?v=20260719h">
+<link rel="stylesheet" href="../css/style.css?v=20260719i">
+<link rel="stylesheet" href="css/admin.css?v=20260719i">
 </head>
 <body>
 
@@ -235,6 +235,7 @@
               <button class="admin-subtab" type="button" data-composesubtab="grammarTyping">Viết câu trả lời</button>
               <button class="admin-subtab" type="button" data-composesubtab="grammarMatching">Nối câu</button>
               <button class="admin-subtab" type="button" data-composesubtab="grammarDragfill">Điền từ vào chỗ trống</button>
+              <button class="admin-subtab" type="button" data-composesubtab="photoQuiz">Đọc/Nghe theo ảnh</button>
             </nav>
 
             <div id="vocabComposeSubPanel">
@@ -505,6 +506,53 @@ Những cây đèn để bàn ở đâu?
 
               <div id="grammarDragfillTableWrap"></div>
             </div>
+
+            <div id="photoQuizComposeSubPanel" style="display:none">
+              <p class="admin-hint">Chụp/scan cả trang bài tập lên, học sinh nhìn ảnh rồi trả lời từng câu hỏi hiện bên dưới — dùng được cho các bài Nghe/Đọc trong sách mà không cần đánh máy lại toàn bộ. Mỗi Unit có thể có nhiều bài riêng, mỗi bài hiện thành 1 mục riêng trong menu học sinh.</p>
+
+              <div class="admin-form" id="photoQuizSetManageBox">
+                <h3>Quản lý bài</h3>
+                <div id="photoQuizSetListWrap"></div>
+                <div class="admin-form-row">
+                  <div class="admin-field">
+                    <label>Tên bài mới</label>
+                    <input type="text" id="newPhotoQuizSetName" placeholder="VD: Unit 5 - Listening">
+                  </div>
+                  <div class="admin-field admin-field-btn">
+                    <button type="button" class="admin-btn-primary" id="addPhotoQuizSetBtn">+ Thêm bài</button>
+                  </div>
+                </div>
+                <div class="admin-status" id="photoQuizSetStatus"></div>
+              </div>
+
+              <label class="admin-label" for="photoQuizSetSelect">Đang soạn cho bài</label>
+              <select class="admin-select" id="photoQuizSetSelect"></select>
+
+              <div class="admin-form" id="photoQuizImageBox">
+                <h3>Ảnh đề bài</h3>
+                <div id="photoQuizImageWrap"></div>
+                <div class="admin-status" id="photoQuizImageStatus"></div>
+              </div>
+
+              <form class="admin-form" id="bulkAddPhotoQuizForm">
+                <h3>Nhập hàng loạt câu hỏi</h3>
+                <p class="admin-hint">
+                  Mỗi câu cách nhau 1 dòng trống: dòng 1 là câu hỏi, dòng <code>Đáp án đúng: ...</code> bắt buộc.
+                  Nếu có thêm dòng <code>Đáp án sai: ...</code> (cách nhau bằng dấu phẩy) thì câu đó hiện thành các ô để học sinh bấm chọn;
+                  không có dòng này thì hiện thành ô để học sinh gõ câu trả lời. Câu sẽ được thêm vào bài đang chọn ở trên.
+                </p>
+                <textarea class="admin-textarea" id="bulkPhotoQuizTextarea" rows="10" placeholder="Who is this?
+Đáp án đúng: Mary
+Đáp án sai: Mai, Paul
+
+What is Alex's family name?
+Đáp án đúng: Smith"></textarea>
+                <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả</button>
+                <div class="admin-status" id="bulkPhotoQuizStatus"></div>
+              </form>
+
+              <div id="photoQuizTableWrap"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -694,22 +742,23 @@ Những cây đèn để bàn ở đâu?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260719h"></script>
-<script src="../js/supabase-config.js?v=20260719h"></script>
-<script src="js/admin-auth.js?v=20260719h"></script>
-<script src="../js/curriculum-data.js?v=20260719h"></script>
-<script src="js/content-admin.js?v=20260719h"></script>
-<script src="js/sentences-admin.js?v=20260719h"></script>
-<script src="js/grammar-admin.js?v=20260719h"></script>
-<script src="js/speaking-admin.js?v=20260719h"></script>
-<script src="js/wordwall-admin.js?v=20260719h"></script>
-<script src="js/wordwall-templates-admin.js?v=20260719h"></script>
-<script src="js/groups-admin.js?v=20260719h"></script>
-<script src="js/students-admin.js?v=20260719h"></script>
-<script src="js/assignments-admin.js?v=20260719h"></script>
-<script src="js/results-admin.js?v=20260719h"></script>
-<script src="js/activity-toggles-admin.js?v=20260719h"></script>
-<script src="js/curriculum-admin.js?v=20260719h"></script>
-<script src="js/admin-app.js?v=20260719h"></script>
+<script src="../js/data.js?v=20260719i"></script>
+<script src="../js/supabase-config.js?v=20260719i"></script>
+<script src="js/admin-auth.js?v=20260719i"></script>
+<script src="../js/curriculum-data.js?v=20260719i"></script>
+<script src="js/content-admin.js?v=20260719i"></script>
+<script src="js/sentences-admin.js?v=20260719i"></script>
+<script src="js/grammar-admin.js?v=20260719i"></script>
+<script src="js/photo-quiz-admin.js?v=20260719i"></script>
+<script src="js/speaking-admin.js?v=20260719i"></script>
+<script src="js/wordwall-admin.js?v=20260719i"></script>
+<script src="js/wordwall-templates-admin.js?v=20260719i"></script>
+<script src="js/groups-admin.js?v=20260719i"></script>
+<script src="js/students-admin.js?v=20260719i"></script>
+<script src="js/assignments-admin.js?v=20260719i"></script>
+<script src="js/results-admin.js?v=20260719i"></script>
+<script src="js/activity-toggles-admin.js?v=20260719i"></script>
+<script src="js/curriculum-admin.js?v=20260719i"></script>
+<script src="js/admin-app.js?v=20260719i"></script>
 </body>
 </html>

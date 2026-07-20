@@ -764,6 +764,7 @@ function switchComposeSubTab(target) {
   document.getElementById("grammarTypingComposeSubPanel").style.display = target === "grammarTyping" ? "" : "none";
   document.getElementById("grammarMatchingComposeSubPanel").style.display = target === "grammarMatching" ? "" : "none";
   document.getElementById("grammarDragfillComposeSubPanel").style.display = target === "grammarDragfill" ? "" : "none";
+  document.getElementById("photoQuizComposeSubPanel").style.display = target === "photoQuiz" ? "" : "none";
 
   if (target === "sentence") {
     loadSentenceTable();
@@ -775,6 +776,11 @@ function switchComposeSubTab(target) {
     loadGrammarMatchingSetList().then(loadGrammarMatchingTable);
   } else if (target === "grammarDragfill") {
     loadGrammarDragfillSetList().then(loadGrammarDragfillTable);
+  } else if (target === "photoQuiz") {
+    loadPhotoQuizSetList().then(function () {
+      loadPhotoQuizTable();
+      loadPhotoQuizSetImage();
+    });
   }
 }
 
@@ -837,6 +843,7 @@ async function getUnitContentCounts(unitId) {
   var grammarTypingResult = await supabaseClient.from("game_grammar_typing").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var grammarMatchingResult = await supabaseClient.from("game_grammar_matching").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var grammarDragfillResult = await supabaseClient.from("game_grammar_dragfill").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var photoQuizResult = await supabaseClient.from("game_photo_quiz_questions").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   return {
     vocab: vocabResult.count || 0,
     sentence: sentenceResult.count || 0,
@@ -844,7 +851,8 @@ async function getUnitContentCounts(unitId) {
     grammarMcq: grammarMcqResult.count || 0,
     grammarTyping: grammarTypingResult.count || 0,
     grammarMatching: grammarMatchingResult.count || 0,
-    grammarDragfill: grammarDragfillResult.count || 0
+    grammarDragfill: grammarDragfillResult.count || 0,
+    photoQuiz: photoQuizResult.count || 0
   };
 }
 
@@ -870,6 +878,9 @@ function describeUnitContentCounts(counts) {
   }
   if (counts.grammarDragfill > 0) {
     warnParts.push(counts.grammarDragfill + " câu điền từ vào chỗ trống");
+  }
+  if (counts.photoQuiz > 0) {
+    warnParts.push(counts.photoQuiz + " câu đọc/nghe theo ảnh");
   }
   return warnParts;
 }
@@ -908,6 +919,10 @@ async function deleteUnitAndContent(unitId, counts) {
   if (counts.grammarDragfill > 0) {
     await supabaseClient.from("game_grammar_dragfill").delete().eq("unit_id", unitId);
   }
+  if (counts.photoQuiz > 0) {
+    await supabaseClient.from("game_photo_quiz_questions").delete().eq("unit_id", unitId);
+  }
+  await supabaseClient.from("game_photo_quiz_sets").delete().eq("unit_id", unitId);
   await supabaseClient.from("game_unit_settings").delete().eq("unit_id", unitId);
   return await supabaseClient.from("game_units").delete().eq("id", unitId);
 }

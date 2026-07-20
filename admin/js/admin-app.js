@@ -35,6 +35,10 @@ document.addEventListener("DOMContentLoaded", async function () {
   loadGrammarTypingSetList().then(loadGrammarTypingTable);
   loadGrammarMatchingSetList().then(loadGrammarMatchingTable);
   loadGrammarDragfillSetList().then(loadGrammarDragfillTable);
+  loadPhotoQuizSetList().then(function () {
+    loadPhotoQuizTable();
+    loadPhotoQuizSetImage();
+  });
   loadSpeakingTestList().then(loadSpeakingTable);
   loadWordwallList();
   loadWordwallTemplates();
@@ -57,6 +61,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
   document.getElementById("unitSelect").addEventListener("change", function () {
     loadGrammarDragfillSetList().then(loadGrammarDragfillTable);
+  });
+  document.getElementById("unitSelect").addEventListener("change", function () {
+    loadPhotoQuizSetList().then(function () {
+      loadPhotoQuizTable();
+      loadPhotoQuizSetImage();
+    });
   });
   document.getElementById("unitSelect").addEventListener("change", function () {
     loadSpeakingTestList().then(loadSpeakingTable);
@@ -83,6 +93,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("bulkAddGrammarDragfillForm").addEventListener("submit", handleBulkAddGrammarDragfill);
   document.getElementById("addGrammarDragfillSetBtn").addEventListener("click", handleAddGrammarDragfillSet);
   document.getElementById("grammarDragfillSetSelect").addEventListener("change", loadGrammarDragfillTable);
+  document.getElementById("bulkAddPhotoQuizForm").addEventListener("submit", handleBulkAddPhotoQuiz);
+  document.getElementById("addPhotoQuizSetBtn").addEventListener("click", handleAddPhotoQuizSet);
+  document.getElementById("photoQuizSetSelect").addEventListener("change", function () {
+    loadPhotoQuizTable();
+    loadPhotoQuizSetImage();
+  });
   document.getElementById("bulkAddSpeakingForm").addEventListener("submit", handleBulkAddSpeaking);
   document.getElementById("addStudentForm").addEventListener("submit", handleAddStudent);
   document.getElementById("addTeachingGroupBtn").addEventListener("click", handleAddTeachingGroup);

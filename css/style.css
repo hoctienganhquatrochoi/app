@@ -1127,6 +1127,61 @@ html, body {
   margin-top: 24px;
 }
 
+.pq-image {
+  max-width: 100%;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+}
+
+.pq-questions {
+  text-align: left;
+  max-width: 640px;
+  margin: 0 auto 20px;
+}
+
+.pq-question {
+  margin-bottom: 22px;
+}
+
+.pq-question-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1B4332;
+  margin-bottom: 8px;
+}
+
+.pq-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pq-option {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 2px solid #D8E4DC;
+  background: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1B4332;
+  cursor: pointer;
+}
+
+.pq-option.selected {
+  border-color: #2D6A4F;
+  background: #DCEAE2;
+}
+
+.pq-input {
+  width: 100%;
+  max-width: 320px;
+  padding: 10px 14px;
+  font-size: 18px;
+  border: 2px solid #D8E4DC;
+  border-radius: 10px;
+}
+
 .quiz-continue-btn {
   background: #1B4332;
   color: #F4E9CB;
