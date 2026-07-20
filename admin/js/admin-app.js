@@ -1,4 +1,5 @@
 function switchTab(target) {
+  saveAdminNavState({ topTab: target });
   var tabs = document.querySelectorAll(".admin-tab");
   var i;
   for (i = 0; i < tabs.length; i++) {
@@ -21,6 +22,8 @@ function switchTab(target) {
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
+  var savedNavState = loadAdminNavState();
+
   await loadCurriculumData();
   await loadTeachingGroups();
 
@@ -156,4 +159,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       switchTab(this.getAttribute("data-tab"));
     });
   }
+
+  restoreAdminNavState(savedNavState);
 });

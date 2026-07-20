@@ -2,6 +2,41 @@ function genId(prefix) {
   return prefix + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
+var ADMIN_NAV_STORAGE_KEY = "efkAdminNavState";
+
+function saveAdminNavState(partial) {
+  var state = loadAdminNavState();
+  var key;
+  for (key in partial) {
+    state[key] = partial[key];
+  }
+  localStorage.setItem(ADMIN_NAV_STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadAdminNavState() {
+  try {
+    return JSON.parse(localStorage.getItem(ADMIN_NAV_STORAGE_KEY) || "{}");
+  } catch (e) {
+    return {};
+  }
+}
+
+function restoreAdminNavState(state) {
+  state = state || {};
+  if (state.topTab && state.topTab !== "content") {
+    switchTab(state.topTab);
+  }
+  if (state.curriculumSubTab && state.curriculumSubTab !== "classes") {
+    switchCurriculumSubTab(state.curriculumSubTab);
+  }
+  if (state.curriculumSubTab === "manageContent" && state.composeView === "compose" && state.unitId && findUnitById(state.unitId)) {
+    selectUnitForComposing(state.unitId);
+    if (state.composeSubTab && state.composeSubTab !== "vocab") {
+      switchComposeSubTab(state.composeSubTab);
+    }
+  }
+}
+
 function unitDisplayName(unit) {
   return unit.name || ("(Không đặt tên #" + unit.id.slice(-4) + ")");
 }
@@ -163,6 +198,7 @@ function buildTableWrap(hasRows, tbodyBuilder) {
 /* ---------- sub-tab switching ---------- */
 
 function switchCurriculumSubTab(target) {
+  saveAdminNavState({ curriculumSubTab: target });
   var tabs = document.querySelectorAll("#curriculumSubTabs .admin-subtab");
   var i;
   for (i = 0; i < tabs.length; i++) {
@@ -708,11 +744,13 @@ function buildUnitEditRow(unit) {
 }
 
 function showUnitsManageView() {
+  saveAdminNavState({ composeView: "manage" });
   document.getElementById("unitsManageView").style.display = "block";
   document.getElementById("unitsComposeView").style.display = "none";
 }
 
 function showUnitsComposeView() {
+  saveAdminNavState({ composeView: "compose" });
   document.getElementById("unitsManageView").style.display = "none";
   document.getElementById("unitsComposeView").style.display = "block";
 }
@@ -737,6 +775,7 @@ function updateComposeBreadcrumb() {
 }
 
 function selectUnitForComposing(unitId) {
+  saveAdminNavState({ unitId: unitId });
   var select = document.getElementById("unitSelect");
   select.value = unitId;
   updateComposeBreadcrumb();
@@ -751,6 +790,7 @@ function selectUnitForComposing(unitId) {
 }
 
 function switchComposeSubTab(target) {
+  saveAdminNavState({ composeSubTab: target });
   var tabs = document.querySelectorAll("#composeSubTabs .admin-subtab");
   var i;
   for (i = 0; i < tabs.length; i++) {
