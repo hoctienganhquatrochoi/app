@@ -1,12 +1,13 @@
 var GRAMMAR_MATCHING_WRONG_FLASH_MS = 500;
 var GRAMMAR_MATCHING_ADVANCE_DELAY_MS = 1000;
+var MATCHING_COLOR_COUNT = 6;
 
 function renderGrammarMatching(container, breadcrumbText, items, unitId) {
   var pairs, leftOrder, rightOrder, selectedId, selectedSide, score, solvedCount, answersLog, startedAt, timerIntervalId, tabTracker;
 
   function resetState() {
     pairs = shuffleArray(items).map(function (row) {
-      return { id: row.id, left: row.left_text, right: row.right_text, solved: false, hadWrongAttempt: false };
+      return { id: row.id, left: row.left_text, right: row.right_text, solved: false, hadWrongAttempt: false, solvedOrder: -1 };
     });
     leftOrder = shuffleArray(pairs);
     rightOrder = shuffleArray(pairs);
@@ -70,7 +71,7 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId) {
     card.setAttribute("data-pair-id", pair.id);
     card.setAttribute("data-side", side);
     if (pair.solved) {
-      card.className += " solved";
+      card.className += " solved matching-color-" + (pair.solvedOrder % MATCHING_COLOR_COUNT);
       card.disabled = true;
     } else if (pair.id === selectedId && side === selectedSide) {
       card.className += " selected";
@@ -107,6 +108,7 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId) {
     if (otherId === pair.id) {
       var solvedPair = findPair(pair.id);
       solvedPair.solved = true;
+      solvedPair.solvedOrder = solvedCount;
       solvedCount++;
       if (!solvedPair.hadWrongAttempt) {
         score++;

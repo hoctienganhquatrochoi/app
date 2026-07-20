@@ -1014,11 +1014,16 @@ html, body {
 }
 
 .matching-item.solved {
-  border-color: #2D6A4F;
-  background: #DCEAE2;
   cursor: default;
-  opacity: 0.85;
+  opacity: 0.9;
 }
+
+.matching-item.solved.matching-color-0 { border-color: #4A90D2; background: #DCEBFA; }
+.matching-item.solved.matching-color-1 { border-color: #D6588B; background: #FBE1EA; }
+.matching-item.solved.matching-color-2 { border-color: #D4941C; background: #FCEDC9; }
+.matching-item.solved.matching-color-3 { border-color: #2D6A4F; background: #DCEAE2; }
+.matching-item.solved.matching-color-4 { border-color: #8A5FBF; background: #ECE1F7; }
+.matching-item.solved.matching-color-5 { border-color: #D2691E; background: #FBE3CE; }
 
 .matching-item.wrong-flash {
   border-color: #E63946;
