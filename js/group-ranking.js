@@ -184,7 +184,7 @@ async function loadGroupRanking() {
   var hint = document.createElement("p");
   hint.className = "fc-hint";
   hint.style.marginBottom = "12px";
-  hint.textContent = "Xếp theo số lượt học nhiều nhất trong 7 ngày gần đây.";
+  hint.textContent = "Xếp theo số lượt học nhiều nhất trong 7 ngày gần đây (tính lùi từ hôm nay). Số lượt sẽ giảm khi ngày học cũ hơn 7 hôm trôi ra khỏi mốc tính, kể cả khi hôm nay vẫn học đều.";
   body.appendChild(hint);
 
   if (!rows.length) {
