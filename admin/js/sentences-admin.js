@@ -385,9 +385,6 @@ async function handleBulkAddSentences(e) {
     var item = validItems[i];
     setBulkSentenceStatus("Đang xử lý " + (i + 1) + "/" + validItems.length + ": " + item.sentence_en + "...");
 
-    if (!item.phonetic) {
-      item.phonetic = await lookupPhonetic(item.sentence_en);
-    }
     if (!item.meaning_vi) {
       item.meaning_vi = await translateToVietnamese(item.sentence_en, setBulkSentenceStatus);
     }
