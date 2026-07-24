@@ -1,5 +1,5 @@
 function normalizeFreeTypingAnswer(str) {
-  return (str || "").trim().replace(/\s+/g, " ").toLowerCase();
+  return normalizeQuoteChars(str || "").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 var FREE_TYPING_CORRECT_DELAY_MS = 1200;

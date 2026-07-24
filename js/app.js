@@ -390,7 +390,7 @@ async function renderMainContent() {
     } else if (activity.type === "flip-card") {
       renderFlipCard(main, breadcrumbText, items, unit.id);
     } else if (activity.type === "quiz") {
-      renderQuiz(main, breadcrumbText, items, unit.id, activity.maxQuestions, activity.format);
+      renderQuiz(main, breadcrumbText, items, unit.id, activity.maxQuestions, activity.format, activity.id.indexOf("s") === 0);
     } else if (activity.type === "missing-letter") {
       renderMissingLetter(main, breadcrumbText, items, unit.id, activity.maxQuestions);
     } else if (activity.type === "typing") {

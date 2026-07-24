@@ -2,7 +2,7 @@ var GRAMMAR_TYPING_CORRECT_DELAY_MS = 1200;
 var GRAMMAR_TYPING_WRONG_DELAY_MS = 2000;
 
 function normalizeGrammarTypingAnswer(str) {
-  return (str || "").trim().replace(/\s+/g, " ");
+  return normalizeQuoteChars(str || "").trim().replace(/\s+/g, " ");
 }
 
 function renderGrammarTyping(container, breadcrumbText, items, unitId, setName) {

@@ -27,7 +27,7 @@ function buildQuizQuestions(items, maxQuestions, fixedFormat) {
 
 var QUIZ_ADVANCE_DELAY_MS = 1200;
 
-function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, format) {
+function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, format, capitalizeMeaning) {
   var questions = buildQuizQuestions(items, maxQuestions, format);
   var qIndex = 0;
   var score = 0;
@@ -101,7 +101,8 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     }
     var line = parts.join(" ");
     if (config.showMeaning) {
-      line = line ? line + " - " + capitalizeFirst(q.item.vi) : capitalizeFirst(q.item.vi);
+      var meaningText = capitalizeMeaning ? capitalizeFirst(q.item.vi) : (q.item.vi || "");
+      line = line ? line + " - " + meaningText : meaningText;
     }
 
     if (line) {
@@ -124,7 +125,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     } else {
       var label = document.createElement("span");
       if (config.answerType === "meaning") {
-        label.textContent = capitalizeFirst(option.vi);
+        label.textContent = capitalizeMeaning ? capitalizeFirst(option.vi) : (option.vi || "");
       } else {
         label.textContent = option.en;
       }

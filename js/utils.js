@@ -2,6 +2,10 @@ function stripParentheticalForSpeech(text) {
   return (text || "").replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
 }
 
+function normalizeQuoteChars(str) {
+  return (str || "").replace(/[‘’ʼʻ´`]/g, "'").replace(/[“”]/g, "\"");
+}
+
 function speak(text, lang) {
   if (!("speechSynthesis" in window)) {
     return;

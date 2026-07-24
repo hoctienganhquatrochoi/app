@@ -2,6 +2,10 @@ function isAutoTypingChar(ch) {
   return ch === " " || /[.,!?;:]/.test(ch);
 }
 
+function normalizeTypingWord(str) {
+  return (str || "").replace(/ /g, " ").replace(/\s{2,}/g, " ").trim();
+}
+
 function shuffleWordLetters(word) {
   var letters = word.split("");
   if (letters.length <= 1) {
@@ -16,6 +20,8 @@ function shuffleWordLetters(word) {
   return shuffled;
 }
 
+var TYPING_WRONG_DELAY_MS = 2200;
+
 function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mode) {
   var pool = pickQuestionPool(items, maxQuestions);
   var qIndex = 0;
@@ -24,6 +30,8 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
   var startedAt = new Date();
   var blanks = [];
   var tiles = [];
+  var currentWord = "";
+  var showWrongFeedback = false;
   var firstAttemptDone = false;
   var firstAttemptCorrect = false;
   var activityType = mode === "hint" ? "typing-hint" : "typing-blank";
@@ -34,7 +42,8 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
 
   function setupQuestion() {
     var item = pool[qIndex];
-    var letters = item.en.split("");
+    currentWord = normalizeTypingWord(item.en);
+    var letters = currentWord.split("");
     blanks = letters.map(function (ch) {
       return isAutoTypingChar(ch) ? { id: "auto", char: ch, used: true, auto: true } : null;
     });
@@ -47,6 +56,7 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
     });
     firstAttemptDone = false;
     firstAttemptCorrect = false;
+    showWrongFeedback = false;
   }
 
   function showQuestion() {
@@ -91,6 +101,13 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
       blanksEl.appendChild(buildBlankSlot(i));
     }
     wrap.appendChild(blanksEl);
+
+    if (showWrongFeedback) {
+      var feedback = document.createElement("div");
+      feedback.className = "ft-feedback ft-wrong";
+      feedback.textContent = "✗ Đáp án đúng: " + currentWord + " — thử lại nhé!";
+      wrap.appendChild(feedback);
+    }
 
     var tilesEl = document.createElement("div");
     tilesEl.className = "ty-tiles";
@@ -247,8 +264,7 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
     var attempt = blanks.map(function (b) {
       return b.char;
     }).join("");
-    var target = item.en;
-    var isCorrect = attempt === target;
+    var isCorrect = attempt === currentWord;
 
     if (!firstAttemptDone) {
       firstAttemptDone = true;
@@ -273,6 +289,7 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
         }
       }, 1200);
     } else {
+      showWrongFeedback = true;
       flashBlanks("wrong");
       setTimeout(function () {
         var i;
@@ -282,8 +299,9 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
         for (i = 0; i < blanks.length; i++) {
           blanks[i] = null;
         }
+        showWrongFeedback = false;
         draw();
-      }, 900);
+      }, TYPING_WRONG_DELAY_MS);
     }
   }
 
