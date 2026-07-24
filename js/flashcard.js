@@ -3,6 +3,27 @@ function renderFlashcard(container, breadcrumbText, items) {
   var startedAt = new Date();
   var tabTracker = startTabSwitchTracker();
   items = shuffleArray(items);
+  var currentWrap = null;
+  var showingComplete = false;
+  var restartFn = null;
+
+  function handleGlobalKeydown(e) {
+    if (!currentWrap || !currentWrap.isConnected) {
+      document.removeEventListener("keydown", handleGlobalKeydown);
+      return;
+    }
+    if (e.key !== "Enter") {
+      return;
+    }
+    if (showingComplete) {
+      if (restartFn) {
+        restartFn();
+      }
+    } else {
+      goNext();
+    }
+  }
+  document.addEventListener("keydown", handleGlobalKeydown);
 
   function draw() {
     container.innerHTML = "";
@@ -70,6 +91,7 @@ function renderFlashcard(container, breadcrumbText, items) {
 
     wrap.appendChild(nav);
     container.appendChild(wrap);
+    currentWrap = wrap;
 
     playAudioUrlOrSpeak(item.audioEnUrl, item.en, "en-US");
   }
@@ -84,6 +106,7 @@ function renderFlashcard(container, breadcrumbText, items) {
   }
 
   function showComplete() {
+    showingComplete = true;
     tabTracker.stop();
 
     var overlay = document.createElement("div");
@@ -107,18 +130,22 @@ function renderFlashcard(container, breadcrumbText, items) {
     var actions = document.createElement("div");
     actions.className = "fc-popup-actions";
 
-    var againBtn = document.createElement("button");
-    againBtn.className = "btn-next";
-    againBtn.type = "button";
-    againBtn.textContent = "Học lại";
-    againBtn.addEventListener("click", function () {
+    function restart() {
       items = shuffleArray(items);
       index = 0;
       startedAt = new Date();
       tabTracker = startTabSwitchTracker();
+      showingComplete = false;
       overlay.remove();
       draw();
-    });
+    }
+    restartFn = restart;
+
+    var againBtn = document.createElement("button");
+    againBtn.className = "btn-next";
+    againBtn.type = "button";
+    againBtn.textContent = "Học lại";
+    againBtn.addEventListener("click", restart);
     actions.appendChild(againBtn);
 
     var closeBtn = document.createElement("button");
@@ -126,6 +153,7 @@ function renderFlashcard(container, breadcrumbText, items) {
     closeBtn.type = "button";
     closeBtn.textContent = "Xem lại thẻ cuối";
     closeBtn.addEventListener("click", function () {
+      showingComplete = false;
       overlay.remove();
     });
     actions.appendChild(closeBtn);
