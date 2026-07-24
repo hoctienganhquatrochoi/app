@@ -334,6 +334,15 @@ function parseSentenceBulkLine(line) {
     };
   }
 
+  var dashMatch = line.match(/^(.+?)\s+[-–]\s+(.+)$/);
+  if (dashMatch) {
+    return {
+      sentence_en: dashMatch[1].trim(),
+      phonetic: "",
+      meaning_vi: dashMatch[2].trim()
+    };
+  }
+
   return {
     sentence_en: line.trim(),
     phonetic: "",
