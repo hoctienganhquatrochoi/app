@@ -662,14 +662,27 @@ function parseBulkText(text) {
 }
 
 async function buildVocabAudioLookup() {
-  var result = await supabaseClient.from("game_vocab").select("word_en, audio_en_url").not("audio_en_url", "is", null);
   var lookup = {};
-  (result.data || []).forEach(function (row) {
-    var key = stripParenthetical(row.word_en).trim().toLowerCase();
-    if (key && !lookup[key]) {
-      lookup[key] = row.audio_en_url;
+  var pageSize = 1000;
+  var from = 0;
+  while (true) {
+    var result = await supabaseClient
+      .from("game_vocab")
+      .select("word_en, audio_en_url")
+      .not("audio_en_url", "is", null)
+      .range(from, from + pageSize - 1);
+    var rows = result.data || [];
+    rows.forEach(function (row) {
+      var key = stripParenthetical(row.word_en).trim().toLowerCase();
+      if (key && !lookup[key]) {
+        lookup[key] = row.audio_en_url;
+      }
+    });
+    if (rows.length < pageSize) {
+      break;
     }
-  });
+    from += pageSize;
+  }
   return lookup;
 }
 
