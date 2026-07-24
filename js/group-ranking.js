@@ -140,19 +140,21 @@ async function loadGroupRanking() {
   sevenDaysAgo.setHours(0, 0, 0, 0);
   var fromIso = sevenDaysAgo.toISOString();
 
-  var attemptsResult = await supabaseClient
-    .from("game_quiz_attempts")
-    .select("student_id, score, total, submitted_at, game_students!inner(full_name, group_id)")
-    .eq("game_students.group_id", groupId)
-    .gte("submitted_at", fromIso)
-    .limit(500);
+  var attemptsResult = await fetchAllRows(function () {
+    return supabaseClient
+      .from("game_quiz_attempts")
+      .select("student_id, score, total, submitted_at, game_students!inner(full_name, group_id)")
+      .eq("game_students.group_id", groupId)
+      .gte("submitted_at", fromIso);
+  });
 
-  var opensResult = await supabaseClient
-    .from("game_wordwall_opens")
-    .select("student_id, opened_at, game_students!inner(full_name, group_id)")
-    .eq("game_students.group_id", groupId)
-    .gte("opened_at", fromIso)
-    .limit(500);
+  var opensResult = await fetchAllRows(function () {
+    return supabaseClient
+      .from("game_wordwall_opens")
+      .select("student_id, opened_at, game_students!inner(full_name, group_id)")
+      .eq("game_students.group_id", groupId)
+      .gte("opened_at", fromIso);
+  });
 
   if (attemptsResult.error || opensResult.error) {
     body.textContent = "Không tải được xếp hạng, thử lại sau nhé.";

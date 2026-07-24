@@ -6,6 +6,25 @@ function normalizeQuoteChars(str) {
   return (str || "").replace(/[‘’ʼʻ´`]/g, "'").replace(/[“”]/g, "\"");
 }
 
+async function fetchAllRows(buildQuery) {
+  var pageSize = 500;
+  var from = 0;
+  var all = [];
+  while (true) {
+    var result = await buildQuery().range(from, from + pageSize - 1);
+    if (result.error) {
+      return { error: result.error };
+    }
+    var rows = result.data || [];
+    all = all.concat(rows);
+    if (rows.length < pageSize) {
+      break;
+    }
+    from += pageSize;
+  }
+  return { data: all };
+}
+
 function speak(text, lang) {
   if (!("speechSynthesis" in window)) {
     return;
