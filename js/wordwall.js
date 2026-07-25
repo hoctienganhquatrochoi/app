@@ -64,12 +64,16 @@ async function renderWordwallActivity(container, breadcrumbText, embedUrl, unitI
   var wrap = document.createElement("div");
   wrap.className = "ww-wrap";
 
+  var aspectBox = document.createElement("div");
+  aspectBox.className = "ww-aspect";
+
   var iframe = document.createElement("iframe");
   iframe.className = "ww-iframe";
   iframe.src = embedUrl;
   iframe.setAttribute("frameborder", "0");
   iframe.setAttribute("allowfullscreen", "true");
-  wrap.appendChild(iframe);
+  aspectBox.appendChild(iframe);
+  wrap.appendChild(aspectBox);
 
   container.appendChild(wrap);
 
