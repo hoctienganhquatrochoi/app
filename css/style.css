@@ -100,26 +100,6 @@ html, body {
   margin-left: 8px;
 }
 
-.floating-refresh-btn {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  z-index: 500;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: #1B4332;
-  color: #F4E9CB;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  box-shadow: 0 3px 10px rgba(27, 67, 50, 0.35);
-}
-
-.floating-refresh-btn:active {
-  background: #2D6A4F;
-}
-
 .student-badge {
   display: flex;
   align-items: center;

@@ -696,7 +696,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     window.location.href = window.location.pathname + "?refresh=" + Date.now();
   });
 
-  document.getElementById("floatingRefreshBtn").addEventListener("click", function () {
-    window.location.href = window.location.pathname + "?refresh=" + Date.now();
+  var lastHiddenAt = null;
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) {
+      lastHiddenAt = Date.now();
+    } else if (lastHiddenAt && Date.now() - lastHiddenAt > 10 * 60 * 1000) {
+      window.location.href = window.location.pathname + "?refresh=" + Date.now();
+    }
   });
 });
