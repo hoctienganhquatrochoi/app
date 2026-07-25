@@ -695,4 +695,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("refreshBtn").addEventListener("click", function () {
     window.location.href = window.location.pathname + "?refresh=" + Date.now();
   });
+
+  document.getElementById("floatingRefreshBtn").addEventListener("click", function () {
+    window.location.href = window.location.pathname + "?refresh=" + Date.now();
+  });
 });

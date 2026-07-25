@@ -8,7 +8,7 @@ function computeStudentDiligenceRanking(rows) {
     }
     var s = byStudent[row.studentName];
     s.count++;
-    s.days[row.dateIso.slice(0, 10)] = true;
+    s.days[localDateKey(row.dateIso)] = true;
     if (typeof row.score === "number" && typeof row.total === "number") {
       s.scoreSum += row.score;
       s.totalSum += row.total;
@@ -35,7 +35,7 @@ function computeOwnDailyBreakdown(rows, studentId) {
     if (row.studentId !== studentId) {
       return;
     }
-    var day = row.dateIso.slice(0, 10);
+    var day = localDateKey(row.dateIso);
     if (!byDay[day]) {
       byDay[day] = { day: day, count: 0, scoreSum: 0, totalSum: 0 };
       order.push(day);

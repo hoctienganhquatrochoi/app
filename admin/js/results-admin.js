@@ -238,6 +238,14 @@ async function handleHistoryExportPdf() {
   }
 }
 
+function localDateKey(dateInput) {
+  var d = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  var yyyy = d.getFullYear();
+  var mm = (d.getMonth() + 1) < 10 ? "0" + (d.getMonth() + 1) : "" + (d.getMonth() + 1);
+  var dd = d.getDate() < 10 ? "0" + d.getDate() : "" + d.getDate();
+  return yyyy + "-" + mm + "-" + dd;
+}
+
 function computeDiligenceRanking(rows) {
   var byStudent = {};
   var order = [];
@@ -248,7 +256,7 @@ function computeDiligenceRanking(rows) {
     }
     var s = byStudent[row.studentName];
     s.count++;
-    s.days[row.dateIso.slice(0, 10)] = true;
+    s.days[localDateKey(row.dateIso)] = true;
     if (typeof row.score === "number" && typeof row.total === "number") {
       s.scoreSum += row.score;
       s.totalSum += row.total;

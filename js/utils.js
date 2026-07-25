@@ -6,6 +6,14 @@ function normalizeQuoteChars(str) {
   return (str || "").replace(/[‘’ʼʻ´`]/g, "'").replace(/[“”]/g, "\"");
 }
 
+function localDateKey(dateInput) {
+  var d = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  var yyyy = d.getFullYear();
+  var mm = (d.getMonth() + 1) < 10 ? "0" + (d.getMonth() + 1) : "" + (d.getMonth() + 1);
+  var dd = d.getDate() < 10 ? "0" + d.getDate() : "" + d.getDate();
+  return yyyy + "-" + mm + "-" + dd;
+}
+
 async function fetchAllRows(buildQuery) {
   var pageSize = 500;
   var from = 0;

@@ -146,7 +146,7 @@ async function handleLoginSubmit() {
   }
 
   var student = result.data;
-  var today = new Date().toISOString().slice(0, 10);
+  var today = localDateKey(new Date());
   if (student.expiry_date < today) {
     statusEl.textContent = "Tài khoản đã hết hạn, liên hệ để gia hạn";
     return;
