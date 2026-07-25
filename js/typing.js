@@ -269,16 +269,18 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
     if (!firstAttemptDone) {
       firstAttemptDone = true;
       firstAttemptCorrect = isCorrect;
-    }
-
-    if (isCorrect) {
-      score++;
+      if (firstAttemptCorrect) {
+        score++;
+      }
       answersLog.push({
         vocab_id: item.id,
         word_en: item.en,
         selected_label: attempt,
         is_correct: firstAttemptCorrect
       });
+    }
+
+    if (isCorrect) {
       flashBlanks("correct");
       setTimeout(function () {
         if (qIndex < pool.length - 1) {

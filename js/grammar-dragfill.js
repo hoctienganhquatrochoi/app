@@ -29,7 +29,7 @@ function buildGrammarDragfillQuestions(items) {
 }
 
 function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName) {
-  var questions, qIndex, score, filledOption, answered, lastCorrect, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
+  var questions, qIndex, score, filledOption, answered, lastCorrect, firstAttemptDone, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
 
   function resetState() {
     questions = buildGrammarDragfillQuestions(items);
@@ -38,6 +38,7 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     filledOption = null;
     answered = false;
     lastCorrect = false;
+    firstAttemptDone = false;
     answersLog = [];
     startedAt = new Date();
     timerIntervalId = startActivityTimer(startedAt);
@@ -188,15 +189,18 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     var q = questions[qIndex];
     answered = true;
     lastCorrect = filledOption.isCorrect;
-    if (lastCorrect) {
-      score++;
+    if (!firstAttemptDone) {
+      firstAttemptDone = true;
+      if (lastCorrect) {
+        score++;
+      }
+      answersLog.push({
+        vocab_id: q.id,
+        word_en: q.before + "___" + q.after,
+        selected_label: filledOption.text,
+        is_correct: lastCorrect
+      });
     }
-    answersLog.push({
-      vocab_id: q.id,
-      word_en: q.before + "___" + q.after,
-      selected_label: filledOption.text,
-      is_correct: lastCorrect
-    });
     draw();
 
     if (lastCorrect) {
@@ -220,6 +224,7 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
       qIndex++;
       filledOption = null;
       answered = false;
+      firstAttemptDone = false;
       draw();
     } else {
       showResult();
