@@ -468,6 +468,9 @@ function goToAssignmentResults(assignmentRow) {
   document.getElementById("resultsGroupFilter").value = assignmentRow.group_id;
   currentResultsAssignmentId = assignmentRow.id;
   switchTab("results");
+  setTimeout(function () {
+    document.getElementById("resultsUnitSelect").scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 300);
 }
 
 async function deleteAssignment(id) {
