@@ -14,14 +14,24 @@ function buildBreadcrumbText(cls, unit, activity) {
   return parts.join(" › ");
 }
 
-function getSelectedClass() {
+function findClassById(classId) {
   var i;
   for (i = 0; i < DATA.classes.length; i++) {
-    if (DATA.classes[i].id === state.selectedClassId) {
+    if (DATA.classes[i].id === classId) {
       return DATA.classes[i];
     }
   }
-  return DATA.classes[0];
+  return null;
+}
+
+function getSelectedClass() {
+  if (state.selectedActivity && state.selectedActivity.unit) {
+    var activeCls = findClassById(state.selectedActivity.unit.class_id);
+    if (activeCls) {
+      return activeCls;
+    }
+  }
+  return findClassById(state.selectedClassId) || DATA.classes[0];
 }
 
 function findUnitById(unitId) {
@@ -84,10 +94,11 @@ function buildClassItem(cls) {
 
   header.addEventListener("click", function () {
     if (isOpen) {
-      return;
+      state.selectedClassId = null;
+    } else {
+      state.selectedClassId = cls.id;
+      autoOpenFirstSubject();
     }
-    state.selectedClassId = cls.id;
-    autoOpenFirstSubject();
     renderSidebar();
     updateUrlHash();
   });
