@@ -54,34 +54,62 @@ function renderSidebar() {
   sidebarTitle.textContent = "📚 Chọn bài học";
   sidebar.appendChild(sidebarTitle);
 
-  var select = document.createElement("select");
-  select.className = "class-select";
+  var classList = document.createElement("div");
+  classList.className = "class-list";
   var i;
   for (i = 0; i < DATA.classes.length; i++) {
-    var opt = document.createElement("option");
-    opt.value = DATA.classes[i].id;
-    opt.text = DATA.classes[i].name;
-    if (DATA.classes[i].id === state.selectedClassId) {
-      opt.selected = true;
-    }
-    select.appendChild(opt);
+    classList.appendChild(buildClassItem(DATA.classes[i]));
   }
-  select.addEventListener("change", function (e) {
-    state.selectedClassId = e.target.value;
+  sidebar.appendChild(classList);
+}
+
+function buildClassItem(cls) {
+  var wrap = document.createElement("div");
+  wrap.className = "class-item";
+
+  var isOpen = state.selectedClassId === cls.id;
+
+  var header = document.createElement("div");
+  header.className = "class-header" + (isOpen ? " open" : "");
+
+  var name = document.createElement("span");
+  name.className = "class-name";
+  name.textContent = cls.name;
+  header.appendChild(name);
+
+  var chevron = document.createElement("span");
+  chevron.className = "chevron" + (isOpen ? " open" : "");
+  chevron.textContent = "▸";
+  header.appendChild(chevron);
+
+  header.addEventListener("click", function () {
+    if (isOpen) {
+      return;
+    }
+    state.selectedClassId = cls.id;
     autoOpenFirstSubject();
     renderSidebar();
     updateUrlHash();
   });
-  sidebar.appendChild(select);
 
-  var subjects = DATA.subjectsByClass[state.selectedClassId] || [];
-  for (i = 0; i < subjects.length; i++) {
-    if (subjects[i].name) {
-      sidebar.appendChild(buildSubjectItem(subjects[i]));
-    } else {
-      sidebar.appendChild(buildUnitListForSubject(subjects[i]));
+  wrap.appendChild(header);
+
+  if (isOpen) {
+    var subjects = DATA.subjectsByClass[cls.id] || [];
+    var subjectsWrap = document.createElement("div");
+    subjectsWrap.className = "class-subjects";
+    var i;
+    for (i = 0; i < subjects.length; i++) {
+      if (subjects[i].name) {
+        subjectsWrap.appendChild(buildSubjectItem(subjects[i]));
+      } else {
+        subjectsWrap.appendChild(buildUnitListForSubject(subjects[i]));
+      }
     }
+    wrap.appendChild(subjectsWrap);
   }
+
+  return wrap;
 }
 
 function buildUnitListForSubject(subject) {

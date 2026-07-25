@@ -290,8 +290,7 @@ html, body {
 .sidebar {
   width: 300px;
   flex-shrink: 0;
-  background: #FFFFFF;
-  border-right: 1px solid #E5E0D5;
+  background: #1B4332;
   padding: 12px;
   overflow-y: auto;
   height: calc(100vh - 68px);
@@ -322,23 +321,55 @@ html, body {
   line-height: 1.5;
 }
 
+.sidebar .placeholder {
+  color: #FFFFFF;
+  margin-top: 40px;
+}
+
 .sidebar-title {
   font-size: 16px;
   font-weight: 700;
-  color: #1B4332;
+  color: #FFFFFF;
   margin-bottom: 10px;
 }
 
-/* ---------- Sidebar: class select ---------- */
-.class-select {
-  width: 100%;
-  padding: 8px 10px;
-  font-size: 15px;
-  border: 1px solid #C9D8CE;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  background: #FFFFFF;
-  color: #1B4332;
+/* ---------- Sidebar: class accordion ---------- */
+.class-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.class-item {
+  margin-bottom: 2px;
+}
+
+.class-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.class-header:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.class-header.open {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.class-name {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 800;
+  color: #FFFFFF;
+}
+
+.class-subjects {
+  padding: 4px 0 6px 6px;
 }
 
 /* ---------- Sidebar: subject accordion ---------- */
@@ -356,11 +387,11 @@ html, body {
 }
 
 .subject-header:hover {
-  background: #F1F5F2;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .subject-header.open {
-  background: #DCEAE2;
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .subject-icon {
@@ -369,18 +400,20 @@ html, body {
   border-radius: 50%;
   margin-right: 10px;
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
 }
 
 .subject-name {
   flex: 1;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
+  color: #FFFFFF;
 }
 
 .chevron {
   font-size: 16px;
   font-weight: bold;
-  color: #2D6A4F;
+  color: #F0973D;
   transition: transform 0.15s ease;
 }
 
@@ -403,33 +436,33 @@ html, body {
   justify-content: space-between;
   padding: 8px 10px 8px 12px;
   border-radius: 8px;
-  border-left: 3px solid #C9D8CE;
-  background: #FAFAF7;
+  border-left: 3px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
   cursor: pointer;
   user-select: none;
 }
 
 .unit-header:hover {
-  background: #F1F5F2;
-  border-left-color: #2D6A4F;
+  background: rgba(255, 255, 255, 0.12);
+  border-left-color: #F0973D;
 }
 
 .unit-header.open {
-  background: #DCEAE2;
-  border-left-color: #1B4332;
+  background: rgba(255, 255, 255, 0.18);
+  border-left-color: #F0973D;
 }
 
 .unit-name {
-  font-size: 14.5px;
+  font-size: 15.5px;
   font-weight: 700;
-  color: #1B4332;
+  color: #FFFFFF;
 }
 
 .unit-progress {
   font-size: 11.5px;
   font-weight: 600;
-  color: #556355;
-  background: #EDE9DB;
+  color: #1B4332;
+  background: #F4E9CB;
   border-radius: 10px;
   padding: 2px 8px;
   margin-left: 8px;
@@ -445,30 +478,32 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
+  padding: 9px 10px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 17px;
+  color: #FFFFFF;
   margin: 1px 0;
 }
 
 .activity-item:hover {
-  background: #F1F5F2;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .activity-item.selected {
-  background: #DCEAE2;
-  font-weight: 600;
+  background: #F0973D;
+  color: #1B4332;
+  font-weight: 700;
 }
 
 .activity-item.locked {
-  color: #B7B0A0;
+  color: rgba(255, 255, 255, 0.4);
   cursor: not-allowed;
 }
 
 .lock-badge {
   font-size: 11px;
-  color: #B7876B;
+  color: #F0973D;
   margin-left: 6px;
 }
 
@@ -477,8 +512,8 @@ html, body {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: #2D6A4F;
-  background: #DCEAE2;
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.12);
   padding: 6px 10px;
   margin: 10px 6px 6px;
   border-radius: 8px;
@@ -1651,8 +1686,7 @@ html, body {
   }
   .sidebar {
     width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #E5E0D5;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     display: none;
     position: static;
     height: auto;
