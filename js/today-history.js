@@ -16,21 +16,22 @@ var TODAY_HISTORY_ACTIVITY_LABELS = {
   "photo-quiz": "Đọc/Nghe theo ảnh"
 };
 
-function unitNameById(unitId) {
-  var classes = DATA.classes || [];
-  var i, j, k;
-  for (i = 0; i < classes.length; i++) {
-    var subjects = DATA.subjectsByClass[classes[i].id] || [];
-    for (j = 0; j < subjects.length; j++) {
-      var units = subjects[j].units || [];
-      for (k = 0; k < units.length; k++) {
-        if (units[k].id === unitId) {
-          return units[k].name || unitId;
-        }
-      }
+async function fetchUnitNamesByIds(unitIds) {
+  var uniqueIds = [];
+  unitIds.forEach(function (id) {
+    if (id && uniqueIds.indexOf(id) === -1) {
+      uniqueIds.push(id);
     }
+  });
+  if (!uniqueIds.length) {
+    return {};
   }
-  return unitId;
+  var result = await supabaseClient.from("game_units").select("id, name").in("id", uniqueIds);
+  var map = {};
+  (result.data || []).forEach(function (row) {
+    map[row.id] = row.name;
+  });
+  return map;
 }
 
 function openTodayModal() {
@@ -76,16 +77,21 @@ async function loadTodayHistory() {
     return;
   }
 
+  var unitNameMap = await fetchUnitNamesByIds(
+    (attemptsResult.data || []).map(function (row) { return row.unit_id; })
+      .concat((opensResult.data || []).map(function (row) { return row.unit_id; }))
+  );
+
   var rows = (attemptsResult.data || []).map(function (row) {
     return {
-      unitLabel: unitNameById(row.unit_id),
+      unitLabel: unitNameMap[row.unit_id] || row.unit_id,
       activityLabel: TODAY_HISTORY_ACTIVITY_LABELS[row.activity_type] || row.activity_type,
       scoreLabel: row.score + " / " + row.total,
       dateIso: row.submitted_at
     };
   }).concat((opensResult.data || []).map(function (row) {
     return {
-      unitLabel: unitNameById(row.unit_id),
+      unitLabel: unitNameMap[row.unit_id] || row.unit_id,
       activityLabel: "Wordwall: " + row.wordwall_name,
       scoreLabel: "—",
       dateIso: row.opened_at
