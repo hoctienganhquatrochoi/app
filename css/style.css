@@ -1510,11 +1510,17 @@ html, body {
   color: #7A4A00;
   border-radius: 10px;
   padding: 6px 10px;
-  margin-bottom: 8px;
+  margin: -24px 0 8px 0;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px 10px;
+}
+
+@media (max-width: 720px) {
+  .ww-photo-bar {
+    margin-top: -16px;
+  }
 }
 
 .ww-photo-bar-text {
