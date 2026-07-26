@@ -585,7 +585,7 @@ async function renderMainContent() {
 
   if (activity.type === "wordwall") {
     main.innerHTML = "";
-    renderWordwallActivity(main, breadcrumbText, activity.embedUrl, unit.id, activity.name, isPhotoProofRequiredForClass(cls));
+    renderWordwallActivity(main, breadcrumbText, activity.embedUrl, unit.id, activity.name);
     return;
   }
 

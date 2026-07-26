@@ -19,7 +19,6 @@ function switchTab(target) {
     loadAllAssignmentsForResults();
     populateHistoryGroupSelect();
     loadAllStudentsForHistory().then(populateHistoryStudentSelect);
-    cleanupOldWordwallPhotos();
   }
 }
 

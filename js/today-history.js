@@ -82,17 +82,6 @@ async function loadTodayHistory() {
       .concat((opensResult.data || []).map(function (row) { return row.unit_id; }))
   );
 
-  var openIds = (opensResult.data || []).map(function (row) { return row.id; });
-  var photoIdSet = {};
-  if (openIds.length) {
-    var photosResult = await fetchAllRows(function () {
-      return supabaseClient.from("game_wordwall_photos").select("wordwall_open_id").in("wordwall_open_id", openIds);
-    });
-    (photosResult.data || []).forEach(function (row) {
-      photoIdSet[row.wordwall_open_id] = true;
-    });
-  }
-
   var rows = (attemptsResult.data || []).map(function (row) {
     return {
       unitLabel: unitNameMap[row.unit_id] || row.unit_id,
@@ -101,17 +90,10 @@ async function loadTodayHistory() {
       dateIso: row.submitted_at
     };
   }).concat((opensResult.data || []).map(function (row) {
-    var unit = findUnitById(row.unit_id);
-    var cls = unit ? findClassById(unit.class_id) : null;
-    var photoRequired = isPhotoProofRequiredForClass(cls);
-    var scoreLabel = "—";
-    if (photoRequired) {
-      scoreLabel = photoIdSet[row.id] ? "📸 Đã gửi ảnh" : "⚠️ Chưa gửi ảnh";
-    }
     return {
       unitLabel: unitNameMap[row.unit_id] || row.unit_id,
       activityLabel: "Wordwall: " + row.wordwall_name,
-      scoreLabel: scoreLabel,
+      scoreLabel: "—",
       dateIso: row.opened_at
     };
   })).sort(function (a, b) {

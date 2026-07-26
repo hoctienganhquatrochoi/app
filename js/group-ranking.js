@@ -11,9 +11,6 @@ function computeStudentDiligenceRanking(rows) {
     if (typeof row.tabSwitchCount === "number" && row.tabSwitchCount > MAX_WORDWALL_TAB_SWITCHES_FOR_CREDIT) {
       return;
     }
-    if (row.photoMissing) {
-      return;
-    }
     if (!byStudent[row.studentName]) {
       byStudent[row.studentName] = { name: row.studentName, studentId: row.studentId, count: 0, days: {}, scoreSum: 0, totalSum: 0 };
       order.push(row.studentName);
@@ -173,17 +170,6 @@ async function loadGroupRanking() {
     return;
   }
 
-  var openIds = (opensResult.data || []).map(function (row) { return row.id; });
-  var photoIdSet = {};
-  if (openIds.length) {
-    var photosResult = await fetchAllRows(function () {
-      return supabaseClient.from("game_wordwall_photos").select("wordwall_open_id").in("wordwall_open_id", openIds);
-    });
-    (photosResult.data || []).forEach(function (row) {
-      photoIdSet[row.wordwall_open_id] = true;
-    });
-  }
-
   var rows = (attemptsResult.data || []).map(function (row) {
     return {
       studentId: row.student_id,
@@ -194,9 +180,6 @@ async function loadGroupRanking() {
       tabSwitchCount: row.tab_switch_count
     };
   }).concat((opensResult.data || []).map(function (row) {
-    var unit = findUnitById(row.unit_id);
-    var cls = unit ? findClassById(unit.class_id) : null;
-    var photoRequired = isPhotoProofRequiredForClass(cls);
     return {
       studentId: row.student_id,
       studentName: row.game_students ? row.game_students.full_name : "?",
@@ -204,8 +187,7 @@ async function loadGroupRanking() {
       total: null,
       dateIso: row.opened_at,
       durationSeconds: row.duration_seconds,
-      tabSwitchCount: row.tab_switch_count,
-      photoMissing: photoRequired && !photoIdSet[row.id]
+      tabSwitchCount: row.tab_switch_count
     };
   }));
 
