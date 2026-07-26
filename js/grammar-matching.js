@@ -150,7 +150,7 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
   function showResult() {
     clearInterval(timerIntervalId);
     tabTracker.stop();
-    submitQuizAttempt(unitId, "grammar-matching", score, pairs.length, startedAt, answersLog, setName);
+    submitQuizAttempt(unitId, "grammar-matching", score, pairs.length, startedAt, answersLog, setName, tabTracker.getCount());
 
     container.innerHTML = "";
     var wrap = document.createElement("div");

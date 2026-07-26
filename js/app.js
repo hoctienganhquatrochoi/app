@@ -5,6 +5,23 @@ var state = {
   selectedActivity: null
 };
 
+document.addEventListener("contextmenu", function (e) {
+  e.preventDefault();
+});
+
+document.addEventListener("keydown", function (e) {
+  var key = (e.key || "").toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && (key === "s" || key === "p" || key === "u")) {
+    e.preventDefault();
+  }
+  if (key === "f12") {
+    e.preventDefault();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === "i" || key === "j" || key === "c")) {
+    e.preventDefault();
+  }
+});
+
 function buildBreadcrumbText(cls, unit, activity) {
   var parts = [cls.name];
   if (unit.name) {

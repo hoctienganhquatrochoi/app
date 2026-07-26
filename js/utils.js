@@ -43,10 +43,26 @@ function speak(text, lang) {
   window.speechSynthesis.speak(utter);
 }
 
+var audioBlobUrlCache = {};
+
 function playAudioUrlOrSpeak(url, text, lang) {
   if (url) {
-    var audio = new Audio(url);
-    audio.play();
+    if (audioBlobUrlCache[url]) {
+      new Audio(audioBlobUrlCache[url]).play();
+      return;
+    }
+    fetch(url).then(function (res) {
+      if (!res.ok) {
+        throw new Error("fetch audio failed");
+      }
+      return res.blob();
+    }).then(function (blob) {
+      var blobUrl = URL.createObjectURL(blob);
+      audioBlobUrlCache[url] = blobUrl;
+      new Audio(blobUrl).play();
+    }).catch(function () {
+      new Audio(url).play();
+    });
     return;
   }
   speak(text, lang);

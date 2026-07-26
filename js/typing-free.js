@@ -175,7 +175,7 @@ function renderFreeTyping(container, breadcrumbText, items, unitId, maxQuestions
     clearInterval(timerIntervalId);
     tabTracker.stop();
     document.removeEventListener("keydown", handleGlobalKeydown);
-    submitQuizAttempt(unitId, activityType, score, pool.length, startedAt, answersLog);
+    submitQuizAttempt(unitId, activityType, score, pool.length, startedAt, answersLog, null, tabTracker.getCount());
 
     container.innerHTML = "";
     var wrap = document.createElement("div");

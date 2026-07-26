@@ -389,14 +389,16 @@ function renderGroupHistory(attempts, opens, showRanking, photoIdSet) {
   });
 
   var rows = attempts.map(function (row) {
+    var attemptTabLabel = typeof row.tab_switch_count === "number" ? " · Rời màn hình " + row.tab_switch_count + " lần" : "";
     return {
       studentName: row.game_students ? row.game_students.full_name : "(đã xóa tài khoản)",
       unitLabel: unitLabelById[row.unit_id] || row.unit_id,
-      activityLabel: ASSIGNMENT_ACTIVITY_LABELS[row.activity_type] || row.activity_type,
+      activityLabel: (ASSIGNMENT_ACTIVITY_LABELS[row.activity_type] || row.activity_type) + attemptTabLabel,
       scoreLabel: row.score + " / " + row.total,
       score: row.score,
       total: row.total,
-      dateIso: row.submitted_at
+      dateIso: row.submitted_at,
+      tabSwitchCount: row.tab_switch_count
     };
   }).concat(opens.map(function (row) {
     var durationLabel = row.duration_seconds != null ? " (" + formatSecondsVN(row.duration_seconds) + ")" : " (đã mở)";

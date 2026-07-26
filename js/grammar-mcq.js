@@ -108,7 +108,7 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName) {
   function showResult() {
     clearInterval(timerIntervalId);
     tabTracker.stop();
-    submitQuizAttempt(unitId, "grammar-mcq", score, questions.length, startedAt, answersLog, setName);
+    submitQuizAttempt(unitId, "grammar-mcq", score, questions.length, startedAt, answersLog, setName, tabTracker.getCount());
 
     container.innerHTML = "";
     var wrap = document.createElement("div");

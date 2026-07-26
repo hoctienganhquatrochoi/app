@@ -114,7 +114,7 @@ function renderPhotoQuiz(container, breadcrumbText, imageUrl, questions, unitId,
       });
     });
 
-    submitQuizAttempt(unitId, "photo-quiz", score, qData.length, startedAt, answersLog, setName);
+    submitQuizAttempt(unitId, "photo-quiz", score, qData.length, startedAt, answersLog, setName, tabTracker.getCount());
     showResult(score, answersLog);
   }
 

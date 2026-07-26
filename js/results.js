@@ -19,7 +19,7 @@ async function findActiveAssignmentId(studentId, unitId, activityType, setName) 
   return result.data[0].game_assignments.id;
 }
 
-async function submitQuizAttempt(unitId, activityType, score, total, startedAt, answersLog, setName) {
+async function submitQuizAttempt(unitId, activityType, score, total, startedAt, answersLog, setName, tabSwitchCount) {
   if (!currentStudent) {
     return;
   }
@@ -32,7 +32,8 @@ async function submitQuizAttempt(unitId, activityType, score, total, startedAt, 
     total: total,
     started_at: startedAt.toISOString(),
     answers: answersLog,
-    set_name: setName || null
+    set_name: setName || null,
+    tab_switch_count: typeof tabSwitchCount === "number" ? tabSwitchCount : null
   }).select().single();
 
   if (insertResult.error || !insertResult.data) {

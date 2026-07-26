@@ -140,7 +140,7 @@ function renderFlipCard(container, breadcrumbText, items, unitId) {
         is_correct: !!firstAttemptResult[item.id]
       });
     });
-    submitQuizAttempt(unitId, "flip-card", score, items.length, startedAt, answersLog);
+    submitQuizAttempt(unitId, "flip-card", score, items.length, startedAt, answersLog, null, tabTracker.getCount());
 
     container.innerHTML = "";
     var wrap = document.createElement("div");

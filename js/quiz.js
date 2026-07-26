@@ -181,7 +181,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
   function showResult() {
     clearInterval(timerIntervalId);
     tabTracker.stop();
-    submitQuizAttempt(unitId, "quiz", score, questions.length, startedAt, answersLog);
+    submitQuizAttempt(unitId, "quiz", score, questions.length, startedAt, answersLog, null, tabTracker.getCount());
 
     container.innerHTML = "";
 

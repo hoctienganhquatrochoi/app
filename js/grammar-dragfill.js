@@ -235,7 +235,7 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     clearInterval(timerIntervalId);
     tabTracker.stop();
     document.removeEventListener("keydown", handleGlobalKeydown);
-    submitQuizAttempt(unitId, "grammar-dragfill", score, questions.length, startedAt, answersLog, setName);
+    submitQuizAttempt(unitId, "grammar-dragfill", score, questions.length, startedAt, answersLog, setName, tabTracker.getCount());
 
     container.innerHTML = "";
     var wrap = document.createElement("div");

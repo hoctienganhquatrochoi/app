@@ -155,7 +155,7 @@ async function loadGroupRanking() {
   var attemptsResult = await fetchAllRows(function () {
     return supabaseClient
       .from("game_quiz_attempts")
-      .select("student_id, score, total, submitted_at, game_students!inner(full_name, group_id)")
+      .select("student_id, score, total, submitted_at, tab_switch_count, game_students!inner(full_name, group_id)")
       .eq("game_students.group_id", groupId)
       .gte("submitted_at", fromIso);
   });
@@ -190,7 +190,8 @@ async function loadGroupRanking() {
       studentName: row.game_students ? row.game_students.full_name : "?",
       score: row.score,
       total: row.total,
-      dateIso: row.submitted_at
+      dateIso: row.submitted_at,
+      tabSwitchCount: row.tab_switch_count
     };
   }).concat((opensResult.data || []).map(function (row) {
     var unit = findUnitById(row.unit_id);

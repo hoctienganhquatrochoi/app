@@ -171,7 +171,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
   function showResult() {
     clearInterval(timerIntervalId);
     tabTracker.stop();
-    submitQuizAttempt(unitId, "missing-letter", score, questions.length, startedAt, answersLog);
+    submitQuizAttempt(unitId, "missing-letter", score, questions.length, startedAt, answersLog, null, tabTracker.getCount());
 
     container.innerHTML = "";
 

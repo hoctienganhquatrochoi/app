@@ -68,6 +68,7 @@ var WORDWALL_GAMING_MIN_SECONDS = 15;
 var WORDWALL_GAMING_WINDOW_MS = 30 * 60 * 1000;
 var WORDWALL_GAMING_THRESHOLD_COUNT = 3;
 var activeWordwallTracker = null;
+var activeWordwallPasteHandler = null;
 
 async function checkForWordwallGaming(studentId) {
   var windowStart = new Date(Date.now() - WORDWALL_GAMING_WINDOW_MS).toISOString();
@@ -152,6 +153,10 @@ function stopActiveWordwallTracker() {
     activeWordwallTracker.stop();
     activeWordwallTracker = null;
   }
+  if (activeWordwallPasteHandler) {
+    document.removeEventListener("paste", activeWordwallPasteHandler);
+    activeWordwallPasteHandler = null;
+  }
 }
 
 function flushActiveWordwallTracker() {
@@ -168,55 +173,57 @@ async function renderWordwallActivity(container, breadcrumbText, embedUrl, unitI
   var wrap = document.createElement("div");
   wrap.className = "ww-wrap";
 
+  var uploadBtn = null;
+  var statusEl = null;
+
   if (photoProofRequired) {
-    var notice = document.createElement("div");
-    notice.className = "ww-photo-notice";
-    notice.textContent = "📸 Nhớ chụp màn hình kết quả sau khi làm xong và gửi lại để được công nhận điểm! Không gửi ảnh, bài sẽ không được tính.";
-    wrap.appendChild(notice);
+    var bar = document.createElement("div");
+    bar.className = "ww-photo-bar";
+
+    var noticeText = document.createElement("span");
+    noticeText.className = "ww-photo-bar-text";
+    noticeText.textContent = "📸 Làm xong, dán ảnh (Ctrl+V) hoặc chọn file để gửi kết quả! Không gửi ảnh, bài sẽ không được tính.";
+    bar.appendChild(noticeText);
+
+    var actions = document.createElement("div");
+    actions.className = "ww-photo-bar-actions";
+
+    uploadBtn = document.createElement("button");
+    uploadBtn.type = "button";
+    uploadBtn.className = "ww-photo-upload-btn";
+    uploadBtn.textContent = "📤 Chọn ảnh";
+    actions.appendChild(uploadBtn);
+
+    statusEl = document.createElement("span");
+    statusEl.className = "ww-photo-upload-status";
+    actions.appendChild(statusEl);
+
+    bar.appendChild(actions);
+    wrap.appendChild(bar);
   }
 
   var aspectBox = document.createElement("div");
-  aspectBox.className = "ww-aspect";
+  aspectBox.className = "ww-aspect" + (photoProofRequired ? " ww-aspect-compact" : "");
 
   var iframe = document.createElement("iframe");
   iframe.className = "ww-iframe";
   iframe.src = embedUrl;
   iframe.setAttribute("frameborder", "0");
   iframe.setAttribute("allowfullscreen", "true");
+  iframe.setAttribute("allow", "fullscreen");
   aspectBox.appendChild(iframe);
   wrap.appendChild(aspectBox);
 
   var rowId = await logWordwallOpen(unitId, wordwallName);
 
-  if (photoProofRequired && rowId) {
-    var uploadBox = document.createElement("div");
-    uploadBox.className = "ww-photo-upload";
-
-    var uploadBtn = document.createElement("button");
-    uploadBtn.type = "button";
-    uploadBtn.className = "ww-photo-upload-btn";
-    uploadBtn.textContent = "📤 Gửi ảnh kết quả";
-    uploadBox.appendChild(uploadBtn);
-
-    var statusEl = document.createElement("span");
-    statusEl.className = "ww-photo-upload-status";
-    uploadBox.appendChild(statusEl);
-
+  if (photoProofRequired && rowId && uploadBtn) {
     var fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = "image/*";
     fileInput.style.display = "none";
-    uploadBox.appendChild(fileInput);
+    wrap.appendChild(fileInput);
 
-    uploadBtn.addEventListener("click", function () {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener("change", function () {
-      var file = fileInput.files && fileInput.files[0];
-      if (!file) {
-        return;
-      }
+    var handleUploadFile = function (file) {
       uploadBtn.disabled = true;
       statusEl.textContent = "Đang gửi ảnh...";
       uploadWordwallProofPhoto(file, rowId, unitId).then(function () {
@@ -228,9 +235,34 @@ async function renderWordwallActivity(container, breadcrumbText, embedUrl, unitI
         uploadBtn.disabled = false;
         console.error("uploadWordwallProofPhoto failed:", err);
       });
+    };
+
+    uploadBtn.addEventListener("click", function () {
+      fileInput.click();
     });
 
-    wrap.appendChild(uploadBox);
+    fileInput.addEventListener("change", function () {
+      var file = fileInput.files && fileInput.files[0];
+      if (file) {
+        handleUploadFile(file);
+      }
+    });
+
+    var handlePaste = function (e) {
+      var items = (e.clipboardData && e.clipboardData.items) || [];
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].kind === "file" && items[i].type.indexOf("image/") === 0) {
+          var file = items[i].getAsFile();
+          if (file) {
+            e.preventDefault();
+            handleUploadFile(file);
+          }
+          break;
+        }
+      }
+    };
+    document.addEventListener("paste", handlePaste);
+    activeWordwallPasteHandler = handlePaste;
   }
 
   container.appendChild(wrap);

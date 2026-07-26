@@ -1504,22 +1504,30 @@ html, body {
   margin: 0 auto;
 }
 
-.ww-photo-notice {
+.ww-photo-bar {
   background: #FFF3CD;
   border: 1px solid #F0973D;
   color: #7A4A00;
   border-radius: 10px;
-  padding: 10px 14px;
-  margin-bottom: 12px;
-  font-weight: 600;
-  font-size: 14.5px;
-}
-
-.ww-photo-upload {
+  padding: 6px 12px;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 12px;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.ww-photo-bar-text {
+  font-weight: 600;
+  font-size: 13.5px;
+  flex: 1 1 220px;
+}
+
+.ww-photo-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
 }
 
 .ww-photo-upload-btn {
@@ -1527,10 +1535,11 @@ html, body {
   color: #FFFFFF;
   border: none;
   border-radius: 20px;
-  padding: 10px 18px;
-  font-size: 15px;
+  padding: 8px 16px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .ww-photo-upload-btn:disabled {
@@ -1539,8 +1548,9 @@ html, body {
 }
 
 .ww-photo-upload-status {
-  font-size: 14px;
+  font-size: 13.5px;
   color: #556355;
+  white-space: nowrap;
 }
 
 .ww-aspect {
@@ -1551,6 +1561,11 @@ html, body {
   min-height: 420px;
   border-radius: 16px;
   overflow: hidden;
+}
+
+.ww-aspect-compact {
+  padding-bottom: 48%;
+  min-height: 360px;
 }
 
 .ww-iframe {

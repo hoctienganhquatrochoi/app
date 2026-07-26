@@ -5,6 +5,10 @@
 
 alter table game_wordwall_opens add column if not exists tab_switch_count int not null default 0;
 
+-- Áp dụng luôn cho tất cả các dạng bài khác (không chỉ riêng Wordwall):
+-- rời màn hình quá 3 lần trong lúc làm bài thì bài đó không được công nhận.
+alter table game_quiz_attempts add column if not exists tab_switch_count int;
+
 create table if not exists game_wordwall_photos (
   id uuid primary key default gen_random_uuid(),
   wordwall_open_id uuid references game_wordwall_opens(id) on delete cascade,
@@ -32,15 +36,19 @@ values ('wordwall-proof', 'wordwall-proof', true)
 on conflict (id) do nothing;
 
 -- Cho phép trang học sinh (dùng anon key) tải ảnh lên/xóa ảnh cũ, và admin xem ảnh.
-create policy if not exists "wordwall-proof insert" on storage.objects
+-- (Postgres không hỗ trợ "create policy if not exists" nên xóa policy cũ trước nếu có.)
+drop policy if exists "wordwall-proof insert" on storage.objects;
+create policy "wordwall-proof insert" on storage.objects
   for insert to anon
   with check (bucket_id = 'wordwall-proof');
 
-create policy if not exists "wordwall-proof select" on storage.objects
+drop policy if exists "wordwall-proof select" on storage.objects;
+create policy "wordwall-proof select" on storage.objects
   for select to anon
   using (bucket_id = 'wordwall-proof');
 
-create policy if not exists "wordwall-proof delete" on storage.objects
+drop policy if exists "wordwall-proof delete" on storage.objects;
+create policy "wordwall-proof delete" on storage.objects
   for delete to anon
   using (bucket_id = 'wordwall-proof');
 
