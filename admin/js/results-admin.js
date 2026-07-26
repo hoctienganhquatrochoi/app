@@ -2,6 +2,16 @@ function populateResultsUnitSelect() {
   populateSearchableUnitSelect("resultsUnitSearch", "resultsUnitSelect");
 }
 
+function formatSecondsVN(totalSeconds) {
+  var seconds = Math.max(0, Math.floor(totalSeconds || 0));
+  var minutes = Math.floor(seconds / 60);
+  var rem = seconds % 60;
+  if (minutes > 0) {
+    return minutes + " phút " + rem + " giây";
+  }
+  return rem + " giây";
+}
+
 var currentResultsAssignmentId = null;
 var lastGroupHistoryRows = [];
 
