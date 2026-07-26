@@ -463,7 +463,7 @@ async function renderMainContent() {
     main.innerHTML = "";
 
     if (activity.type === "flashcard") {
-      renderFlashcard(main, breadcrumbText, items);
+      renderFlashcard(main, breadcrumbText, items, unit.id);
     } else if (activity.type === "flip-card") {
       renderFlipCard(main, breadcrumbText, items, unit.id);
     } else if (activity.type === "quiz") {

@@ -1,4 +1,4 @@
-function renderFlashcard(container, breadcrumbText, items) {
+function renderFlashcard(container, breadcrumbText, items, unitId) {
   var index = 0;
   var startedAt = new Date();
   var tabTracker = startTabSwitchTracker();
@@ -108,6 +108,7 @@ function renderFlashcard(container, breadcrumbText, items) {
   function showComplete() {
     showingComplete = true;
     tabTracker.stop();
+    submitQuizAttempt(unitId, "flashcard", items.length, items.length, startedAt, [], null, tabTracker.getCount());
 
     var overlay = document.createElement("div");
     overlay.className = "fc-overlay";
