@@ -1047,8 +1047,11 @@ html, body {
 }
 
 .matching-item.selected {
-  border-color: #4A90D2;
-  background: #EAF2FB;
+  border-color: #B8860B;
+  background: #FFD54F;
+  color: #1B4332;
+  box-shadow: 0 0 0 3px rgba(255, 213, 79, 0.45);
+  transform: scale(1.03);
 }
 
 .matching-item.solved {

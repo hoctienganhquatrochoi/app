@@ -246,10 +246,15 @@ function localDateKey(dateInput) {
   return yyyy + "-" + mm + "-" + dd;
 }
 
+var MIN_WORDWALL_SECONDS_FOR_CREDIT = 15;
+
 function computeDiligenceRanking(rows) {
   var byStudent = {};
   var order = [];
   rows.forEach(function (row) {
+    if (typeof row.durationSeconds === "number" && row.durationSeconds < MIN_WORDWALL_SECONDS_FOR_CREDIT) {
+      return;
+    }
     if (!byStudent[row.studentName]) {
       byStudent[row.studentName] = { name: row.studentName, count: 0, days: {}, scoreSum: 0, totalSum: 0 };
       order.push(row.studentName);
@@ -349,7 +354,8 @@ function renderGroupHistory(attempts, opens, showRanking) {
       scoreLabel: "—",
       score: null,
       total: null,
-      dateIso: row.opened_at
+      dateIso: row.opened_at,
+      durationSeconds: row.duration_seconds
     };
   }));
 

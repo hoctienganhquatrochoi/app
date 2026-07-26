@@ -1,7 +1,12 @@
+var MIN_WORDWALL_SECONDS_FOR_CREDIT = 15;
+
 function computeStudentDiligenceRanking(rows) {
   var byStudent = {};
   var order = [];
   rows.forEach(function (row) {
+    if (typeof row.durationSeconds === "number" && row.durationSeconds < MIN_WORDWALL_SECONDS_FOR_CREDIT) {
+      return;
+    }
     if (!byStudent[row.studentName]) {
       byStudent[row.studentName] = { name: row.studentName, studentId: row.studentId, count: 0, days: {}, scoreSum: 0, totalSum: 0 };
       order.push(row.studentName);
@@ -151,7 +156,7 @@ async function loadGroupRanking() {
   var opensResult = await fetchAllRows(function () {
     return supabaseClient
       .from("game_wordwall_opens")
-      .select("student_id, opened_at, game_students!inner(full_name, group_id)")
+      .select("student_id, opened_at, duration_seconds, game_students!inner(full_name, group_id)")
       .eq("game_students.group_id", groupId)
       .gte("opened_at", fromIso);
   });
@@ -175,7 +180,8 @@ async function loadGroupRanking() {
       studentName: row.game_students ? row.game_students.full_name : "?",
       score: null,
       total: null,
-      dateIso: row.opened_at
+      dateIso: row.opened_at,
+      durationSeconds: row.duration_seconds
     };
   }));
 
