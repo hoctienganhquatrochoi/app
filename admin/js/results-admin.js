@@ -434,6 +434,11 @@ function renderGroupHistory(attempts, opens, showRanking, photoIdSet) {
     wrap.appendChild(buildDiligenceRanking(ranked));
   }
 
+  var countedByName = {};
+  ranked.forEach(function (s) {
+    countedByName[s.name] = s.count;
+  });
+
   var byStudent = {};
   rows.forEach(function (row) {
     if (!byStudent[row.studentName]) {
@@ -444,15 +449,21 @@ function renderGroupHistory(attempts, opens, showRanking, photoIdSet) {
   var studentNames = ranked.map(function (s) {
     return s.name;
   });
+  Object.keys(byStudent).forEach(function (name) {
+    if (studentNames.indexOf(name) === -1) {
+      studentNames.push(name);
+    }
+  });
 
   studentNames.forEach(function (name) {
     var studentRows = byStudent[name].sort(function (a, b) {
       return new Date(b.dateIso) - new Date(a.dateIso);
     });
+    var countedCount = countedByName[name] || 0;
 
     var studentHeader = document.createElement("h4");
     studentHeader.className = "history-student-header";
-    studentHeader.textContent = "👤 " + name + " (" + studentRows.length + " lượt)";
+    studentHeader.textContent = "👤 " + name + " (" + countedCount + "/" + studentRows.length + " lượt được tính)";
     wrap.appendChild(studentHeader);
 
     var table = document.createElement("table");
