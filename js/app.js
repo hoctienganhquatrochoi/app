@@ -383,7 +383,7 @@ async function checkAndShowCheatWarning() {
   }
   var result = await supabaseClient
     .from("game_cheat_flags")
-    .select("id")
+    .select("id, student_message")
     .eq("student_id", currentStudent.id)
     .eq("acknowledged", false)
     .order("flagged_at", { ascending: false })
@@ -391,8 +391,9 @@ async function checkAndShowCheatWarning() {
   if (result.error || !result.data || !result.data.length) {
     return;
   }
-  await supabaseClient.from("game_cheat_flags").update({ acknowledged: true }).eq("id", result.data[0].id);
-  window.alert("⚠️ Em vừa mở đi mở lại Wordwall nhiều lần liên tục mà không làm bài thật — đây là gian dối trong quá trình học tập. Cô giáo đã biết việc này. Em học nghiêm túc lại nhé!");
+  var flag = result.data[0];
+  await supabaseClient.from("game_cheat_flags").update({ acknowledged: true }).eq("id", flag.id);
+  window.alert(flag.student_message || "⚠️ Hệ thống vừa phát hiện hành vi bất thường trong quá trình học tập. Cô giáo đã biết việc này. Em học nghiêm túc lại nhé!");
 }
 
 async function renderMainContent() {
@@ -567,7 +568,7 @@ async function renderMainContent() {
 
   if (activity.type === "wordwall") {
     main.innerHTML = "";
-    renderWordwallActivity(main, breadcrumbText, activity.embedUrl, unit.id, activity.name);
+    renderWordwallActivity(main, breadcrumbText, activity.embedUrl, unit.id, activity.name, isPhotoProofRequiredForClass(cls));
     return;
   }
 

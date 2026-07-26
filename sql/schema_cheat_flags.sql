@@ -6,9 +6,12 @@ create table if not exists game_cheat_flags (
   id uuid primary key default gen_random_uuid(),
   student_id uuid references game_students(id) on delete cascade,
   reason text not null,
+  student_message text,
   flagged_at timestamptz not null default now(),
   acknowledged boolean not null default false
 );
+
+alter table game_cheat_flags add column if not exists student_message text;
 
 alter table game_cheat_flags disable row level security;
 

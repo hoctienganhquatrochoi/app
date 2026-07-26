@@ -1,5 +1,61 @@
 var currentStudent = null;
 
+function getDeviceId() {
+  var id = window.localStorage.getItem("deviceId");
+  if (!id) {
+    id = "dev_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 10);
+    window.localStorage.setItem("deviceId", id);
+  }
+  return id;
+}
+
+async function recordDeviceActivityAndCheck(studentId) {
+  var deviceId = getDeviceId();
+  var today = localDateKey(new Date());
+
+  await supabaseClient.from("game_login_events").insert({
+    student_id: studentId,
+    device_id: deviceId,
+    login_day: today
+  });
+
+  var todayEvents = await supabaseClient
+    .from("game_login_events")
+    .select("device_id")
+    .eq("student_id", studentId)
+    .eq("login_day", today);
+
+  if (todayEvents.error) {
+    return;
+  }
+  var seen = {};
+  var distinctCount = 0;
+  (todayEvents.data || []).forEach(function (row) {
+    if (!seen[row.device_id]) {
+      seen[row.device_id] = true;
+      distinctCount++;
+    }
+  });
+  if (distinctCount < 3) {
+    return;
+  }
+
+  var existingFlag = await supabaseClient
+    .from("game_cheat_flags")
+    .select("id")
+    .eq("student_id", studentId)
+    .eq("acknowledged", false)
+    .limit(1);
+  if (existingFlag.error || (existingFlag.data && existingFlag.data.length)) {
+    return;
+  }
+  await supabaseClient.from("game_cheat_flags").insert({
+    student_id: studentId,
+    reason: "Đăng nhập từ " + distinctCount + " thiết bị khác nhau trong 1 ngày (nghi dùng chung tài khoản)",
+    student_message: "⚠️ Tài khoản này vừa đăng nhập trên từ 3 thiết bị khác nhau trở lên trong cùng 1 ngày — nghi ngờ dùng chung tài khoản. Cô giáo đã biết việc này. Nếu tiếp tục, tài khoản có thể bị khóa vĩnh viễn."
+  });
+}
+
 function loadStoredStudent() {
   var raw = window.localStorage.getItem("currentStudent");
   if (!raw) {
@@ -155,6 +211,7 @@ async function handleLoginSubmit() {
   currentStudent = { id: student.id, full_name: student.full_name, group_id: student.group_id, allowed_class_ids: student.allowed_class_ids || [] };
   currentStudent.assignedUnitIds = await fetchAssignedUnitIds(currentStudent.id);
   storeStudent(currentStudent);
+  recordDeviceActivityAndCheck(currentStudent.id);
   closeLoginModal();
   renderAuthArea();
   renderSidebar();
@@ -167,6 +224,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (currentStudent) {
     await refreshCurrentStudentAccess();
     renderSidebar();
+    recordDeviceActivityAndCheck(currentStudent.id);
   }
 
   document.getElementById("loginCancelBtn").addEventListener("click", closeLoginModal);

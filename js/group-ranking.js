@@ -1,10 +1,17 @@
 var MIN_WORDWALL_SECONDS_FOR_CREDIT = 15;
+var MAX_WORDWALL_TAB_SWITCHES_FOR_CREDIT = 3;
 
 function computeStudentDiligenceRanking(rows) {
   var byStudent = {};
   var order = [];
   rows.forEach(function (row) {
     if (typeof row.durationSeconds === "number" && row.durationSeconds < MIN_WORDWALL_SECONDS_FOR_CREDIT) {
+      return;
+    }
+    if (typeof row.tabSwitchCount === "number" && row.tabSwitchCount > MAX_WORDWALL_TAB_SWITCHES_FOR_CREDIT) {
+      return;
+    }
+    if (row.photoMissing) {
       return;
     }
     if (!byStudent[row.studentName]) {
@@ -156,7 +163,7 @@ async function loadGroupRanking() {
   var opensResult = await fetchAllRows(function () {
     return supabaseClient
       .from("game_wordwall_opens")
-      .select("student_id, opened_at, duration_seconds, game_students!inner(full_name, group_id)")
+      .select("id, unit_id, student_id, opened_at, duration_seconds, tab_switch_count, game_students!inner(full_name, group_id)")
       .eq("game_students.group_id", groupId)
       .gte("opened_at", fromIso);
   });
@@ -164,6 +171,17 @@ async function loadGroupRanking() {
   if (attemptsResult.error || opensResult.error) {
     body.textContent = "Không tải được xếp hạng, thử lại sau nhé.";
     return;
+  }
+
+  var openIds = (opensResult.data || []).map(function (row) { return row.id; });
+  var photoIdSet = {};
+  if (openIds.length) {
+    var photosResult = await fetchAllRows(function () {
+      return supabaseClient.from("game_wordwall_photos").select("wordwall_open_id").in("wordwall_open_id", openIds);
+    });
+    (photosResult.data || []).forEach(function (row) {
+      photoIdSet[row.wordwall_open_id] = true;
+    });
   }
 
   var rows = (attemptsResult.data || []).map(function (row) {
@@ -175,13 +193,18 @@ async function loadGroupRanking() {
       dateIso: row.submitted_at
     };
   }).concat((opensResult.data || []).map(function (row) {
+    var unit = findUnitById(row.unit_id);
+    var cls = unit ? findClassById(unit.class_id) : null;
+    var photoRequired = isPhotoProofRequiredForClass(cls);
     return {
       studentId: row.student_id,
       studentName: row.game_students ? row.game_students.full_name : "?",
       score: null,
       total: null,
       dateIso: row.opened_at,
-      durationSeconds: row.duration_seconds
+      durationSeconds: row.duration_seconds,
+      tabSwitchCount: row.tab_switch_count,
+      photoMissing: photoRequired && !photoIdSet[row.id]
     };
   }));
 

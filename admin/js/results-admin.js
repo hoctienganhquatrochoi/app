@@ -171,7 +171,19 @@ async function loadGroupHistory() {
     return;
   }
 
-  renderGroupHistory(attemptsResult.data, opensResult.data || [], !studentId);
+  var openIds = (opensResult.data || []).map(function (row) { return row.id; });
+  var photoIdSet = {};
+  if (openIds.length) {
+    var photosResult = await supabaseClient
+      .from("game_wordwall_photos")
+      .select("wordwall_open_id")
+      .in("wordwall_open_id", openIds);
+    (photosResult.data || []).forEach(function (row) {
+      photoIdSet[row.wordwall_open_id] = true;
+    });
+  }
+
+  renderGroupHistory(attemptsResult.data, opensResult.data || [], !studentId, photoIdSet);
 }
 
 function currentHistoryReportLabel() {
@@ -257,12 +269,19 @@ function localDateKey(dateInput) {
 }
 
 var MIN_WORDWALL_SECONDS_FOR_CREDIT = 15;
+var MAX_WORDWALL_TAB_SWITCHES_FOR_CREDIT = 3;
 
 function computeDiligenceRanking(rows) {
   var byStudent = {};
   var order = [];
   rows.forEach(function (row) {
     if (typeof row.durationSeconds === "number" && row.durationSeconds < MIN_WORDWALL_SECONDS_FOR_CREDIT) {
+      return;
+    }
+    if (typeof row.tabSwitchCount === "number" && row.tabSwitchCount > MAX_WORDWALL_TAB_SWITCHES_FOR_CREDIT) {
+      return;
+    }
+    if (row.photoMissing) {
       return;
     }
     if (!byStudent[row.studentName]) {
@@ -335,7 +354,21 @@ function buildDiligenceRanking(ranked) {
   return box;
 }
 
-function renderGroupHistory(attempts, opens, showRanking) {
+function isPhotoProofRequiredForClassAdmin(cls) {
+  if (!cls) {
+    return false;
+  }
+  if (cls.level === "mamnon") {
+    return false;
+  }
+  if (/^Lớp\s*1$/i.test((cls.name || "").trim())) {
+    return false;
+  }
+  return true;
+}
+
+function renderGroupHistory(attempts, opens, showRanking, photoIdSet) {
+  photoIdSet = photoIdSet || {};
   var wrap = document.getElementById("historyListWrap");
   wrap.innerHTML = "";
 
@@ -343,6 +376,16 @@ function renderGroupHistory(attempts, opens, showRanking) {
   var unitLabelById = {};
   ALL_UNITS_FLAT.forEach(function (u) {
     unitLabelById[u.id] = u.label;
+  });
+
+  var unitClassById = {};
+  DATA.classes.forEach(function (cls) {
+    var subjects = DATA.subjectsByClass[cls.id] || [];
+    subjects.forEach(function (subj) {
+      subj.units.forEach(function (u) {
+        unitClassById[u.id] = cls;
+      });
+    });
   });
 
   var rows = attempts.map(function (row) {
@@ -357,15 +400,20 @@ function renderGroupHistory(attempts, opens, showRanking) {
     };
   }).concat(opens.map(function (row) {
     var durationLabel = row.duration_seconds != null ? " (" + formatSecondsVN(row.duration_seconds) + ")" : " (đã mở)";
+    var photoRequired = isPhotoProofRequiredForClassAdmin(unitClassById[row.unit_id]);
+    var photoLabel = photoRequired ? (photoIdSet[row.id] ? " 📸 Đã gửi ảnh" : " ⚠️ Chưa gửi ảnh") : "";
+    var tabLabel = typeof row.tab_switch_count === "number" ? " · Rời màn hình " + row.tab_switch_count + " lần" : "";
     return {
       studentName: row.game_students ? row.game_students.full_name : "(đã xóa tài khoản)",
       unitLabel: unitLabelById[row.unit_id] || row.unit_id,
-      activityLabel: "Wordwall: " + row.wordwall_name + durationLabel,
+      activityLabel: "Wordwall: " + row.wordwall_name + durationLabel + photoLabel + tabLabel,
       scoreLabel: "—",
       score: null,
       total: null,
       dateIso: row.opened_at,
-      durationSeconds: row.duration_seconds
+      durationSeconds: row.duration_seconds,
+      tabSwitchCount: row.tab_switch_count,
+      photoMissing: photoRequired && !photoIdSet[row.id]
     };
   }));
 
@@ -440,6 +488,23 @@ function formatDateTime(iso) {
   var hh = d.getHours() < 10 ? "0" + d.getHours() : "" + d.getHours();
   var mi = d.getMinutes() < 10 ? "0" + d.getMinutes() : "" + d.getMinutes();
   return hh + ":" + mi + " " + dd + "/" + mm + "/" + d.getFullYear();
+}
+
+async function cleanupOldWordwallPhotos() {
+  var cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  var oldPhotos = await supabaseClient.from("game_wordwall_photos").select("id, photo_url").lt("uploaded_at", cutoff);
+  if (oldPhotos.error || !oldPhotos.data || !oldPhotos.data.length) {
+    return;
+  }
+  var paths = oldPhotos.data.map(function (row) {
+    var idx = row.photo_url.indexOf("/wordwall-proof/");
+    return idx !== -1 ? row.photo_url.slice(idx + "/wordwall-proof/".length) : null;
+  }).filter(function (p) { return !!p; });
+  if (paths.length) {
+    await supabaseClient.storage.from("wordwall-proof").remove(paths);
+  }
+  var ids = oldPhotos.data.map(function (row) { return row.id; });
+  await supabaseClient.from("game_wordwall_photos").delete().in("id", ids);
 }
 
 async function loadCheatFlags() {

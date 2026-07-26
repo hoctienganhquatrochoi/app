@@ -1504,6 +1504,45 @@ html, body {
   margin: 0 auto;
 }
 
+.ww-photo-notice {
+  background: #FFF3CD;
+  border: 1px solid #F0973D;
+  color: #7A4A00;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.ww-photo-upload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.ww-photo-upload-btn {
+  background: #2D6A4F;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ww-photo-upload-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.ww-photo-upload-status {
+  font-size: 14px;
+  color: #556355;
+}
+
 .ww-aspect {
   position: relative;
   width: 100%;

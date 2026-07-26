@@ -1,3 +1,68 @@
+function isPhotoProofRequiredForClass(cls) {
+  if (!cls) {
+    return false;
+  }
+  if (cls.level === "mamnon") {
+    return false;
+  }
+  if (/^Lớp\s*1$/i.test((cls.name || "").trim())) {
+    return false;
+  }
+  return true;
+}
+
+function compressImageFile(file, maxWidth, quality) {
+  return new Promise(function (resolve, reject) {
+    var img = new Image();
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      img.onload = function () {
+        var scale = Math.min(1, maxWidth / img.width);
+        var canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function (blob) {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error("Không nén được ảnh"));
+          }
+        }, "image/jpeg", quality);
+      };
+      img.onerror = function () {
+        reject(new Error("Ảnh không hợp lệ"));
+      };
+      img.src = e.target.result;
+    };
+    reader.onerror = function () {
+      reject(new Error("Không đọc được file"));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadWordwallProofPhoto(file, wordwallOpenId, unitId) {
+  var blob = await compressImageFile(file, 900, 0.7);
+  var path = unitId + "/" + wordwallOpenId + "_" + Date.now() + ".jpg";
+  var uploadResult = await supabaseClient.storage.from("wordwall-proof").upload(path, blob, { contentType: "image/jpeg" });
+  if (uploadResult.error) {
+    throw uploadResult.error;
+  }
+  var urlResult = supabaseClient.storage.from("wordwall-proof").getPublicUrl(path);
+  var photoUrl = urlResult.data.publicUrl;
+  var insertResult = await supabaseClient.from("game_wordwall_photos").insert({
+    wordwall_open_id: wordwallOpenId,
+    student_id: currentStudent.id,
+    photo_url: photoUrl
+  });
+  if (insertResult.error) {
+    throw insertResult.error;
+  }
+  return photoUrl;
+}
+
 var WORDWALL_HEARTBEAT_MS = 5000;
 var WORDWALL_GAMING_MIN_SECONDS = 15;
 var WORDWALL_GAMING_WINDOW_MS = 30 * 60 * 1000;
@@ -31,7 +96,8 @@ async function checkForWordwallGaming(studentId) {
   }
   await supabaseClient.from("game_cheat_flags").insert({
     student_id: studentId,
-    reason: "Mở Wordwall " + shortCount + " lần dưới 15 giây trong vòng 30 phút"
+    reason: "Mở Wordwall " + shortCount + " lần dưới 15 giây trong vòng 30 phút",
+    student_message: "⚠️ Em vừa mở đi mở lại Wordwall nhiều lần liên tục mà không làm bài thật — đây là gian dối trong quá trình học tập. Cô giáo đã biết việc này. Em học nghiêm túc lại nhé!"
   });
 }
 
@@ -62,6 +128,7 @@ function updateWordwallDuration(rowId, startedAt) {
 
 function startWordwallTracker(rowId, studentId) {
   var startedAt = Date.now();
+  var tabTracker = startTabSwitchTracker();
   var intervalId = setInterval(function () {
     updateWordwallDuration(rowId, startedAt);
   }, WORDWALL_HEARTBEAT_MS);
@@ -73,6 +140,8 @@ function startWordwallTracker(rowId, studentId) {
     stop: function () {
       clearInterval(intervalId);
       updateWordwallDuration(rowId, startedAt);
+      tabTracker.stop();
+      supabaseClient.from("game_wordwall_opens").update({ tab_switch_count: tabTracker.getCount() }).eq("id", rowId).then(function () {});
       checkForWordwallGaming(studentId);
     }
   };
@@ -91,13 +160,20 @@ function flushActiveWordwallTracker() {
   }
 }
 
-async function renderWordwallActivity(container, breadcrumbText, embedUrl, unitId, wordwallName) {
+async function renderWordwallActivity(container, breadcrumbText, embedUrl, unitId, wordwallName, photoProofRequired) {
   stopActiveWordwallTracker();
 
   container.innerHTML = "";
 
   var wrap = document.createElement("div");
   wrap.className = "ww-wrap";
+
+  if (photoProofRequired) {
+    var notice = document.createElement("div");
+    notice.className = "ww-photo-notice";
+    notice.textContent = "📸 Nhớ chụp màn hình kết quả sau khi làm xong và gửi lại để được công nhận điểm! Không gửi ảnh, bài sẽ không được tính.";
+    wrap.appendChild(notice);
+  }
 
   var aspectBox = document.createElement("div");
   aspectBox.className = "ww-aspect";
@@ -110,9 +186,55 @@ async function renderWordwallActivity(container, breadcrumbText, embedUrl, unitI
   aspectBox.appendChild(iframe);
   wrap.appendChild(aspectBox);
 
+  var rowId = await logWordwallOpen(unitId, wordwallName);
+
+  if (photoProofRequired && rowId) {
+    var uploadBox = document.createElement("div");
+    uploadBox.className = "ww-photo-upload";
+
+    var uploadBtn = document.createElement("button");
+    uploadBtn.type = "button";
+    uploadBtn.className = "ww-photo-upload-btn";
+    uploadBtn.textContent = "📤 Gửi ảnh kết quả";
+    uploadBox.appendChild(uploadBtn);
+
+    var statusEl = document.createElement("span");
+    statusEl.className = "ww-photo-upload-status";
+    uploadBox.appendChild(statusEl);
+
+    var fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.style.display = "none";
+    uploadBox.appendChild(fileInput);
+
+    uploadBtn.addEventListener("click", function () {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener("change", function () {
+      var file = fileInput.files && fileInput.files[0];
+      if (!file) {
+        return;
+      }
+      uploadBtn.disabled = true;
+      statusEl.textContent = "Đang gửi ảnh...";
+      uploadWordwallProofPhoto(file, rowId, unitId).then(function () {
+        statusEl.textContent = "✓ Đã gửi ảnh";
+        uploadBtn.textContent = "📤 Gửi ảnh khác";
+        uploadBtn.disabled = false;
+      }).catch(function (err) {
+        statusEl.textContent = "Lỗi gửi ảnh, thử lại nhé";
+        uploadBtn.disabled = false;
+        console.error("uploadWordwallProofPhoto failed:", err);
+      });
+    });
+
+    wrap.appendChild(uploadBox);
+  }
+
   container.appendChild(wrap);
 
-  var rowId = await logWordwallOpen(unitId, wordwallName);
   if (rowId) {
     activeWordwallTracker = startWordwallTracker(rowId, currentStudent.id);
   }
