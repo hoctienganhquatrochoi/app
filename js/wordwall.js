@@ -181,31 +181,27 @@ async function renderWordwallActivity(container, breadcrumbText, embedUrl, unitI
     var bar = document.createElement("div");
     bar.className = "ww-photo-bar";
 
-    var noticeText = document.createElement("div");
+    var noticeText = document.createElement("span");
     noticeText.className = "ww-photo-bar-text";
-    noticeText.textContent = "📸 Nhớ chụp màn hình kết quả sau khi làm xong và gửi lại để được công nhận điểm! Không gửi ảnh, bài sẽ không được tính.";
+    noticeText.textContent = "📸 Nhớ chụp màn hình gửi kết quả nhé!";
     bar.appendChild(noticeText);
 
     pasteZone = document.createElement("div");
     pasteZone.className = "ww-photo-pastezone";
     pasteZone.setAttribute("tabindex", "0");
-
-    var pasteZoneText = document.createElement("span");
-    pasteZoneText.className = "ww-photo-pastezone-text";
-    pasteZoneText.textContent = "📋 Bấm vào đây rồi dán ảnh (Ctrl+V)";
-    pasteZone.appendChild(pasteZoneText);
+    pasteZone.textContent = "📋 Dán ảnh (Ctrl+V)";
+    bar.appendChild(pasteZone);
 
     chooseFileBtn = document.createElement("button");
     chooseFileBtn.type = "button";
     chooseFileBtn.className = "ww-photo-choosefile-btn";
     chooseFileBtn.textContent = "📁 Chọn file";
-    pasteZone.appendChild(chooseFileBtn);
+    bar.appendChild(chooseFileBtn);
 
     statusEl = document.createElement("span");
     statusEl.className = "ww-photo-upload-status";
-    pasteZone.appendChild(statusEl);
+    bar.appendChild(statusEl);
 
-    bar.appendChild(pasteZone);
     wrap.appendChild(bar);
   }
 

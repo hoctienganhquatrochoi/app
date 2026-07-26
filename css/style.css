@@ -1509,26 +1509,29 @@ html, body {
   border: 1px solid #F0973D;
   color: #7A4A00;
   border-radius: 10px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
 }
 
 .ww-photo-bar-text {
   font-weight: 600;
   font-size: 13.5px;
-  margin-bottom: 6px;
+  white-space: nowrap;
 }
 
 .ww-photo-pastezone {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px 12px;
   background: #FFFDF5;
-  border: 2px dashed #C98A1F;
-  border-radius: 10px;
-  padding: 8px 12px;
-  cursor: pointer;
+  border: 1px solid #C98A1F;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 13px;
+  color: #7A4A00;
+  cursor: text;
+  white-space: nowrap;
 }
 
 .ww-photo-pastezone:focus,
@@ -1536,22 +1539,16 @@ html, body {
   outline: none;
   border-color: #2D6A4F;
   background: #EAF6EE;
-}
-
-.ww-photo-pastezone-text {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #7A4A00;
-  flex: 1 1 180px;
+  color: #2D6A4F;
 }
 
 .ww-photo-choosefile-btn {
   background: #2D6A4F;
   color: #FFFFFF;
   border: none;
-  border-radius: 20px;
-  padding: 6px 14px;
-  font-size: 13.5px;
+  border-radius: 16px;
+  padding: 5px 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -1563,7 +1560,7 @@ html, body {
 }
 
 .ww-photo-upload-status {
-  font-size: 13.5px;
+  font-size: 13px;
   color: #556355;
   white-space: nowrap;
 }
