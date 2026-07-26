@@ -377,6 +377,24 @@ function buildActivityItem(unit, activity, needsAccess) {
 
 var vocabActivityTypes = ["flashcard", "flip-card", "quiz", "missing-letter", "typing", "free-typing"];
 
+async function checkAndShowCheatWarning() {
+  if (!currentStudent) {
+    return;
+  }
+  var result = await supabaseClient
+    .from("game_cheat_flags")
+    .select("id")
+    .eq("student_id", currentStudent.id)
+    .eq("acknowledged", false)
+    .order("flagged_at", { ascending: false })
+    .limit(1);
+  if (result.error || !result.data || !result.data.length) {
+    return;
+  }
+  await supabaseClient.from("game_cheat_flags").update({ acknowledged: true }).eq("id", result.data[0].id);
+  window.alert("⚠️ Em vừa mở đi mở lại Wordwall nhiều lần liên tục mà không làm bài thật — đây là gian dối trong quá trình học tập. Cô giáo đã biết việc này. Em học nghiêm túc lại nhé!");
+}
+
 async function renderMainContent() {
   var main = document.getElementById("mainContent");
   stopActiveWordwallTracker();
@@ -389,6 +407,8 @@ async function renderMainContent() {
     main.appendChild(placeholder);
     return;
   }
+
+  await checkAndShowCheatWarning();
 
   var cls = getSelectedClass();
   var isMamNon = cls.level === "mamnon";

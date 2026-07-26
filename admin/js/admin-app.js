@@ -15,6 +15,7 @@ function switchTab(target) {
 
   if (target === "results") {
     loadResults();
+    loadCheatFlags();
     loadAllAssignmentsForResults();
     populateHistoryGroupSelect();
     loadAllStudentsForHistory().then(populateHistoryStudentSelect);

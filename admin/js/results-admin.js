@@ -432,6 +432,51 @@ function formatDateTime(iso) {
   return hh + ":" + mi + " " + dd + "/" + mm + "/" + d.getFullYear();
 }
 
+async function loadCheatFlags() {
+  var box = document.getElementById("resultsCheatFlagsBox");
+  var wrap = document.getElementById("resultsCheatFlagsWrap");
+
+  var result = await supabaseClient
+    .from("game_cheat_flags")
+    .select("id, reason, flagged_at, acknowledged, game_students(full_name)")
+    .order("flagged_at", { ascending: false })
+    .limit(100);
+
+  if (result.error || !result.data || !result.data.length) {
+    box.style.display = "none";
+    return;
+  }
+
+  box.style.display = "block";
+  wrap.innerHTML = "";
+
+  var table = document.createElement("table");
+  table.className = "admin-table";
+
+  var thead = document.createElement("thead");
+  var headRow = document.createElement("tr");
+  ["Học sinh", "Lý do", "Thời điểm", "Đã cảnh báo hs?"].forEach(function (text) {
+    var th = document.createElement("th");
+    th.textContent = text;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  var tbody = document.createElement("tbody");
+  result.data.forEach(function (row) {
+    var tr = document.createElement("tr");
+    tr.appendChild(makeTd(row.game_students ? row.game_students.full_name : "(đã xóa tài khoản)"));
+    tr.appendChild(makeTd(row.reason));
+    tr.appendChild(makeTd(formatDateTime(row.flagged_at)));
+    tr.appendChild(makeTd(row.acknowledged ? "✓ Rồi" : "Chưa (đang chờ hs mở bài tiếp theo)"));
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+
+  wrap.appendChild(table);
+}
+
 async function loadAllAssignmentsForResults() {
   var wrap = document.getElementById("resultsAssignmentListWrap");
   wrap.textContent = "Đang tải...";
