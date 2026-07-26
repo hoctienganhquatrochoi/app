@@ -173,32 +173,39 @@ async function renderWordwallActivity(container, breadcrumbText, embedUrl, unitI
   var wrap = document.createElement("div");
   wrap.className = "ww-wrap";
 
-  var uploadBtn = null;
+  var pasteZone = null;
   var statusEl = null;
+  var chooseFileBtn = null;
 
   if (photoProofRequired) {
     var bar = document.createElement("div");
     bar.className = "ww-photo-bar";
 
-    var noticeText = document.createElement("span");
+    var noticeText = document.createElement("div");
     noticeText.className = "ww-photo-bar-text";
-    noticeText.textContent = "📸 Làm xong, dán ảnh (Ctrl+V) hoặc chọn file để gửi kết quả! Không gửi ảnh, bài sẽ không được tính.";
+    noticeText.textContent = "📸 Nhớ chụp màn hình kết quả sau khi làm xong và gửi lại để được công nhận điểm! Không gửi ảnh, bài sẽ không được tính.";
     bar.appendChild(noticeText);
 
-    var actions = document.createElement("div");
-    actions.className = "ww-photo-bar-actions";
+    pasteZone = document.createElement("div");
+    pasteZone.className = "ww-photo-pastezone";
+    pasteZone.setAttribute("tabindex", "0");
 
-    uploadBtn = document.createElement("button");
-    uploadBtn.type = "button";
-    uploadBtn.className = "ww-photo-upload-btn";
-    uploadBtn.textContent = "📤 Chọn ảnh";
-    actions.appendChild(uploadBtn);
+    var pasteZoneText = document.createElement("span");
+    pasteZoneText.className = "ww-photo-pastezone-text";
+    pasteZoneText.textContent = "📋 Bấm vào đây rồi dán ảnh (Ctrl+V)";
+    pasteZone.appendChild(pasteZoneText);
+
+    chooseFileBtn = document.createElement("button");
+    chooseFileBtn.type = "button";
+    chooseFileBtn.className = "ww-photo-choosefile-btn";
+    chooseFileBtn.textContent = "📁 Chọn file";
+    pasteZone.appendChild(chooseFileBtn);
 
     statusEl = document.createElement("span");
     statusEl.className = "ww-photo-upload-status";
-    actions.appendChild(statusEl);
+    pasteZone.appendChild(statusEl);
 
-    bar.appendChild(actions);
+    bar.appendChild(pasteZone);
     wrap.appendChild(bar);
   }
 
@@ -210,13 +217,15 @@ async function renderWordwallActivity(container, breadcrumbText, embedUrl, unitI
   iframe.src = embedUrl;
   iframe.setAttribute("frameborder", "0");
   iframe.setAttribute("allowfullscreen", "true");
+  iframe.setAttribute("webkitallowfullscreen", "true");
+  iframe.setAttribute("mozallowfullscreen", "true");
   iframe.setAttribute("allow", "fullscreen");
   aspectBox.appendChild(iframe);
   wrap.appendChild(aspectBox);
 
   var rowId = await logWordwallOpen(unitId, wordwallName);
 
-  if (photoProofRequired && rowId && uploadBtn) {
+  if (photoProofRequired && rowId && pasteZone) {
     var fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = "image/*";
@@ -224,20 +233,20 @@ async function renderWordwallActivity(container, breadcrumbText, embedUrl, unitI
     wrap.appendChild(fileInput);
 
     var handleUploadFile = function (file) {
-      uploadBtn.disabled = true;
+      chooseFileBtn.disabled = true;
       statusEl.textContent = "Đang gửi ảnh...";
       uploadWordwallProofPhoto(file, rowId, unitId).then(function () {
         statusEl.textContent = "✓ Đã gửi ảnh";
-        uploadBtn.textContent = "📤 Gửi ảnh khác";
-        uploadBtn.disabled = false;
+        chooseFileBtn.disabled = false;
       }).catch(function (err) {
         statusEl.textContent = "Lỗi gửi ảnh, thử lại nhé";
-        uploadBtn.disabled = false;
+        chooseFileBtn.disabled = false;
         console.error("uploadWordwallProofPhoto failed:", err);
       });
     };
 
-    uploadBtn.addEventListener("click", function () {
+    chooseFileBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
       fileInput.click();
     });
 
