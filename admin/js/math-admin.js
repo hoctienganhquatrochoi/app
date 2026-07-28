@@ -133,7 +133,7 @@ function buildMathDragfillEditRow(row) {
   var passageTd = makeInputTd(row.passage);
   var correctTd = document.createElement("td");
   correctTd.className = "admin-hint";
-  correctTd.textContent = "(tự động lấy từ <...> trong đề bài)";
+  correctTd.textContent = "(tự động lấy từ ⟦...⟧ trong đề bài)";
   var wrongTd = makeInputTd((row.wrong_answers || []).join(", "));
 
   tr.appendChild(passageTd);
@@ -151,7 +151,7 @@ function buildMathDragfillEditRow(row) {
     var correctAnswers = extractDragfillBlanks(newPassage);
     var wrongAnswers = splitDragfillAnswerList(wrongTd.inputEl.value);
     if (!newPassage || !correctAnswers.length) {
-      window.alert("Đề bài không được để trống và cần đánh dấu ít nhất 1 chỗ trống bằng <>");
+      window.alert("Đề bài không được để trống và cần đánh dấu ít nhất 1 chỗ trống bằng ⟦⟧");
       return;
     }
     var result = await supabaseClient.from("game_math_dragfill").update({
@@ -220,7 +220,7 @@ function splitDragfillAnswerList(text) {
 }
 
 function extractDragfillBlanks(rawPassage) {
-  var re = /<([^<>]+)>/g;
+  var re = /⟦([^⟦⟧]+)⟧/g;
   var correctAnswers = [];
   var match;
   while ((match = re.exec(rawPassage)) !== null) {
@@ -306,7 +306,7 @@ async function handleBulkAddMathDragfill(e) {
 
   var summary = "Xong! Đã thêm " + successCount + "/" + items.length + " bài.";
   if (invalidBlocks.length) {
-    summary += " Bỏ qua bài chưa đánh dấu chỗ trống bằng <>: bài " + invalidBlocks.join(", ") + ".";
+    summary += " Bỏ qua bài chưa đánh dấu chỗ trống bằng ⟦⟧: bài " + invalidBlocks.join(", ") + ".";
   }
   if (saveErrors.length) {
     summary += " Lỗi lưu — " + saveErrors.join("; ") + ".";

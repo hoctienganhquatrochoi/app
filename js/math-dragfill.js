@@ -3,7 +3,7 @@ var MATH_DRAGFILL_CORRECT_DELAY_MS = 1200;
 function splitMathPassageAroundBlanks(rawPassage) {
   var tokens = [];
   var answers = [];
-  var re = /<([^<>]+)>/g;
+  var re = /⟦([^⟦⟧]+)⟧/g;
   var lastIndex = 0;
   var match;
   var blankIndex = 0;

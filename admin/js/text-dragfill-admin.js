@@ -134,7 +134,7 @@ function buildTextDragfillEditRow(row) {
   var passageTd = makeInputTd(row.passage);
   var correctTd = document.createElement("td");
   correctTd.className = "admin-hint";
-  correctTd.textContent = "(tự động lấy từ <...> trong bài)";
+  correctTd.textContent = "(tự động lấy từ ⟦...⟧ trong bài)";
   var wrongTd = makeInputTd((row.wrong_answers || []).join(", "));
 
   tr.appendChild(passageTd);
@@ -152,7 +152,7 @@ function buildTextDragfillEditRow(row) {
     var correctAnswers = extractDragfillBlanks(newPassage);
     var wrongAnswers = splitDragfillAnswerList(wrongTd.inputEl.value);
     if (!newPassage || !correctAnswers.length) {
-      window.alert("Đoạn văn không được để trống và cần đánh dấu ít nhất 1 chỗ trống bằng <>");
+      window.alert("Đoạn văn không được để trống và cần đánh dấu ít nhất 1 chỗ trống bằng ⟦⟧");
       return;
     }
     var result = await supabaseClient.from("game_text_dragfill").update({
@@ -265,7 +265,7 @@ async function handleBulkAddTextDragfill(e) {
 
   var summary = "Xong! Đã thêm " + successCount + "/" + items.length + " bài.";
   if (invalidBlocks.length) {
-    summary += " Bỏ qua bài chưa đánh dấu chỗ trống bằng <>: bài " + invalidBlocks.join(", ") + ".";
+    summary += " Bỏ qua bài chưa đánh dấu chỗ trống bằng ⟦⟧: bài " + invalidBlocks.join(", ") + ".";
   }
   if (saveErrors.length) {
     summary += " Lỗi lưu — " + saveErrors.join("; ") + ".";
