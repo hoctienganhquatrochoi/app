@@ -10,7 +10,7 @@ function buildGrammarMcqQuestions(items) {
   });
 }
 
-function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal) {
+function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal, scoreOffset) {
   var questions = buildGrammarMcqQuestions(items);
   var qIndex = 0;
   var score = 0;
@@ -27,7 +27,7 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
 
     var wrap = document.createElement("div");
     wrap.className = "quiz-wrap";
-    wrap.appendChild(buildActivityHeader(startedAt, score));
+    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score));
 
     var body = document.createElement("div");
     body.className = "quiz-body";
@@ -109,7 +109,7 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
     clearInterval(timerIntervalId);
     tabTracker.stop();
     if (onTestComplete) {
-      onTestComplete(score, questions.length, answersLog);
+      onTestComplete(score, questions.length, answersLog, tabTracker.getCount());
       return;
     }
     submitQuizAttempt(unitId, "grammar-mcq", score, questions.length, startedAt, answersLog, setName, tabTracker.getCount());

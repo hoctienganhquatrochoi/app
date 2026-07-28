@@ -5,7 +5,7 @@ function normalizeGrammarTypingAnswer(str) {
   return normalizeQuoteChars(str || "").trim().replace(/\s+/g, " ");
 }
 
-function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal) {
+function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal, scoreOffset) {
   var pool = shuffleArray(items);
   var qIndex = 0;
   var score = 0;
@@ -54,7 +54,7 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
 
     var wrap = document.createElement("div");
     wrap.className = "ty-wrap";
-    wrap.appendChild(buildActivityHeader(startedAt, score));
+    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score));
 
     var line = document.createElement("div");
     line.className = "ty-meaning no-visual";
@@ -151,7 +151,7 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
     tabTracker.stop();
     document.removeEventListener("keydown", handleGlobalKeydown);
     if (onTestComplete) {
-      onTestComplete(score, pool.length, answersLog);
+      onTestComplete(score, pool.length, answersLog, tabTracker.getCount());
       return;
     }
     submitQuizAttempt(unitId, "grammar-typing", score, pool.length, startedAt, answersLog, setName, tabTracker.getCount());

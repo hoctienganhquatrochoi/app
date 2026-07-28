@@ -2,7 +2,7 @@ var GRAMMAR_MATCHING_WRONG_FLASH_MS = 500;
 var GRAMMAR_MATCHING_ADVANCE_DELAY_MS = 1000;
 var MATCHING_COLOR_COUNT = 6;
 
-function renderGrammarMatching(container, breadcrumbText, items, unitId, setName, onTestComplete) {
+function renderGrammarMatching(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal, scoreOffset) {
   var pairs, leftOrder, rightOrder, selectedId, selectedSide, score, solvedCount, answersLog, startedAt, timerIntervalId, tabTracker;
 
   function resetState() {
@@ -36,7 +36,7 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
 
     var wrap = document.createElement("div");
     wrap.className = "matching-wrap";
-    wrap.appendChild(buildActivityHeader(startedAt, score));
+    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score));
 
     var progress = document.createElement("div");
     progress.className = "quiz-progress-footer";
@@ -151,7 +151,7 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
     clearInterval(timerIntervalId);
     tabTracker.stop();
     if (onTestComplete) {
-      onTestComplete(score, pairs.length, answersLog);
+      onTestComplete(score, pairs.length, answersLog, tabTracker.getCount());
       return;
     }
     submitQuizAttempt(unitId, "grammar-matching", score, pairs.length, startedAt, answersLog, setName, tabTracker.getCount());

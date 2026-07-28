@@ -5,15 +5,15 @@ var TEST_SECTION_CONFIG = {
   "grammar-dragfill": { load: loadGrammarDragfillForUnit, render: renderGrammarDragfill, label: "Điền từ vào chỗ trống" },
   "math-dragfill": {
     load: loadMathDragfillForUnit,
-    render: function (container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal) {
-      renderMathDragfill(container, breadcrumbText, items, unitId, setName, "math-dragfill", onTestComplete, progressOffset, progressTotal);
+    render: function (container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal, scoreOffset) {
+      renderMathDragfill(container, breadcrumbText, items, unitId, setName, "math-dragfill", onTestComplete, progressOffset, progressTotal, scoreOffset);
     },
     label: "Toán - Điền số"
   },
   "text-dragfill": {
     load: loadTextDragfillForUnit,
-    render: function (container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal) {
-      renderMathDragfill(container, breadcrumbText, items, unitId, setName, "text-dragfill", onTestComplete, progressOffset, progressTotal);
+    render: function (container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal, scoreOffset) {
+      renderMathDragfill(container, breadcrumbText, items, unitId, setName, "text-dragfill", onTestComplete, progressOffset, progressTotal, scoreOffset);
     },
     label: "Điền đoạn văn/hội thoại"
   }
@@ -26,7 +26,7 @@ async function renderTestActivity(container, breadcrumbText, unit) {
   var totalMax = 0;
   var sectionResults = [];
   var testStartedAt = new Date();
-  var testTabTracker = startTabSwitchTracker();
+  var totalTabSwitchCount = 0;
 
   if (!sections.length) {
     container.innerHTML = "";
@@ -81,10 +81,11 @@ async function renderTestActivity(container, breadcrumbText, unit) {
 
     var sectionBreadcrumb = breadcrumbText + " › " + (section.label || config.label);
     var offsetForThisSection = runningOffset;
-    config.render(sectionContainer, sectionBreadcrumb, items, section.source_unit_id, section.source_set_name, function (score, total) {
+    config.render(sectionContainer, sectionBreadcrumb, items, section.source_unit_id, section.source_set_name, function (score, total, answersLog, tabSwitchCount) {
       runningOffset = offsetForThisSection + total;
+      totalTabSwitchCount += (tabSwitchCount || 0);
       finishSectionAndAdvance(section, index, score, total);
-    }, offsetForThisSection, grandTotal);
+    }, offsetForThisSection, grandTotal, totalScore);
   }
 
   function finishSectionAndAdvance(section, index, score, total) {
@@ -105,8 +106,7 @@ async function renderTestActivity(container, breadcrumbText, unit) {
   }
 
   function showTestResult() {
-    testTabTracker.stop();
-    submitQuizAttempt(unit.id, "test", totalScore, totalMax, testStartedAt, sectionResults, null, testTabTracker.getCount());
+    submitQuizAttempt(unit.id, "test", totalScore, totalMax, testStartedAt, sectionResults, null, totalTabSwitchCount);
 
     container.innerHTML = "";
     var wrap = document.createElement("div");
@@ -123,7 +123,7 @@ async function renderTestActivity(container, breadcrumbText, unit) {
     wrap.appendChild(scoreBig);
 
     wrap.appendChild(buildDurationLine(testStartedAt));
-    wrap.appendChild(buildTabSwitchLine(testTabTracker.getCount()));
+    wrap.appendChild(buildTabSwitchLine(totalTabSwitchCount));
 
     var table = document.createElement("table");
     table.className = "ranking-table";
@@ -161,9 +161,9 @@ async function renderTestActivity(container, breadcrumbText, unit) {
       totalScore = 0;
       totalMax = 0;
       runningOffset = 0;
+      totalTabSwitchCount = 0;
       sectionResults = [];
       testStartedAt = new Date();
-      testTabTracker = startTabSwitchTracker();
       runSection(sections[0], 0);
     });
     wrap.appendChild(retryBtn);

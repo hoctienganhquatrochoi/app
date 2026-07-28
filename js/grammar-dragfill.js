@@ -28,7 +28,7 @@ function buildGrammarDragfillQuestions(items) {
   });
 }
 
-function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal) {
+function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal, scoreOffset) {
   var questions, qIndex, score, filledOption, answered, lastCorrect, firstAttemptDone, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
 
   function resetState() {
@@ -70,7 +70,7 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
 
     var wrap = document.createElement("div");
     wrap.className = "dragfill-wrap";
-    wrap.appendChild(buildActivityHeader(startedAt, score));
+    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score));
 
     var tilesEl = document.createElement("div");
     tilesEl.className = "dragfill-tiles";
@@ -236,7 +236,7 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     tabTracker.stop();
     document.removeEventListener("keydown", handleGlobalKeydown);
     if (onTestComplete) {
-      onTestComplete(score, questions.length, answersLog);
+      onTestComplete(score, questions.length, answersLog, tabTracker.getCount());
       return;
     }
     submitQuizAttempt(unitId, "grammar-dragfill", score, questions.length, startedAt, answersLog, setName, tabTracker.getCount());

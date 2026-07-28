@@ -39,7 +39,7 @@ function buildMathDragfillQuestions(items) {
   });
 }
 
-function renderMathDragfill(container, breadcrumbText, items, unitId, setName, activityType, onTestComplete, progressOffset, progressTotal) {
+function renderMathDragfill(container, breadcrumbText, items, unitId, setName, activityType, onTestComplete, progressOffset, progressTotal, scoreOffset) {
   activityType = activityType || "math-dragfill";
   var questions, qIndex, score, filledByBlank, answered, lastCorrect, firstAttemptDone, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
 
@@ -114,7 +114,7 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
 
     var wrap = document.createElement("div");
     wrap.className = "dragfill-wrap";
-    wrap.appendChild(buildActivityHeader(startedAt, score));
+    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score));
 
     var tilesEl = document.createElement("div");
     tilesEl.className = "dragfill-tiles";
@@ -249,7 +249,7 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
     tabTracker.stop();
     document.removeEventListener("keydown", handleGlobalKeydown);
     if (onTestComplete) {
-      onTestComplete(score, questions.length, answersLog);
+      onTestComplete(score, questions.length, answersLog, tabTracker.getCount());
       return;
     }
     submitQuizAttempt(unitId, activityType, score, questions.length, startedAt, answersLog, setName, tabTracker.getCount());
