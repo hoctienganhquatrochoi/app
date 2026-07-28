@@ -229,7 +229,7 @@ function extractDragfillBlanks(rawPassage) {
   return correctAnswers;
 }
 
-function parseMathDragfillBulkBlock(block) {
+function parseMathDragfillBulkBlock(block, joinWithNewline) {
   var lines = block.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
   var passageLines = [];
   var wrongAnswers = [];
@@ -243,14 +243,16 @@ function parseMathDragfillBulkBlock(block) {
     }
   });
 
-  var passage = passageLines.join("\n");
+  var passage = passageLines.join(joinWithNewline ? "\n" : " ");
   var correctAnswers = extractDragfillBlanks(passage);
   return { passage: passage, correct_answers: correctAnswers, wrong_answers: wrongAnswers };
 }
 
-function parseMathDragfillBulkText(text) {
+function parseMathDragfillBulkText(text, joinWithNewline) {
   var blocks = text.split(/\n\s*\n/);
-  return blocks.map(parseMathDragfillBulkBlock).filter(function (item) {
+  return blocks.map(function (block) {
+    return parseMathDragfillBulkBlock(block, joinWithNewline);
+  }).filter(function (item) {
     return item.passage || item.correct_answers.length || item.wrong_answers.length;
   });
 }

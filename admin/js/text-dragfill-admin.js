@@ -220,7 +220,7 @@ async function handleBulkAddTextDragfill(e) {
   var unitId = document.getElementById("unitSelect").value;
   var setName = document.getElementById("textDragfillSetSelect").value;
   var text = document.getElementById("bulkTextDragfillTextarea").value;
-  var items = parseMathDragfillBulkText(text);
+  var items = parseMathDragfillBulkText(text, true);
 
   if (!setName) {
     window.alert("Chưa có bài nào — tạo bài ở mục \"Quản lý bài\" bên trên trước");
