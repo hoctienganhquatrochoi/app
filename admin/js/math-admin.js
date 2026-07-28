@@ -220,11 +220,11 @@ function splitDragfillAnswerList(text) {
 }
 
 function extractDragfillBlanks(rawPassage) {
-  var re = /⟦([^⟦⟧]+)⟧/g;
+  var re = /⟦([^⟦⟧]+)⟧|\[([^\[\]]+)\]/g;
   var correctAnswers = [];
   var match;
   while ((match = re.exec(rawPassage)) !== null) {
-    correctAnswers.push(match[1].trim());
+    correctAnswers.push((match[1] || match[2]).trim());
   }
   return correctAnswers;
 }
