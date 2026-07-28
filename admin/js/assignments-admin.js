@@ -11,7 +11,8 @@ var ASSIGNMENT_ACTIVITY_LABELS = {
   "grammar-typing": "Viết câu trả lời",
   "grammar-matching": "Nối câu",
   "grammar-dragfill": "Điền từ vào chỗ trống",
-  "photo-quiz": "Đọc/Nghe theo ảnh"
+  "photo-quiz": "Đọc/Nghe theo ảnh",
+  "math-dragfill": "Toán - Điền số"
 };
 
 var ASSIGNMENT_BATCH_TABLES = {

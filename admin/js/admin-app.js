@@ -97,6 +97,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("bulkAddGrammarDragfillForm").addEventListener("submit", handleBulkAddGrammarDragfill);
   document.getElementById("addGrammarDragfillSetBtn").addEventListener("click", handleAddGrammarDragfillSet);
   document.getElementById("grammarDragfillSetSelect").addEventListener("change", loadGrammarDragfillTable);
+  document.getElementById("bulkAddMathDragfillForm").addEventListener("submit", handleBulkAddMathDragfill);
+  document.getElementById("addMathDragfillSetBtn").addEventListener("click", handleAddMathDragfillSet);
+  document.getElementById("mathDragfillSetSelect").addEventListener("change", loadMathDragfillTable);
   document.getElementById("bulkAddPhotoQuizForm").addEventListener("submit", handleBulkAddPhotoQuiz);
   document.getElementById("addPhotoQuizSetBtn").addEventListener("click", handleAddPhotoQuizSet);
   document.getElementById("photoQuizSetSelect").addEventListener("change", function () {

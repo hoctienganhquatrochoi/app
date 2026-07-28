@@ -1169,6 +1169,20 @@ html, body {
   margin-top: 16px;
 }
 
+.mathfill-passage {
+  font-size: 21px;
+  font-weight: 500;
+  text-align: left;
+  line-height: 1.9;
+}
+
+.mathfill-passage .dragfill-blank {
+  min-width: 60px;
+  padding: 6px 14px;
+  margin: 0 4px;
+  font-weight: 700;
+}
+
 .quiz-continue-wrap {
   margin-top: 24px;
 }

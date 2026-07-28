@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260719zi">
-<link rel="stylesheet" href="css/admin.css?v=20260719zi">
+<link rel="stylesheet" href="../css/style.css?v=20260719zj">
+<link rel="stylesheet" href="css/admin.css?v=20260719zj">
 </head>
 <body>
 
@@ -255,6 +255,7 @@
               <button class="admin-subtab" type="button" data-composesubtab="grammarMatching">Nối câu</button>
               <button class="admin-subtab" type="button" data-composesubtab="grammarDragfill">Điền từ vào chỗ trống</button>
               <button class="admin-subtab" type="button" data-composesubtab="photoQuiz">Đọc/Nghe theo ảnh</button>
+              <button class="admin-subtab" type="button" data-composesubtab="mathDragfill">Toán - Điền số</button>
             </nav>
 
             <div id="vocabComposeSubPanel">
@@ -572,6 +573,45 @@ What is Alex's family name?
 
               <div id="photoQuizTableWrap"></div>
             </div>
+
+            <div id="mathDragfillComposeSubPanel" style="display:none">
+              <p class="admin-hint">Toán có lời văn, điền số vào chỗ trống. Viết đoạn văn bình thường với số thật (không cần đánh dấu chỗ trống) — hệ thống sẽ tự tìm đúng các số ở dòng "Đáp án đúng" trong đoạn văn và biến chúng thành chỗ trống. Học sinh bấm chọn số trong nhóm đáp án (gồm cả đáp án đúng lẫn sai) để điền vào từng chỗ trống. Mỗi Unit có thể có nhiều bài riêng, mỗi bài hiện thành 1 mục riêng trong menu học sinh.</p>
+
+              <div class="admin-form" id="mathDragfillSetManageBox">
+                <h3>Quản lý bài</h3>
+                <div id="mathDragfillSetListWrap"></div>
+                <div class="admin-form-row">
+                  <div class="admin-field">
+                    <label>Tên bài mới</label>
+                    <input type="text" id="newMathDragfillSetName" placeholder="VD: Toán lời văn lớp 3">
+                  </div>
+                  <div class="admin-field admin-field-btn">
+                    <button type="button" class="admin-btn-primary" id="addMathDragfillSetBtn">+ Thêm bài</button>
+                  </div>
+                </div>
+                <div class="admin-status" id="mathDragfillSetStatus"></div>
+              </div>
+
+              <label class="admin-label" for="mathDragfillSetSelect">Đang soạn câu cho bài</label>
+              <select class="admin-select" id="mathDragfillSetSelect"></select>
+
+              <form class="admin-form" id="bulkAddMathDragfillForm">
+                <h3>Nhập hàng loạt</h3>
+                <p class="admin-hint">
+                  Mỗi bài toán cách nhau 1 dòng trống: dòng đầu là đề bài viết bình thường (có số thật, không cần gạch chân),
+                  dòng <code>Đáp án đúng: ...</code> liệt kê các số đúng theo đúng thứ tự xuất hiện trong đề bài (cách nhau bằng dấu chấm phẩy hoặc dấu phẩy),
+                  dòng <code>Đáp án sai: ...</code> liệt kê thêm các số sai để đánh lừa (cũng cách nhau bằng dấu chấm phẩy hoặc dấu phẩy).
+                  Bài sẽ được thêm vào bài đang chọn ở trên.
+                </p>
+                <textarea class="admin-textarea" id="bulkMathDragfillTextarea" rows="10" placeholder="Một cửa hàng bán được 15kg gạo nếp, số gạo tẻ bán được gấp 7 lần số gạo nếp. Vậy số gạo tẻ bán được là: 105 kg. Cửa hàng đó đã bán tất cả: 120 ki-lô-gam gạo tẻ và gạo nếp.
+Đáp án đúng: 105; 120
+Đáp án sai: 95; 110"></textarea>
+                <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả</button>
+                <div class="admin-status" id="bulkMathDragfillStatus"></div>
+              </form>
+
+              <div id="mathDragfillTableWrap"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -781,23 +821,24 @@ What is Alex's family name?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260719zi"></script>
-<script src="../js/supabase-config.js?v=20260719zi"></script>
-<script src="js/admin-auth.js?v=20260719zi"></script>
-<script src="../js/curriculum-data.js?v=20260719zi"></script>
-<script src="js/content-admin.js?v=20260719zi"></script>
-<script src="js/sentences-admin.js?v=20260719zi"></script>
-<script src="js/grammar-admin.js?v=20260719zi"></script>
-<script src="js/photo-quiz-admin.js?v=20260719zi"></script>
-<script src="js/speaking-admin.js?v=20260719zi"></script>
-<script src="js/wordwall-admin.js?v=20260719zi"></script>
-<script src="js/wordwall-templates-admin.js?v=20260719zi"></script>
-<script src="js/groups-admin.js?v=20260719zi"></script>
-<script src="js/students-admin.js?v=20260719zi"></script>
-<script src="js/assignments-admin.js?v=20260719zi"></script>
-<script src="js/results-admin.js?v=20260719zi"></script>
-<script src="js/activity-toggles-admin.js?v=20260719zi"></script>
-<script src="js/curriculum-admin.js?v=20260719zi"></script>
-<script src="js/admin-app.js?v=20260719zi"></script>
+<script src="../js/data.js?v=20260719zj"></script>
+<script src="../js/supabase-config.js?v=20260719zj"></script>
+<script src="js/admin-auth.js?v=20260719zj"></script>
+<script src="../js/curriculum-data.js?v=20260719zj"></script>
+<script src="js/content-admin.js?v=20260719zj"></script>
+<script src="js/sentences-admin.js?v=20260719zj"></script>
+<script src="js/grammar-admin.js?v=20260719zj"></script>
+<script src="js/math-admin.js?v=20260719zj"></script>
+<script src="js/photo-quiz-admin.js?v=20260719zj"></script>
+<script src="js/speaking-admin.js?v=20260719zj"></script>
+<script src="js/wordwall-admin.js?v=20260719zj"></script>
+<script src="js/wordwall-templates-admin.js?v=20260719zj"></script>
+<script src="js/groups-admin.js?v=20260719zj"></script>
+<script src="js/students-admin.js?v=20260719zj"></script>
+<script src="js/assignments-admin.js?v=20260719zj"></script>
+<script src="js/results-admin.js?v=20260719zj"></script>
+<script src="js/activity-toggles-admin.js?v=20260719zj"></script>
+<script src="js/curriculum-admin.js?v=20260719zj"></script>
+<script src="js/admin-app.js?v=20260719zj"></script>
 </body>
 </html>
