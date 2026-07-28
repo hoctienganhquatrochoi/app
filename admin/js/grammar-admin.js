@@ -448,32 +448,47 @@ async function handleDeleteAllGrammarMcq() {
   loadCurriculumData().then(loadActivityToggles);
 }
 
-function parseGrammarMcqBulkBlock(block) {
-  var lines = block.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
-  var question = "";
-  var correctAnswer = "";
-  var wrongAnswers = [];
+function parseGrammarMcqBulkText(text) {
+  var lines = text.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+  var items = [];
+  var current = null;
+
+  function flush() {
+    if (current && (current.correct_answer || current.wrong_answers.length)) {
+      items.push(current);
+    }
+    current = null;
+  }
 
   lines.forEach(function (line) {
     var correctMatch = line.match(/^đáp\s*án\s*đúng\s*:\s*(.*)$/i);
     var wrongMatch = line.match(/^đáp\s*án\s*sai\s*:\s*(.*)$/i);
     if (correctMatch) {
-      correctAnswer = correctMatch[1].trim();
+      if (!current) {
+        current = { question: "", correct_answer: "", wrong_answers: [] };
+      }
+      current.correct_answer = correctMatch[1].trim();
     } else if (wrongMatch) {
-      wrongAnswers = wrongMatch[1].split(",").map(function (w) { return w.trim(); }).filter(function (w) { return w; });
-    } else if (!question) {
-      question = stripLeadingNumbering(line);
+      if (!current) {
+        current = { question: "", correct_answer: "", wrong_answers: [] };
+      }
+      current.wrong_answers = wrongMatch[1].split(",").map(function (w) { return w.trim(); }).filter(function (w) { return w; });
+      flush();
+    } else {
+      if (current && (current.correct_answer || current.wrong_answers.length)) {
+        flush();
+      }
+      if (!current) {
+        current = { question: "", correct_answer: "", wrong_answers: [] };
+      }
+      if (!current.question) {
+        current.question = stripLeadingNumbering(line);
+      }
     }
   });
+  flush();
 
-  return { question: question, correct_answer: correctAnswer, wrong_answers: wrongAnswers };
-}
-
-function parseGrammarMcqBulkText(text) {
-  var blocks = text.split(/\n\s*\n/);
-  return blocks.map(parseGrammarMcqBulkBlock).filter(function (item) {
-    return item.correct_answer || item.wrong_answers.length;
-  });
+  return items;
 }
 
 async function handleBulkAddGrammarMcq(e) {

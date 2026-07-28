@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260719zs">
-<link rel="stylesheet" href="css/admin.css?v=20260719zs">
+<link rel="stylesheet" href="../css/style.css?v=20260719zt">
+<link rel="stylesheet" href="css/admin.css?v=20260719zt">
 </head>
 <body>
 
@@ -292,6 +292,7 @@
                 <p class="admin-hint" id="newTestSectionHint"></p>
                 <textarea class="admin-textarea" id="newTestSectionContent" rows="8"></textarea>
                 <button type="button" class="admin-btn-primary admin-btn-bulk" id="addTestSectionBtn">+ Thêm mục vào đề</button>
+                <button type="button" class="admin-btn-danger" id="cancelEditTestSectionBtn" style="display:none">Hủy sửa</button>
                 <div class="admin-status" id="testSectionStatus"></div>
               </div>
 
@@ -299,7 +300,7 @@
 
               <div class="admin-form" id="megaImportBox">
                 <h3>Hoặc dán nhanh cả đề 1 lần (từ ChatGPT/Gemini)</h3>
-                <p class="admin-hint">Dán nguyên cụm nội dung AI xuất ra (có các dòng "Dán vào tab: ...") — hệ thống tự tách từng mục và tạo cả đề trong 1 lần, không cần thêm từng mục ở trên.</p>
+                <p class="admin-hint">Dán nguyên cụm nội dung AI xuất ra (có các dòng "Dán vào tab: ..." hoặc "Dạng bài: ...") — hệ thống tự tách từng mục và tạo cả đề trong 1 lần, không cần thêm từng mục ở trên. Các câu trắc nghiệm liền nhau không cần dòng trống ngăn cách vẫn tách đúng.</p>
                 <textarea class="admin-textarea" id="megaImportTextarea" rows="12" placeholder="Exercise 1
 Dán vào tab: Trắc nghiệm ngữ pháp
 
@@ -922,26 +923,26 @@ What is Alex's family name?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260719zs"></script>
-<script src="../js/supabase-config.js?v=20260719zs"></script>
-<script src="js/admin-auth.js?v=20260719zs"></script>
-<script src="../js/curriculum-data.js?v=20260719zs"></script>
-<script src="js/content-admin.js?v=20260719zs"></script>
-<script src="js/sentences-admin.js?v=20260719zs"></script>
-<script src="js/grammar-admin.js?v=20260719zs"></script>
-<script src="js/math-admin.js?v=20260719zs"></script>
-<script src="js/text-dragfill-admin.js?v=20260719zs"></script>
-<script src="js/test-sections-admin.js?v=20260719zs"></script>
-<script src="js/photo-quiz-admin.js?v=20260719zs"></script>
-<script src="js/speaking-admin.js?v=20260719zs"></script>
-<script src="js/wordwall-admin.js?v=20260719zs"></script>
-<script src="js/wordwall-templates-admin.js?v=20260719zs"></script>
-<script src="js/groups-admin.js?v=20260719zs"></script>
-<script src="js/students-admin.js?v=20260719zs"></script>
-<script src="js/assignments-admin.js?v=20260719zs"></script>
-<script src="js/results-admin.js?v=20260719zs"></script>
-<script src="js/activity-toggles-admin.js?v=20260719zs"></script>
-<script src="js/curriculum-admin.js?v=20260719zs"></script>
-<script src="js/admin-app.js?v=20260719zs"></script>
+<script src="../js/data.js?v=20260719zt"></script>
+<script src="../js/supabase-config.js?v=20260719zt"></script>
+<script src="js/admin-auth.js?v=20260719zt"></script>
+<script src="../js/curriculum-data.js?v=20260719zt"></script>
+<script src="js/content-admin.js?v=20260719zt"></script>
+<script src="js/sentences-admin.js?v=20260719zt"></script>
+<script src="js/grammar-admin.js?v=20260719zt"></script>
+<script src="js/math-admin.js?v=20260719zt"></script>
+<script src="js/text-dragfill-admin.js?v=20260719zt"></script>
+<script src="js/test-sections-admin.js?v=20260719zt"></script>
+<script src="js/photo-quiz-admin.js?v=20260719zt"></script>
+<script src="js/speaking-admin.js?v=20260719zt"></script>
+<script src="js/wordwall-admin.js?v=20260719zt"></script>
+<script src="js/wordwall-templates-admin.js?v=20260719zt"></script>
+<script src="js/groups-admin.js?v=20260719zt"></script>
+<script src="js/students-admin.js?v=20260719zt"></script>
+<script src="js/assignments-admin.js?v=20260719zt"></script>
+<script src="js/results-admin.js?v=20260719zt"></script>
+<script src="js/activity-toggles-admin.js?v=20260719zt"></script>
+<script src="js/curriculum-admin.js?v=20260719zt"></script>
+<script src="js/admin-app.js?v=20260719zt"></script>
 </body>
 </html>

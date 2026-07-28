@@ -69,6 +69,13 @@ function renderTestSectionsTable() {
 
     var actionsTd = document.createElement("td");
 
+    var editBtn = document.createElement("button");
+    editBtn.className = "admin-btn-secondary";
+    editBtn.type = "button";
+    editBtn.textContent = "Sửa";
+    editBtn.addEventListener("click", function () { handleEditTestSection(row); });
+    actionsTd.appendChild(editBtn);
+
     var upBtn = document.createElement("button");
     upBtn.className = "admin-btn-secondary";
     upBtn.type = "button";
@@ -162,6 +169,81 @@ function updateTestSectionContentHint() {
   document.getElementById("newTestSectionContent").placeholder = help.placeholder;
 }
 
+var editingTestSectionId = null;
+var editingTestSectionOldType = null;
+var editingTestSectionOldSetName = null;
+
+function resetTestSectionForm() {
+  editingTestSectionId = null;
+  editingTestSectionOldType = null;
+  editingTestSectionOldSetName = null;
+  document.getElementById("newTestSectionLabel").value = "";
+  document.getElementById("newTestSectionContent").value = "";
+  document.getElementById("addTestSectionBtn").textContent = "+ Thêm mục vào đề";
+  var cancelBtn = document.getElementById("cancelEditTestSectionBtn");
+  if (cancelBtn) {
+    cancelBtn.style.display = "none";
+  }
+}
+
+function reconstructSectionContent(sectionType, rows) {
+  if (sectionType === "grammar-mcq") {
+    return rows.map(function (r) {
+      return [r.question || "", "Đáp án đúng: " + r.correct_answer, "Đáp án sai: " + (r.wrong_answers || []).join(", ")].join("\n");
+    }).join("\n\n");
+  }
+  if (sectionType === "grammar-typing") {
+    return rows.map(function (r) { return r.prompt + " | " + r.answer; }).join("\n");
+  }
+  if (sectionType === "grammar-matching") {
+    return rows.map(function (r) { return r.left_text + " | " + r.right_text; }).join("\n");
+  }
+  if (sectionType === "grammar-dragfill") {
+    return rows.map(function (r) {
+      var lines = [r.question_en];
+      if (r.question_vi) {
+        lines.push(r.question_vi);
+      }
+      lines.push("Đáp án đúng: " + r.correct_answer, "Đáp án sai: " + (r.wrong_answers || []).join(", "));
+      return lines.join("\n");
+    }).join("\n\n");
+  }
+  if (sectionType === "math-dragfill" || sectionType === "text-dragfill") {
+    return rows.map(function (r) {
+      var lines = [r.passage];
+      if (r.wrong_answers && r.wrong_answers.length) {
+        lines.push("Đáp án sai: " + r.wrong_answers.join(", "));
+      }
+      return lines.join("\n");
+    }).join("\n\n");
+  }
+  return "";
+}
+
+async function handleEditTestSection(row) {
+  var table = TEST_SECTION_TABLES[row.section_type];
+  var result = await supabaseClient.from(table).select("*").eq("unit_id", row.unit_id).eq("set_name", row.source_set_name).order("sort_order", { ascending: true });
+  if (result.error) {
+    window.alert("Lỗi tải nội dung: " + result.error.message);
+    return;
+  }
+
+  document.getElementById("newTestSectionLabel").value = row.label || "";
+  document.getElementById("newTestSectionType").value = row.section_type;
+  updateTestSectionContentHint();
+  document.getElementById("newTestSectionContent").value = reconstructSectionContent(row.section_type, result.data || []);
+
+  editingTestSectionId = row.id;
+  editingTestSectionOldType = row.section_type;
+  editingTestSectionOldSetName = row.source_set_name;
+  document.getElementById("addTestSectionBtn").textContent = "Lưu chỉnh sửa mục";
+  var cancelBtn = document.getElementById("cancelEditTestSectionBtn");
+  if (cancelBtn) {
+    cancelBtn.style.display = "";
+  }
+  document.getElementById("addTestSectionBox").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 async function handleAddTestSection() {
   var unitId = document.getElementById("unitSelect").value;
   var sectionType = document.getElementById("newTestSectionType").value;
@@ -178,30 +260,48 @@ async function handleAddTestSection() {
   }
 
   document.getElementById("testSectionStatus").textContent = "Đang xử lý...";
+
+  if (editingTestSectionId) {
+    var oldTable = TEST_SECTION_TABLES[editingTestSectionOldType];
+    await supabaseClient.from(oldTable).delete().eq("unit_id", unitId).eq("set_name", editingTestSectionOldSetName);
+  }
+
   var insertRes = await insertParsedSectionContent(sectionType, unitId, label, content);
   if (insertRes.error) {
     window.alert("Lỗi: " + insertRes.error);
     return;
   }
 
-  var nextSortOrder = currentTestSections.length;
-  var result = await supabaseClient.from("game_test_sections").insert({
-    unit_id: unitId,
-    sort_order: nextSortOrder,
-    section_type: sectionType,
-    source_unit_id: unitId,
-    source_set_name: label,
-    label: label
-  });
-
-  if (result.error) {
-    window.alert("Lỗi lưu thứ tự: " + result.error.message);
-    return;
+  if (editingTestSectionId) {
+    var updateRes = await supabaseClient.from("game_test_sections").update({
+      section_type: sectionType,
+      source_unit_id: unitId,
+      source_set_name: label,
+      label: label
+    }).eq("id", editingTestSectionId);
+    if (updateRes.error) {
+      window.alert("Lỗi lưu: " + updateRes.error.message);
+      return;
+    }
+    document.getElementById("testSectionStatus").textContent = "Đã lưu chỉnh sửa mục \"" + label + "\" (" + insertRes.count + " câu).";
+  } else {
+    var nextSortOrder = currentTestSections.length;
+    var result = await supabaseClient.from("game_test_sections").insert({
+      unit_id: unitId,
+      sort_order: nextSortOrder,
+      section_type: sectionType,
+      source_unit_id: unitId,
+      source_set_name: label,
+      label: label
+    });
+    if (result.error) {
+      window.alert("Lỗi lưu thứ tự: " + result.error.message);
+      return;
+    }
+    document.getElementById("testSectionStatus").textContent = "Đã thêm " + insertRes.count + " câu vào mục \"" + label + "\".";
   }
 
-  document.getElementById("newTestSectionLabel").value = "";
-  document.getElementById("newTestSectionContent").value = "";
-  document.getElementById("testSectionStatus").textContent = "Đã thêm " + insertRes.count + " câu vào mục \"" + label + "\".";
+  resetTestSectionForm();
   loadTestSections();
   loadCurriculumData().then(loadActivityToggles);
 }
@@ -222,7 +322,7 @@ var TAB_LABEL_TO_TYPE = (function () {
 
 function parseMegaTestImport(text) {
   var lines = text.split("\n");
-  var markerRe = /^\s*dán\s*vào\s*tab\s*:\s*(.+?)\s*$/i;
+  var markerRe = /^\s*(?:dán\s*vào\s*tab|dạng\s*bài)\s*:\s*(.+?)\s*$/i;
   var markers = [];
   lines.forEach(function (line, idx) {
     var m = line.match(markerRe);
