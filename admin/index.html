@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260719zl">
-<link rel="stylesheet" href="css/admin.css?v=20260719zl">
+<link rel="stylesheet" href="../css/style.css?v=20260719zm">
+<link rel="stylesheet" href="css/admin.css?v=20260719zm">
 </head>
 <body>
 
@@ -529,7 +529,7 @@ Những cây đèn để bàn ở đâu?
             </div>
 
             <div id="textDragfillComposeSubPanel" style="display:none">
-              <p class="admin-hint">Đoạn văn hoặc đoạn hội thoại tiếng Anh, nhiều chỗ trống dùng chung 1 nhóm đáp án. Viết đoạn văn/hội thoại bình thường với từ thật ở đúng chỗ trống (không cần đánh dấu, không cần đánh số (1)(2)...) — hệ thống sẽ tự tìm các từ ở dòng "Đáp án đúng" trong bài và biến thành chỗ trống. Lưu ý: nếu từ đó còn xuất hiện lặp lại ở chỗ khác trong bài (không phải chỗ trống), hệ thống sẽ báo lỗi vì không biết chắc chỗ nào — khi đó sửa lại câu cho từ đó chỉ xuất hiện đúng ở chỗ trống thôi. Xuống dòng trong bài (VD mỗi câu thoại 1 dòng) sẽ được giữ nguyên khi hiển thị cho học sinh.</p>
+              <p class="admin-hint">Đoạn văn hoặc đoạn hội thoại tiếng Anh, nhiều chỗ trống dùng chung 1 nhóm đáp án. Viết đoạn văn/hội thoại bình thường, chỗ nào là chỗ trống thì bọc từ đó trong dấu <code>&lt;&gt;</code> (VD <code>&lt;Who&gt;</code>) — không cần đánh số (1)(2)..., không cần liệt kê "Đáp án đúng" riêng vì hệ thống tự lấy đúng từ trong dấu <code>&lt;&gt;</code>. Muốn có thêm đáp án sai để đánh lừa thì thêm dòng "Đáp án sai", không cần thì bỏ qua cũng được. Xuống dòng trong bài (VD mỗi câu thoại 1 dòng) sẽ được giữ nguyên khi hiển thị cho học sinh.</p>
 
               <div class="admin-form" id="textDragfillSetManageBox">
                 <h3>Quản lý bài</h3>
@@ -552,20 +552,19 @@ Những cây đèn để bàn ở đâu?
               <form class="admin-form" id="bulkAddTextDragfillForm">
                 <h3>Nhập hàng loạt</h3>
                 <p class="admin-hint">
-                  Mỗi bài cách nhau 1 dòng trống: các dòng đầu là đoạn văn/hội thoại (mỗi câu thoại 1 dòng nếu muốn),
-                  dòng <code>Đáp án đúng: ...</code> liệt kê các từ đúng theo đúng thứ tự xuất hiện trong bài (cách nhau bằng dấu chấm phẩy hoặc dấu phẩy),
-                  dòng <code>Đáp án sai: ...</code> liệt kê thêm từ sai để đánh lừa. Bài sẽ được thêm vào bài đang chọn ở trên.
+                  Mỗi bài cách nhau 1 dòng trống: các dòng đầu là đoạn văn/hội thoại (mỗi câu thoại 1 dòng nếu muốn), chỗ trống bọc trong <code>&lt;&gt;</code>,
+                  dòng <code>Đáp án sai: ...</code> (không bắt buộc) liệt kê thêm từ sai để đánh lừa, cách nhau bằng dấu chấm phẩy hoặc dấu phẩy.
+                  Bài sẽ được thêm vào bài đang chọn ở trên.
                 </p>
                 <textarea class="admin-textarea" id="bulkTextDragfillTextarea" rows="12" placeholder="Lan: Hello.
 James: Hi.
-Lan: Who is your name?
-James: My name James.
-Lan: I am Lan.
-James: Where are you from, Lan?
-Lan: I'm from Vietnam.
+Lan: <Who> is your name?
+James: My <name> is James.
+Lan: I <am> Lan.
+James: <Where> are you from, Lan?
+Lan: I'm <from> Vietnam.
 James: I love Vietnam.
-Đáp án đúng: Who; name; am; Where; from
-Đáp án sai: What; is; are; When; in"></textarea>
+Đáp án sai: What; is; are; When"></textarea>
                 <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả</button>
                 <div class="admin-status" id="bulkTextDragfillStatus"></div>
               </form>
@@ -621,7 +620,7 @@ What is Alex's family name?
             </div>
 
             <div id="mathDragfillComposeSubPanel" style="display:none">
-              <p class="admin-hint">Toán có lời văn, điền số vào chỗ trống. Viết đoạn văn bình thường với số thật (không cần đánh dấu chỗ trống) — hệ thống sẽ tự tìm đúng các số ở dòng "Đáp án đúng" trong đoạn văn và biến chúng thành chỗ trống. Học sinh bấm chọn số trong nhóm đáp án (gồm cả đáp án đúng lẫn sai) để điền vào từng chỗ trống. Mỗi Unit có thể có nhiều bài riêng, mỗi bài hiện thành 1 mục riêng trong menu học sinh.</p>
+              <p class="admin-hint">Toán có lời văn, điền số vào chỗ trống. Viết đề bài bình thường, số nào là chỗ trống thì bọc trong dấu <code>&lt;&gt;</code> (VD <code>&lt;105&gt;</code>) — không cần liệt kê "Đáp án đúng" riêng vì hệ thống tự lấy đúng số trong dấu <code>&lt;&gt;</code>. Muốn có thêm đáp án sai để đánh lừa thì thêm dòng "Đáp án sai", không cần thì bỏ qua. Học sinh bấm chọn số trong nhóm đáp án để điền vào từng chỗ trống. Mỗi Unit có thể có nhiều bài riêng, mỗi bài hiện thành 1 mục riêng trong menu học sinh.</p>
 
               <div class="admin-form" id="mathDragfillSetManageBox">
                 <h3>Quản lý bài</h3>
@@ -644,13 +643,11 @@ What is Alex's family name?
               <form class="admin-form" id="bulkAddMathDragfillForm">
                 <h3>Nhập hàng loạt</h3>
                 <p class="admin-hint">
-                  Mỗi bài toán cách nhau 1 dòng trống: dòng đầu là đề bài viết bình thường (có số thật, không cần gạch chân),
-                  dòng <code>Đáp án đúng: ...</code> liệt kê các số đúng theo đúng thứ tự xuất hiện trong đề bài (cách nhau bằng dấu chấm phẩy hoặc dấu phẩy),
-                  dòng <code>Đáp án sai: ...</code> liệt kê thêm các số sai để đánh lừa (cũng cách nhau bằng dấu chấm phẩy hoặc dấu phẩy).
+                  Mỗi bài toán cách nhau 1 dòng trống: dòng đầu là đề bài viết bình thường, số nào là chỗ trống thì bọc trong <code>&lt;&gt;</code>,
+                  dòng <code>Đáp án sai: ...</code> (không bắt buộc) liệt kê thêm số sai để đánh lừa, cách nhau bằng dấu chấm phẩy hoặc dấu phẩy.
                   Bài sẽ được thêm vào bài đang chọn ở trên.
                 </p>
-                <textarea class="admin-textarea" id="bulkMathDragfillTextarea" rows="10" placeholder="Một cửa hàng bán được 15kg gạo nếp, số gạo tẻ bán được gấp 7 lần số gạo nếp. Vậy số gạo tẻ bán được là: 105 kg. Cửa hàng đó đã bán tất cả: 120 ki-lô-gam gạo tẻ và gạo nếp.
-Đáp án đúng: 105; 120
+                <textarea class="admin-textarea" id="bulkMathDragfillTextarea" rows="10" placeholder="Một cửa hàng bán được 15kg gạo nếp, số gạo tẻ bán được gấp 7 lần số gạo nếp. Vậy số gạo tẻ bán được là: <105> kg. Cửa hàng đó đã bán tất cả: <120> ki-lô-gam gạo tẻ và gạo nếp.
 Đáp án sai: 95; 110"></textarea>
                 <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả</button>
                 <div class="admin-status" id="bulkMathDragfillStatus"></div>
@@ -867,25 +864,25 @@ What is Alex's family name?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260719zl"></script>
-<script src="../js/supabase-config.js?v=20260719zl"></script>
-<script src="js/admin-auth.js?v=20260719zl"></script>
-<script src="../js/curriculum-data.js?v=20260719zl"></script>
-<script src="js/content-admin.js?v=20260719zl"></script>
-<script src="js/sentences-admin.js?v=20260719zl"></script>
-<script src="js/grammar-admin.js?v=20260719zl"></script>
-<script src="js/math-admin.js?v=20260719zl"></script>
-<script src="js/text-dragfill-admin.js?v=20260719zl"></script>
-<script src="js/photo-quiz-admin.js?v=20260719zl"></script>
-<script src="js/speaking-admin.js?v=20260719zl"></script>
-<script src="js/wordwall-admin.js?v=20260719zl"></script>
-<script src="js/wordwall-templates-admin.js?v=20260719zl"></script>
-<script src="js/groups-admin.js?v=20260719zl"></script>
-<script src="js/students-admin.js?v=20260719zl"></script>
-<script src="js/assignments-admin.js?v=20260719zl"></script>
-<script src="js/results-admin.js?v=20260719zl"></script>
-<script src="js/activity-toggles-admin.js?v=20260719zl"></script>
-<script src="js/curriculum-admin.js?v=20260719zl"></script>
-<script src="js/admin-app.js?v=20260719zl"></script>
+<script src="../js/data.js?v=20260719zm"></script>
+<script src="../js/supabase-config.js?v=20260719zm"></script>
+<script src="js/admin-auth.js?v=20260719zm"></script>
+<script src="../js/curriculum-data.js?v=20260719zm"></script>
+<script src="js/content-admin.js?v=20260719zm"></script>
+<script src="js/sentences-admin.js?v=20260719zm"></script>
+<script src="js/grammar-admin.js?v=20260719zm"></script>
+<script src="js/math-admin.js?v=20260719zm"></script>
+<script src="js/text-dragfill-admin.js?v=20260719zm"></script>
+<script src="js/photo-quiz-admin.js?v=20260719zm"></script>
+<script src="js/speaking-admin.js?v=20260719zm"></script>
+<script src="js/wordwall-admin.js?v=20260719zm"></script>
+<script src="js/wordwall-templates-admin.js?v=20260719zm"></script>
+<script src="js/groups-admin.js?v=20260719zm"></script>
+<script src="js/students-admin.js?v=20260719zm"></script>
+<script src="js/assignments-admin.js?v=20260719zm"></script>
+<script src="js/results-admin.js?v=20260719zm"></script>
+<script src="js/activity-toggles-admin.js?v=20260719zm"></script>
+<script src="js/curriculum-admin.js?v=20260719zm"></script>
+<script src="js/admin-app.js?v=20260719zm"></script>
 </body>
 </html>

@@ -131,7 +131,9 @@ function buildMathDragfillEditRow(row) {
   tr.className = "editing-row";
 
   var passageTd = makeInputTd(row.passage);
-  var correctTd = makeInputTd((row.correct_answers || []).join(", "));
+  var correctTd = document.createElement("td");
+  correctTd.className = "admin-hint";
+  correctTd.textContent = "(tự động lấy từ <...> trong đề bài)";
   var wrongTd = makeInputTd((row.wrong_answers || []).join(", "));
 
   tr.appendChild(passageTd);
@@ -146,10 +148,10 @@ function buildMathDragfillEditRow(row) {
   saveBtn.textContent = "Lưu";
   saveBtn.addEventListener("click", async function () {
     var newPassage = passageTd.inputEl.value.trim();
-    var correctAnswers = splitDragfillAnswerList(correctTd.inputEl.value);
+    var correctAnswers = extractDragfillBlanks(newPassage);
     var wrongAnswers = splitDragfillAnswerList(wrongTd.inputEl.value);
     if (!newPassage || !correctAnswers.length) {
-      window.alert("Đề bài và đáp án đúng không được để trống");
+      window.alert("Đề bài không được để trống và cần đánh dấu ít nhất 1 chỗ trống bằng <>");
       return;
     }
     var result = await supabaseClient.from("game_math_dragfill").update({
@@ -217,57 +219,33 @@ function splitDragfillAnswerList(text) {
   }).filter(function (w) { return w; });
 }
 
-function findWholeWordFrom(text, word, fromIndex) {
-  var escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  var re = new RegExp("\\b" + escaped + "\\b", "i");
-  var remaining = text.slice(fromIndex);
-  var match = remaining.match(re);
-  if (!match) {
-    return -1;
+function extractDragfillBlanks(rawPassage) {
+  var re = /<([^<>]+)>/g;
+  var correctAnswers = [];
+  var match;
+  while ((match = re.exec(rawPassage)) !== null) {
+    correctAnswers.push(match[1].trim());
   }
-  return fromIndex + match.index;
-}
-
-function countWholeWordOccurrences(text, word) {
-  var escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  var re = new RegExp("\\b" + escaped + "\\b", "gi");
-  var matches = text.match(re);
-  return matches ? matches.length : 0;
-}
-
-function findAmbiguousDragfillAnswers(passage, correctAnswers) {
-  var uniqueAnswers = [];
-  correctAnswers.forEach(function (ans) {
-    if (uniqueAnswers.indexOf(ans) === -1) {
-      uniqueAnswers.push(ans);
-    }
-  });
-  return uniqueAnswers.filter(function (ans) {
-    var expectedCount = correctAnswers.filter(function (a) { return a === ans; }).length;
-    var actualCount = countWholeWordOccurrences(passage, ans);
-    return actualCount > expectedCount;
-  });
+  return correctAnswers;
 }
 
 function parseMathDragfillBulkBlock(block) {
   var lines = block.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
   var passageLines = [];
-  var correctAnswers = [];
   var wrongAnswers = [];
 
   lines.forEach(function (line) {
-    var correctMatch = line.match(/^đáp\s*án\s*đúng\s*:\s*(.*)$/i);
     var wrongMatch = line.match(/^đáp\s*án\s*sai\s*:\s*(.*)$/i);
-    if (correctMatch) {
-      correctAnswers = splitDragfillAnswerList(correctMatch[1]);
-    } else if (wrongMatch) {
+    if (wrongMatch) {
       wrongAnswers = splitDragfillAnswerList(wrongMatch[1]);
     } else {
       passageLines.push(stripLeadingNumbering(line));
     }
   });
 
-  return { passage: passageLines.join("\n"), correct_answers: correctAnswers, wrong_answers: wrongAnswers };
+  var passage = passageLines.join("\n");
+  var correctAnswers = extractDragfillBlanks(passage);
+  return { passage: passage, correct_answers: correctAnswers, wrong_answers: wrongAnswers };
 }
 
 function parseMathDragfillBulkText(text) {
@@ -300,26 +278,12 @@ async function handleBulkAddMathDragfill(e) {
 
   var successCount = 0;
   var invalidBlocks = [];
-  var notFoundBlocks = [];
-  var ambiguousBlocks = [];
   var saveErrors = [];
   var i;
   for (i = 0; i < items.length; i++) {
     var item = items[i];
     if (!item.passage || !item.correct_answers.length) {
       invalidBlocks.push(i + 1);
-      continue;
-    }
-    var missingAnswer = item.correct_answers.some(function (ans) {
-      return findWholeWordFrom(item.passage, ans, 0) === -1;
-    });
-    if (missingAnswer) {
-      notFoundBlocks.push(i + 1);
-      continue;
-    }
-    var ambiguousAnswers = findAmbiguousDragfillAnswers(item.passage, item.correct_answers);
-    if (ambiguousAnswers.length) {
-      ambiguousBlocks.push(i + 1 + " (\"" + ambiguousAnswers.join("\", \"") + "\")");
       continue;
     }
     setBulkMathDragfillStatus("Đang xử lý " + (i + 1) + "/" + items.length + "...");
@@ -342,13 +306,7 @@ async function handleBulkAddMathDragfill(e) {
 
   var summary = "Xong! Đã thêm " + successCount + "/" + items.length + " bài.";
   if (invalidBlocks.length) {
-    summary += " Bỏ qua bài thiếu dữ liệu: bài " + invalidBlocks.join(", ") + ".";
-  }
-  if (notFoundBlocks.length) {
-    summary += " Không tìm thấy đáp án đúng trong đề bài (kiểm tra lại số có khớp không): bài " + notFoundBlocks.join(", ") + ".";
-  }
-  if (ambiguousBlocks.length) {
-    summary += " Đáp án xuất hiện nhiều lần trong đề bài nên không rõ chỗ trống ở đâu, sửa lại câu cho từ đó chỉ xuất hiện đúng số lần cần điền: bài " + ambiguousBlocks.join("; ") + ".";
+    summary += " Bỏ qua bài chưa đánh dấu chỗ trống bằng <>: bài " + invalidBlocks.join(", ") + ".";
   }
   if (saveErrors.length) {
     summary += " Lỗi lưu — " + saveErrors.join("; ") + ".";

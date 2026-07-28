@@ -1,48 +1,39 @@
 var MATH_DRAGFILL_CORRECT_DELAY_MS = 1200;
 
-function findWholeWordInPassage(passage, word, fromIndex) {
-  var escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  var re = new RegExp("\\b" + escaped + "\\b", "i");
-  var remaining = passage.slice(fromIndex);
-  var match = remaining.match(re);
-  if (!match) {
-    return null;
-  }
-  return { index: fromIndex + match.index, length: match[0].length };
-}
-
-function splitMathPassageAroundBlanks(passage, correctAnswers) {
+function splitMathPassageAroundBlanks(rawPassage) {
   var tokens = [];
-  var searchFrom = 0;
-  correctAnswers.forEach(function (answer, index) {
-    var found = findWholeWordInPassage(passage, answer, searchFrom);
-    if (!found) {
-      return;
+  var answers = [];
+  var re = /<([^<>]+)>/g;
+  var lastIndex = 0;
+  var match;
+  var blankIndex = 0;
+  while ((match = re.exec(rawPassage)) !== null) {
+    if (match.index > lastIndex) {
+      tokens.push({ type: "text", value: rawPassage.slice(lastIndex, match.index) });
     }
-    if (found.index > searchFrom) {
-      tokens.push({ type: "text", value: passage.slice(searchFrom, found.index) });
-    }
-    tokens.push({ type: "blank", index: index });
-    searchFrom = found.index + found.length;
-  });
-  if (searchFrom < passage.length) {
-    tokens.push({ type: "text", value: passage.slice(searchFrom) });
+    tokens.push({ type: "blank", index: blankIndex });
+    answers.push(match[1].trim());
+    blankIndex++;
+    lastIndex = re.lastIndex;
   }
-  return tokens;
+  if (lastIndex < rawPassage.length) {
+    tokens.push({ type: "text", value: rawPassage.slice(lastIndex) });
+  }
+  return { tokens: tokens, answers: answers };
 }
 
 function buildMathDragfillQuestions(items) {
   return shuffleArray(items).map(function (row) {
-    var correctAnswers = row.correct_answers || [];
+    var split = splitMathPassageAroundBlanks(row.passage);
     var wrongAnswers = row.wrong_answers || [];
-    var options = shuffleArray(correctAnswers.concat(wrongAnswers)).map(function (text) {
+    var options = shuffleArray(split.answers.concat(wrongAnswers)).map(function (text) {
       return { text: text, used: false };
     });
     return {
       id: row.id,
       passage: row.passage,
-      tokens: splitMathPassageAroundBlanks(row.passage, correctAnswers),
-      answers: correctAnswers,
+      tokens: split.tokens,
+      answers: split.answers,
       options: options
     };
   });
