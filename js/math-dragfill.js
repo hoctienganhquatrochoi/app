@@ -39,7 +39,7 @@ function buildMathDragfillQuestions(items) {
   });
 }
 
-function renderMathDragfill(container, breadcrumbText, items, unitId, setName, activityType, onTestComplete) {
+function renderMathDragfill(container, breadcrumbText, items, unitId, setName, activityType, onTestComplete, progressOffset, progressTotal) {
   activityType = activityType || "math-dragfill";
   var questions, qIndex, score, filledByBlank, answered, lastCorrect, firstAttemptDone, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
 
@@ -194,7 +194,7 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
       wrap.appendChild(nextBtn);
     }
 
-    wrap.appendChild(buildProgressFooter(qIndex + 1, questions.length));
+    wrap.appendChild(buildProgressFooter((progressOffset || 0) + qIndex + 1, progressTotal || questions.length));
     container.appendChild(wrap);
     currentWrap = wrap;
   }

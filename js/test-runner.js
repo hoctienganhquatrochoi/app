@@ -5,15 +5,15 @@ var TEST_SECTION_CONFIG = {
   "grammar-dragfill": { load: loadGrammarDragfillForUnit, render: renderGrammarDragfill, label: "Điền từ vào chỗ trống" },
   "math-dragfill": {
     load: loadMathDragfillForUnit,
-    render: function (container, breadcrumbText, items, unitId, setName, onTestComplete) {
-      renderMathDragfill(container, breadcrumbText, items, unitId, setName, "math-dragfill", onTestComplete);
+    render: function (container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal) {
+      renderMathDragfill(container, breadcrumbText, items, unitId, setName, "math-dragfill", onTestComplete, progressOffset, progressTotal);
     },
     label: "Toán - Điền số"
   },
   "text-dragfill": {
     load: loadTextDragfillForUnit,
-    render: function (container, breadcrumbText, items, unitId, setName, onTestComplete) {
-      renderMathDragfill(container, breadcrumbText, items, unitId, setName, "text-dragfill", onTestComplete);
+    render: function (container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal) {
+      renderMathDragfill(container, breadcrumbText, items, unitId, setName, "text-dragfill", onTestComplete, progressOffset, progressTotal);
     },
     label: "Điền đoạn văn/hội thoại"
   }
@@ -35,6 +35,20 @@ async function renderTestActivity(container, breadcrumbText, unit) {
     empty.textContent = "Đề này chưa có mục nào.";
     container.appendChild(empty);
     return;
+  }
+
+  var grandTotal = 0;
+  var runningOffset = 0;
+
+  async function preloadGrandTotal() {
+    for (var i = 0; i < sections.length; i++) {
+      var cfg = TEST_SECTION_CONFIG[sections[i].section_type];
+      if (!cfg) {
+        continue;
+      }
+      var secItems = await cfg.load(sections[i].source_unit_id, sections[i].source_set_name);
+      grandTotal += secItems ? secItems.length : 0;
+    }
   }
 
   async function runSection(section, index) {
@@ -66,9 +80,11 @@ async function renderTestActivity(container, breadcrumbText, unit) {
     }
 
     var sectionBreadcrumb = breadcrumbText + " › " + (section.label || config.label);
+    var offsetForThisSection = runningOffset;
     config.render(sectionContainer, sectionBreadcrumb, items, section.source_unit_id, section.source_set_name, function (score, total) {
+      runningOffset = offsetForThisSection + total;
       finishSectionAndAdvance(section, index, score, total);
-    });
+    }, offsetForThisSection, grandTotal);
   }
 
   function finishSectionAndAdvance(section, index, score, total) {
@@ -144,6 +160,7 @@ async function renderTestActivity(container, breadcrumbText, unit) {
       sectionIndex = 0;
       totalScore = 0;
       totalMax = 0;
+      runningOffset = 0;
       sectionResults = [];
       testStartedAt = new Date();
       testTabTracker = startTabSwitchTracker();
@@ -154,5 +171,13 @@ async function renderTestActivity(container, breadcrumbText, unit) {
     container.appendChild(wrap);
   }
 
-  runSection(sections[0], 0);
+  container.innerHTML = "";
+  var initialLoading = document.createElement("div");
+  initialLoading.className = "placeholder";
+  initialLoading.textContent = "Đang tải đề...";
+  container.appendChild(initialLoading);
+
+  preloadGrandTotal().then(function () {
+    runSection(sections[0], 0);
+  });
 }

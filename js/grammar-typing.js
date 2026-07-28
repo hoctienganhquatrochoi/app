@@ -5,7 +5,7 @@ function normalizeGrammarTypingAnswer(str) {
   return normalizeQuoteChars(str || "").trim().replace(/\s+/g, " ");
 }
 
-function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, onTestComplete) {
+function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal) {
   var pool = shuffleArray(items);
   var qIndex = 0;
   var score = 0;
@@ -89,7 +89,7 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
       wrap.appendChild(feedback);
     }
 
-    wrap.appendChild(buildProgressFooter(qIndex + 1, pool.length));
+    wrap.appendChild(buildProgressFooter((progressOffset || 0) + qIndex + 1, progressTotal || pool.length));
     container.appendChild(wrap);
     currentWrap = wrap;
     if (!answered) {

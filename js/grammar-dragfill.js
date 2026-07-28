@@ -28,7 +28,7 @@ function buildGrammarDragfillQuestions(items) {
   });
 }
 
-function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName, onTestComplete) {
+function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal) {
   var questions, qIndex, score, filledOption, answered, lastCorrect, firstAttemptDone, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
 
   function resetState() {
@@ -156,7 +156,7 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
       wrap.appendChild(nextBtn);
     }
 
-    wrap.appendChild(buildProgressFooter(qIndex + 1, questions.length));
+    wrap.appendChild(buildProgressFooter((progressOffset || 0) + qIndex + 1, progressTotal || questions.length));
     container.appendChild(wrap);
     currentWrap = wrap;
   }
