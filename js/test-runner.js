@@ -19,8 +19,6 @@ var TEST_SECTION_CONFIG = {
   }
 };
 
-var TEST_SECTION_TRANSITION_MS = 1200;
-
 async function renderTestActivity(container, breadcrumbText, unit) {
   var sections = unit.testSections || [];
   var sectionIndex = 0;
@@ -37,26 +35,6 @@ async function renderTestActivity(container, breadcrumbText, unit) {
     empty.textContent = "Đề này chưa có mục nào.";
     container.appendChild(empty);
     return;
-  }
-
-  function showTransition(section, index) {
-    container.innerHTML = "";
-    var wrap = document.createElement("div");
-    wrap.className = "test-transition-wrap";
-
-    var heading = document.createElement("h2");
-    heading.textContent = "📝 " + (section.label || ("Mục " + (index + 1)));
-    wrap.appendChild(heading);
-
-    var sub = document.createElement("p");
-    sub.textContent = "Mục " + (index + 1) + " / " + sections.length;
-    wrap.appendChild(sub);
-
-    container.appendChild(wrap);
-
-    setTimeout(function () {
-      runSection(section, index);
-    }, TEST_SECTION_TRANSITION_MS);
   }
 
   async function runSection(section, index) {
@@ -104,7 +82,7 @@ async function renderTestActivity(container, breadcrumbText, unit) {
     totalMax += total;
 
     if (index < sections.length - 1) {
-      showTransition(sections[index + 1], index + 1);
+      runSection(sections[index + 1], index + 1);
     } else {
       showTestResult();
     }
@@ -169,12 +147,12 @@ async function renderTestActivity(container, breadcrumbText, unit) {
       sectionResults = [];
       testStartedAt = new Date();
       testTabTracker = startTabSwitchTracker();
-      showTransition(sections[0], 0);
+      runSection(sections[0], 0);
     });
     wrap.appendChild(retryBtn);
 
     container.appendChild(wrap);
   }
 
-  showTransition(sections[0], 0);
+  runSection(sections[0], 0);
 }
