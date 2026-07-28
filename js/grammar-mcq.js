@@ -10,7 +10,7 @@ function buildGrammarMcqQuestions(items) {
   });
 }
 
-function renderGrammarMcq(container, breadcrumbText, items, unitId, setName) {
+function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onTestComplete) {
   var questions = buildGrammarMcqQuestions(items);
   var qIndex = 0;
   var score = 0;
@@ -108,6 +108,10 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName) {
   function showResult() {
     clearInterval(timerIntervalId);
     tabTracker.stop();
+    if (onTestComplete) {
+      onTestComplete(score, questions.length, answersLog);
+      return;
+    }
     submitQuizAttempt(unitId, "grammar-mcq", score, questions.length, startedAt, answersLog, setName, tabTracker.getCount());
 
     container.innerHTML = "";

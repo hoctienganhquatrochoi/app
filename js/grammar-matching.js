@@ -2,7 +2,7 @@ var GRAMMAR_MATCHING_WRONG_FLASH_MS = 500;
 var GRAMMAR_MATCHING_ADVANCE_DELAY_MS = 1000;
 var MATCHING_COLOR_COUNT = 6;
 
-function renderGrammarMatching(container, breadcrumbText, items, unitId, setName) {
+function renderGrammarMatching(container, breadcrumbText, items, unitId, setName, onTestComplete) {
   var pairs, leftOrder, rightOrder, selectedId, selectedSide, score, solvedCount, answersLog, startedAt, timerIntervalId, tabTracker;
 
   function resetState() {
@@ -150,6 +150,10 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
   function showResult() {
     clearInterval(timerIntervalId);
     tabTracker.stop();
+    if (onTestComplete) {
+      onTestComplete(score, pairs.length, answersLog);
+      return;
+    }
     submitQuizAttempt(unitId, "grammar-matching", score, pairs.length, startedAt, answersLog, setName, tabTracker.getCount());
 
     container.innerHTML = "";

@@ -91,6 +91,14 @@ async function loadCurriculumData() {
   var mathDragfillByUnit = buildNamedSetActivities(mathDragfillUnitsResult.data || [], "md_", "math-dragfill");
   var textDragfillUnitsResult = await supabaseClient.from("game_text_dragfill").select("unit_id, set_name").order("sort_order", { ascending: true });
   var textDragfillByUnit = buildNamedSetActivities(textDragfillUnitsResult.data || [], "td_", "text-dragfill");
+  var testSectionsResult = await supabaseClient.from("game_test_sections").select("*").order("sort_order", { ascending: true });
+  var testSectionsByUnit = {};
+  (testSectionsResult.data || []).forEach(function (row) {
+    if (!testSectionsByUnit[row.unit_id]) {
+      testSectionsByUnit[row.unit_id] = [];
+    }
+    testSectionsByUnit[row.unit_id].push(row);
+  });
   var classes = (classesResult.data || []).map(function (row) {
     return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order };
   });
@@ -118,16 +126,21 @@ async function loadCurriculumData() {
       continue;
     }
     var unit = { id: urow.id, subject_id: urow.subject_id, class_id: subj.class_id, name: urow.name, content_type: urow.content_type, is_demo: !!urow.is_demo, sort_order: urow.sort_order, progress: "" };
-    unit.activities = VOCAB_ACTIVITY_TEMPLATE
-      .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
-      .concat(grammarMcqByUnit[urow.id] || [])
-      .concat(grammarTypingByUnit[urow.id] || [])
-      .concat(grammarMatchingByUnit[urow.id] || [])
-      .concat(grammarDragfillByUnit[urow.id] || [])
-      .concat(photoQuizByUnit[urow.id] || [])
-      .concat(mathDragfillByUnit[urow.id] || [])
-      .concat(textDragfillByUnit[urow.id] || [])
-      .concat(wordwallByUnit[urow.id] || []);
+    if (urow.content_type === "test") {
+      unit.testSections = testSectionsByUnit[urow.id] || [];
+      unit.activities = [{ id: "run", name: "Bắt đầu làm bài", type: "test" }];
+    } else {
+      unit.activities = VOCAB_ACTIVITY_TEMPLATE
+        .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
+        .concat(grammarMcqByUnit[urow.id] || [])
+        .concat(grammarTypingByUnit[urow.id] || [])
+        .concat(grammarMatchingByUnit[urow.id] || [])
+        .concat(grammarDragfillByUnit[urow.id] || [])
+        .concat(photoQuizByUnit[urow.id] || [])
+        .concat(mathDragfillByUnit[urow.id] || [])
+        .concat(textDragfillByUnit[urow.id] || [])
+        .concat(wordwallByUnit[urow.id] || []);
+    }
     subj.units.push(unit);
   }
 

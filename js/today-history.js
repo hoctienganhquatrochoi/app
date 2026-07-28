@@ -15,7 +15,8 @@ var TODAY_HISTORY_ACTIVITY_LABELS = {
   "grammar-dragfill": "Điền từ vào chỗ trống",
   "photo-quiz": "Đọc/Nghe theo ảnh",
   "math-dragfill": "Toán - Điền số",
-  "text-dragfill": "Điền đoạn văn/hội thoại"
+  "text-dragfill": "Điền đoạn văn/hội thoại",
+  "test": "Đề kiểm tra"
 };
 
 async function fetchUnitNamesByIds(unitIds) {

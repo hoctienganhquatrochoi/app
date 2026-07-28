@@ -39,7 +39,7 @@ function buildMathDragfillQuestions(items) {
   });
 }
 
-function renderMathDragfill(container, breadcrumbText, items, unitId, setName, activityType) {
+function renderMathDragfill(container, breadcrumbText, items, unitId, setName, activityType, onTestComplete) {
   activityType = activityType || "math-dragfill";
   var questions, qIndex, score, filledByBlank, answered, lastCorrect, firstAttemptDone, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
 
@@ -248,6 +248,10 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
     clearInterval(timerIntervalId);
     tabTracker.stop();
     document.removeEventListener("keydown", handleGlobalKeydown);
+    if (onTestComplete) {
+      onTestComplete(score, questions.length, answersLog);
+      return;
+    }
     submitQuizAttempt(unitId, activityType, score, questions.length, startedAt, answersLog, setName, tabTracker.getCount());
 
     container.innerHTML = "";

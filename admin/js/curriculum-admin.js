@@ -767,18 +767,38 @@ function updateComposeBreadcrumb() {
   document.getElementById("composeBreadcrumb").textContent = "Đang soạn: " + parts.join(" › ");
 }
 
+function hideAllComposeSubPanels() {
+  ["vocab", "sentence", "speaking", "wordwall", "grammarMcq", "grammarTyping", "grammarMatching", "grammarDragfill", "photoQuiz", "mathDragfill", "textDragfill"].forEach(function (t) {
+    var el = document.getElementById(t + "ComposeSubPanel");
+    if (el) {
+      el.style.display = "none";
+    }
+  });
+}
+
 function selectUnitForComposing(unitId) {
   saveAdminNavState({ unitId: unitId });
   var select = document.getElementById("unitSelect");
   select.value = unitId;
   updateComposeBreadcrumb();
 
-  switchComposeSubTab("vocab");
-  loadVocabTable();
-  loadSentenceTable();
-  loadSpeakingTestList().then(loadSpeakingTable);
-  loadWordwallList();
-  loadActivityToggles();
+  var unit = findUnitById(unitId);
+  var isTest = !!unit && unit.content_type === "test";
+  document.getElementById("activityTogglesBox").style.display = isTest ? "none" : "";
+  document.getElementById("composeSubTabs").style.display = isTest ? "none" : "";
+  document.getElementById("testComposeView").style.display = isTest ? "" : "none";
+
+  if (isTest) {
+    hideAllComposeSubPanels();
+    loadTestSections();
+  } else {
+    switchComposeSubTab("vocab");
+    loadVocabTable();
+    loadSentenceTable();
+    loadSpeakingTestList().then(loadSpeakingTable);
+    loadWordwallList();
+    loadActivityToggles();
+  }
   showUnitsComposeView();
 }
 
@@ -827,6 +847,7 @@ async function handleAddUnit() {
   var classId = document.getElementById("addUnitClassPicker").value;
   var subjectId = document.getElementById("addUnitSubjectPicker").value;
   var name = document.getElementById("newUnitName").value.trim();
+  var contentType = document.getElementById("newUnitContentType").value;
   var newSortOrder = 0;
 
   if (!subjectId) {
@@ -848,7 +869,7 @@ async function handleAddUnit() {
 
   setCurriculumStatus("Đang tạo bài học...");
   var newId = genId("u");
-  var result = await supabaseClient.from("game_units").insert({ id: newId, subject_id: subjectId, name: name, content_type: "vocab", sort_order: newSortOrder });
+  var result = await supabaseClient.from("game_units").insert({ id: newId, subject_id: subjectId, name: name, content_type: contentType, sort_order: newSortOrder });
   if (result.error) {
     setCurriculumStatus("Lỗi tạo bài học: " + result.error.message);
     return;
@@ -885,6 +906,7 @@ async function getUnitContentCounts(unitId) {
   var photoQuizResult = await supabaseClient.from("game_photo_quiz_questions").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var mathDragfillResult = await supabaseClient.from("game_math_dragfill").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var textDragfillResult = await supabaseClient.from("game_text_dragfill").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var testSectionsResult = await supabaseClient.from("game_test_sections").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   return {
     vocab: vocabResult.count || 0,
     sentence: sentenceResult.count || 0,
@@ -895,7 +917,8 @@ async function getUnitContentCounts(unitId) {
     grammarDragfill: grammarDragfillResult.count || 0,
     photoQuiz: photoQuizResult.count || 0,
     mathDragfill: mathDragfillResult.count || 0,
-    textDragfill: textDragfillResult.count || 0
+    textDragfill: textDragfillResult.count || 0,
+    testSections: testSectionsResult.count || 0
   };
 }
 
@@ -930,6 +953,9 @@ function describeUnitContentCounts(counts) {
   }
   if (counts.textDragfill > 0) {
     warnParts.push(counts.textDragfill + " bài đoạn văn/hội thoại điền từ");
+  }
+  if (counts.testSections > 0) {
+    warnParts.push(counts.testSections + " mục trong đề kiểm tra");
   }
   return warnParts;
 }
@@ -976,6 +1002,9 @@ async function deleteUnitAndContent(unitId, counts) {
   }
   if (counts.textDragfill > 0) {
     await supabaseClient.from("game_text_dragfill").delete().eq("unit_id", unitId);
+  }
+  if (counts.testSections > 0) {
+    await supabaseClient.from("game_test_sections").delete().eq("unit_id", unitId);
   }
   await supabaseClient.from("game_photo_quiz_sets").delete().eq("unit_id", unitId);
   await supabaseClient.from("game_unit_settings").delete().eq("unit_id", unitId);

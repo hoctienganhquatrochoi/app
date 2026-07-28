@@ -800,6 +800,22 @@ html, body {
   text-align: center;
 }
 
+.test-transition-wrap {
+  max-width: 700px;
+  margin: 80px auto;
+  text-align: center;
+}
+
+.test-transition-wrap h2 {
+  font-size: 32px;
+  color: #1B4332;
+}
+
+.test-transition-wrap p {
+  font-size: 18px;
+  color: #556355;
+}
+
 .quiz-wrap h2 {
   font-size: 24px;
   margin-bottom: 2px;

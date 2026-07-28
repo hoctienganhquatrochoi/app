@@ -28,7 +28,7 @@ function buildGrammarDragfillQuestions(items) {
   });
 }
 
-function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName) {
+function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName, onTestComplete) {
   var questions, qIndex, score, filledOption, answered, lastCorrect, firstAttemptDone, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
 
   function resetState() {
@@ -235,6 +235,10 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     clearInterval(timerIntervalId);
     tabTracker.stop();
     document.removeEventListener("keydown", handleGlobalKeydown);
+    if (onTestComplete) {
+      onTestComplete(score, questions.length, answersLog);
+      return;
+    }
     submitQuizAttempt(unitId, "grammar-dragfill", score, questions.length, startedAt, answersLog, setName, tabTracker.getCount());
 
     container.innerHTML = "";

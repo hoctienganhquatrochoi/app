@@ -597,6 +597,12 @@ async function renderMainContent() {
     return;
   }
 
+  if (activity.type === "test") {
+    main.innerHTML = "";
+    renderTestActivity(main, breadcrumbText, unit);
+    return;
+  }
+
   var screen = document.createElement("div");
   screen.className = "play-screen" + (isMamNon ? " mamnon" : "");
 
