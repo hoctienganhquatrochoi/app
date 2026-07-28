@@ -1,7 +1,7 @@
 var QUIZ_FORMAT_CONFIG = {
   "word-to-image": { showWord: true, showPhonetic: true, showImage: false, showMeaning: false, answerType: "image" },
   "image-to-word": { showWord: true, showPhonetic: true, showImage: true, showMeaning: true, answerType: "word" },
-  "text-to-word": { showWord: false, showPhonetic: true, showImage: false, showMeaning: true, answerType: "word" },
+  "text-to-word": { showWord: false, showPhonetic: false, showImage: false, showMeaning: true, answerType: "word" },
   "image-only-to-word": { showWord: false, showPhonetic: false, showImage: true, showMeaning: false, answerType: "word" },
   "word-to-meaning": { showWord: true, showPhonetic: true, showImage: false, showMeaning: false, answerType: "meaning" }
 };
@@ -41,7 +41,12 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
   function showQuestion() {
     draw();
     var q = questions[qIndex];
-    playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.en, "en-US");
+    var config = QUIZ_FORMAT_CONFIG[q.format];
+    if (config.showWord) {
+      playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.en, "en-US");
+    } else if (config.showMeaning) {
+      playAudioUrlOrSpeak(q.item.audioViUrl, q.item.vi, "vi-VN");
+    }
   }
 
   function draw() {
@@ -78,14 +83,25 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     var prompt = document.createElement("div");
     prompt.className = "quiz-prompt";
 
-    var audioBtn = document.createElement("button");
-    audioBtn.className = "audio-btn quiz-prompt-audio";
-    audioBtn.type = "button";
-    audioBtn.textContent = "▶";
-    audioBtn.addEventListener("click", function () {
-      playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.en, "en-US");
-    });
-    prompt.appendChild(audioBtn);
+    if (config.showWord) {
+      var audioBtn = document.createElement("button");
+      audioBtn.className = "audio-btn quiz-prompt-audio";
+      audioBtn.type = "button";
+      audioBtn.textContent = "▶";
+      audioBtn.addEventListener("click", function () {
+        playAudioUrlOrSpeak(q.item.audioEnUrl, q.item.en, "en-US");
+      });
+      prompt.appendChild(audioBtn);
+    } else if (config.showMeaning) {
+      var viAudioBtn = document.createElement("button");
+      viAudioBtn.className = "audio-btn quiz-prompt-audio";
+      viAudioBtn.type = "button";
+      viAudioBtn.textContent = "▶";
+      viAudioBtn.addEventListener("click", function () {
+        playAudioUrlOrSpeak(q.item.audioViUrl, q.item.vi, "vi-VN");
+      });
+      prompt.appendChild(viAudioBtn);
+    }
 
     var hasVisual = config.showImage && !!(q.item.imageUrl || q.item.emoji);
     if (hasVisual) {

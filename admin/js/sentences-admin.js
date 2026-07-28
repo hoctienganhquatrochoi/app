@@ -90,7 +90,7 @@ async function handleDeleteAllSentences() {
     return;
   }
   await Promise.all(rows.map(function (row) {
-    return deleteAudioFileForUrl(row.audio_en_url);
+    return Promise.all([deleteAudioFileForUrl(row.audio_en_url), deleteAudioFileForUrl(row.audio_vi_url)]);
   }));
   loadSentenceTable();
   loadCurriculumData().then(loadActivityToggles);
@@ -116,7 +116,7 @@ function renderSentenceTable(rows) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  var headers = ["Câu tiếng Anh", "Phiên âm", "Nghĩa tiếng Việt", "Audio", ""];
+  var headers = ["Câu tiếng Anh", "Phiên âm", "Nghĩa tiếng Việt", "Audio EN", "Audio VI", ""];
   var i;
   for (i = 0; i < headers.length; i++) {
     var th = document.createElement("th");
@@ -150,6 +150,7 @@ function buildSentenceRow(row) {
   tr.appendChild(makeTd(row.phonetic));
   tr.appendChild(makeTd(row.meaning_vi));
   tr.appendChild(makeAudioTd(row.audio_en_url));
+  tr.appendChild(makeAudioTd(row.audio_vi_url));
 
   var actionsTd = document.createElement("td");
 
@@ -188,6 +189,7 @@ function buildSentenceEditRow(row) {
   tr.appendChild(phoneticTd);
   tr.appendChild(meaningTd);
   tr.appendChild(makeAudioTd(row.audio_en_url));
+  tr.appendChild(makeAudioTd(row.audio_vi_url));
 
   var actionsTd = document.createElement("td");
 
@@ -218,17 +220,23 @@ function buildSentenceEditRow(row) {
     saveBtn.disabled = true;
     cancelBtn.disabled = true;
 
-    var textChanged = newSentenceEn !== row.sentence_en;
+    var sentenceChanged = newSentenceEn !== row.sentence_en;
+    var meaningChanged = newMeaningVi !== row.meaning_vi;
     var updatePayload = {
       sentence_en: newSentenceEn,
       phonetic: newPhonetic,
       meaning_vi: newMeaningVi
     };
 
-    if (textChanged) {
+    if (sentenceChanged || meaningChanged) {
       saveBtn.textContent = "Đang tạo âm thanh...";
       var noop = function () {};
-      updatePayload.audio_en_url = await generateAudio(newSentenceEn, "en-US", row.unit_id + "/" + row.id + "_en.mp3", noop);
+      if (sentenceChanged) {
+        updatePayload.audio_en_url = await generateAudio(newSentenceEn, "en-US", row.unit_id + "/" + row.id + "_en.mp3", noop);
+      }
+      if (meaningChanged) {
+        updatePayload.audio_vi_url = await generateAudio(newMeaningVi, "vi", row.unit_id + "/" + row.id + "_vi.mp3", noop);
+      }
     } else {
       saveBtn.textContent = "Đang lưu...";
     }
@@ -266,6 +274,7 @@ function buildSentenceBulkEditRow(row) {
   tr.appendChild(phoneticTd);
   tr.appendChild(meaningTd);
   tr.appendChild(makeAudioTd(row.audio_en_url));
+  tr.appendChild(makeAudioTd(row.audio_vi_url));
   tr.appendChild(document.createElement("td"));
 
   sentenceBulkEditRefs.push({ row: row, sentenceTd: sentenceTd, phoneticTd: phoneticTd, meaningTd: meaningTd });
@@ -288,9 +297,12 @@ async function handleSaveAllSentences() {
     statusEl.textContent = "Đang lưu " + (i + 1) + "/" + sentenceBulkEditRefs.length + "...";
 
     var updatePayload = { sentence_en: newSentenceEn, phonetic: newPhonetic, meaning_vi: newMeaningVi };
+    var noop = function () {};
     if (newSentenceEn !== ref.row.sentence_en) {
-      var noop = function () {};
       updatePayload.audio_en_url = await generateAudio(newSentenceEn, "en-US", ref.row.unit_id + "/" + ref.row.id + "_en.mp3", noop);
+    }
+    if (newMeaningVi !== ref.row.meaning_vi) {
+      updatePayload.audio_vi_url = await generateAudio(newMeaningVi, "vi", ref.row.unit_id + "/" + ref.row.id + "_vi.mp3", noop);
     }
 
     await supabaseClient.from("game_sentences").update(updatePayload).eq("id", ref.row.id);
@@ -310,7 +322,7 @@ async function deleteSentence(row) {
     window.alert("Lỗi xóa: " + result.error.message);
     return;
   }
-  await deleteAudioFileForUrl(row.audio_en_url);
+  await Promise.all([deleteAudioFileForUrl(row.audio_en_url), deleteAudioFileForUrl(row.audio_vi_url)]);
   loadSentenceTable();
   loadCurriculumData().then(loadActivityToggles);
 }
@@ -417,10 +429,11 @@ async function handleBulkAddSentences(e) {
 
     var row = insertResult.data;
     var audioEnUrl = await generateAudio(item.sentence_en, "en-US", unitId + "/" + row.id + "_en.mp3", setBulkSentenceStatus);
+    var audioViUrl = await generateAudio(item.meaning_vi, "vi", unitId + "/" + row.id + "_vi.mp3", setBulkSentenceStatus);
 
     await supabaseClient
       .from("game_sentences")
-      .update({ audio_en_url: audioEnUrl })
+      .update({ audio_en_url: audioEnUrl, audio_vi_url: audioViUrl })
       .eq("id", row.id);
 
     successCount++;

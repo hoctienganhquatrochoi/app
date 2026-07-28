@@ -970,10 +970,10 @@ async function deleteUnitAndContent(unitId, counts) {
     }));
   }
   if (counts.sentence > 0) {
-    var sentenceRows = await supabaseClient.from("game_sentences").select("audio_en_url").eq("unit_id", unitId);
+    var sentenceRows = await supabaseClient.from("game_sentences").select("audio_en_url, audio_vi_url").eq("unit_id", unitId);
     await supabaseClient.from("game_sentences").delete().eq("unit_id", unitId);
     await Promise.all((sentenceRows.data || []).map(function (row) {
-      return deleteAudioFileForUrl(row.audio_en_url);
+      return Promise.all([deleteAudioFileForUrl(row.audio_en_url), deleteAudioFileForUrl(row.audio_vi_url)]);
     }));
   }
   if (counts.speaking > 0) {

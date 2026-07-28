@@ -10,6 +10,7 @@ async function isAudioUrlStillReferenced(url) {
     supabaseClient.from("game_vocab").select("id", { count: "exact", head: true }).eq("audio_en_url", url),
     supabaseClient.from("game_vocab").select("id", { count: "exact", head: true }).eq("audio_vi_url", url),
     supabaseClient.from("game_sentences").select("id", { count: "exact", head: true }).eq("audio_en_url", url),
+    supabaseClient.from("game_sentences").select("id", { count: "exact", head: true }).eq("audio_vi_url", url),
     supabaseClient.from("game_speaking_questions").select("id", { count: "exact", head: true }).eq("audio_question_url", url)
   ]);
   return checks.some(function (r) { return (r.count || 0) > 0; });
@@ -314,7 +315,7 @@ function renderVocabTable(rows) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  var headers = ["Ảnh", "Từ (EN)", "Phiên âm", "Nghĩa (VI)", "Audio EN", ""];
+  var headers = ["Ảnh", "Từ (EN)", "Phiên âm", "Nghĩa (VI)", "Audio EN", "Audio VI", ""];
   var i;
   for (i = 0; i < headers.length; i++) {
     var th = document.createElement("th");
@@ -347,6 +348,7 @@ function buildVocabBulkEditRow(row) {
   tr.appendChild(phoneticTd);
   tr.appendChild(meaningTd);
   tr.appendChild(makeAudioTd(row.audio_en_url));
+  tr.appendChild(makeAudioTd(row.audio_vi_url));
 
   var actionsTd = document.createElement("td");
   var delBtn = document.createElement("button");
@@ -381,9 +383,10 @@ async function handleSaveAll() {
       continue;
     }
 
-    var textChanged = newWordEn !== ref.row.word_en || newMeaningVi !== ref.row.meaning_vi;
+    var wordChanged = newWordEn !== ref.row.word_en;
+    var meaningChanged = newMeaningVi !== ref.row.meaning_vi;
     var otherChanged = newPhonetic !== (ref.row.phonetic || "");
-    if (!textChanged && !otherChanged) {
+    if (!wordChanged && !meaningChanged && !otherChanged) {
       continue;
     }
 
@@ -395,9 +398,12 @@ async function handleSaveAll() {
       meaning_vi: newMeaningVi
     };
 
-    if (textChanged) {
-      var noop = function () {};
+    var noop = function () {};
+    if (wordChanged) {
       updatePayload.audio_en_url = await generateAudio(stripParenthetical(newWordEn), "en-US", ref.row.unit_id + "/" + ref.row.id + "_en.mp3", noop);
+    }
+    if (meaningChanged) {
+      updatePayload.audio_vi_url = await generateAudio(newMeaningVi, "vi", ref.row.unit_id + "/" + ref.row.id + "_vi.mp3", noop);
     }
 
     await supabaseClient.from("game_vocab").update(updatePayload).eq("id", ref.row.id);
@@ -420,6 +426,7 @@ function buildVocabRow(row) {
   tr.appendChild(makeTd(row.phonetic));
   tr.appendChild(makeTd(row.meaning_vi));
   tr.appendChild(makeAudioTd(row.audio_en_url));
+  tr.appendChild(makeAudioTd(row.audio_vi_url));
 
   var actionsTd = document.createElement("td");
 
@@ -470,6 +477,7 @@ function buildVocabEditRow(row) {
   tr.appendChild(phoneticTd);
   tr.appendChild(meaningTd);
   tr.appendChild(makeAudioTd(row.audio_en_url));
+  tr.appendChild(makeAudioTd(row.audio_vi_url));
 
   var actionsTd = document.createElement("td");
 
@@ -500,17 +508,23 @@ function buildVocabEditRow(row) {
     saveBtn.disabled = true;
     cancelBtn.disabled = true;
 
-    var textChanged = newWordEn !== row.word_en || newMeaningVi !== row.meaning_vi;
+    var wordChanged = newWordEn !== row.word_en;
+    var meaningChanged = newMeaningVi !== row.meaning_vi;
     var updatePayload = {
       word_en: newWordEn,
       phonetic: newPhonetic,
       meaning_vi: newMeaningVi
     };
 
-    if (textChanged) {
+    if (wordChanged || meaningChanged) {
       saveBtn.textContent = "Đang tạo âm thanh...";
       var noop = function () {};
-      updatePayload.audio_en_url = await generateAudio(stripParenthetical(newWordEn), "en-US", row.unit_id + "/" + row.id + "_en.mp3", noop);
+      if (wordChanged) {
+        updatePayload.audio_en_url = await generateAudio(stripParenthetical(newWordEn), "en-US", row.unit_id + "/" + row.id + "_en.mp3", noop);
+      }
+      if (meaningChanged) {
+        updatePayload.audio_vi_url = await generateAudio(newMeaningVi, "vi", row.unit_id + "/" + row.id + "_vi.mp3", noop);
+      }
     } else {
       saveBtn.textContent = "Đang lưu...";
     }
@@ -688,6 +702,31 @@ async function buildVocabAudioLookup() {
   return lookup;
 }
 
+async function buildVocabAudioViLookup() {
+  var lookup = {};
+  var pageSize = 1000;
+  var from = 0;
+  while (true) {
+    var result = await supabaseClient
+      .from("game_vocab")
+      .select("meaning_vi, audio_vi_url")
+      .not("audio_vi_url", "is", null)
+      .range(from, from + pageSize - 1);
+    var rows = result.data || [];
+    rows.forEach(function (row) {
+      var key = (row.meaning_vi || "").trim().toLowerCase();
+      if (key && !lookup[key]) {
+        lookup[key] = row.audio_vi_url;
+      }
+    });
+    if (rows.length < pageSize) {
+      break;
+    }
+    from += pageSize;
+  }
+  return lookup;
+}
+
 async function handleBulkAdd(e) {
   e.preventDefault();
 
@@ -714,6 +753,7 @@ async function handleBulkAdd(e) {
   var existingCountResult = await supabaseClient.from("game_vocab").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var nextSortOrder = existingCountResult.count || 0;
   var audioLookup = await buildVocabAudioLookup();
+  var audioViLookup = await buildVocabAudioViLookup();
 
   var successCount = 0;
   var reusedCount = 0;
@@ -761,9 +801,21 @@ async function handleBulkAdd(e) {
       }
     }
 
+    var audioViKey = (item.meaning_vi || "").trim().toLowerCase();
+    var audioViUrl;
+    if (audioViLookup[audioViKey]) {
+      audioViUrl = audioViLookup[audioViKey];
+      reusedCount++;
+    } else {
+      audioViUrl = await generateAudio(item.meaning_vi, "vi", unitId + "/" + row.id + "_vi.mp3", setBulkStatus);
+      if (audioViUrl) {
+        audioViLookup[audioViKey] = audioViUrl;
+      }
+    }
+
     await supabaseClient
       .from("game_vocab")
-      .update({ audio_en_url: audioEnUrl })
+      .update({ audio_en_url: audioEnUrl, audio_vi_url: audioViUrl })
       .eq("id", row.id);
 
     successCount++;

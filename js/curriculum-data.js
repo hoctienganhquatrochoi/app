@@ -4,7 +4,8 @@ var VOCAB_ACTIVITY_TEMPLATE = [
   { id: "a2a", name: "Nghe từ, chọn hình", type: "quiz", format: "word-to-image", locked: false },
   { id: "a2b", name: "Nhìn hình, chọn từ", type: "quiz", format: "image-to-word", locked: false },
   { id: "a2d", name: "Chỉ nhìn hình, đoán từ", type: "quiz", format: "image-only-to-word", locked: false },
-  { id: "a2e", name: "Nghe - Dịch", type: "quiz", format: "word-to-meaning", locked: false },
+  { id: "a2e", name: "Dịch Anh - Việt", type: "quiz", format: "word-to-meaning", locked: false },
+  { id: "a2f", name: "Dịch Việt - Anh", type: "quiz", format: "text-to-word", locked: false },
   { id: "a3", name: "Đánh máy có gợi ý", type: "typing", mode: "hint", locked: false },
   { id: "a4", name: "Đánh máy không gợi ý", type: "typing", mode: "blank", locked: false },
   { id: "a16", name: "Nghe - Đánh máy (key)", type: "free-typing", mode: "hint", locked: false },
@@ -17,7 +18,8 @@ var VOCAB_ACTIVITY_TEMPLATE = [
 var SENTENCE_ACTIVITY_TEMPLATE = [
   { id: "s1", name: "Thẻ đọc (câu)", type: "flashcard", locked: false },
   { id: "s14", name: "Thẻ lật (câu)", type: "flip-card", locked: false },
-  { id: "s2e", name: "Nghe - Dịch (câu)", type: "quiz", format: "word-to-meaning", locked: false },
+  { id: "s2e", name: "Dịch Anh - Việt (câu)", type: "quiz", format: "word-to-meaning", locked: false },
+  { id: "s2f", name: "Dịch Việt - Anh (câu)", type: "quiz", format: "text-to-word", locked: false },
   { id: "s3", name: "Đánh máy có gợi ý (câu)", type: "free-typing", mode: "hint", locked: false },
   { id: "s4", name: "Đánh máy không gợi ý (câu)", type: "free-typing", mode: "blank", locked: false },
   { id: "s18", name: "Nghe - Đánh máy (câu)", type: "free-typing", mode: "audio", locked: false }

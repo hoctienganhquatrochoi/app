@@ -10,6 +10,7 @@ create table if not exists game_sentences (
   phonetic text,
   meaning_vi text not null,
   audio_en_url text,
+  audio_vi_url text,
   created_at timestamptz not null default now()
 );
 

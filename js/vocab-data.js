@@ -43,7 +43,7 @@ async function loadSentencesForUnit(unitId) {
       phonetic: row.phonetic,
       vi: row.meaning_vi,
       audioEnUrl: row.audio_en_url,
-      audioViUrl: null
+      audioViUrl: row.audio_vi_url
     };
   });
 }
