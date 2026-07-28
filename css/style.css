@@ -1170,10 +1170,11 @@ html, body {
 }
 
 .mathfill-passage {
-  font-size: 21px;
-  font-weight: 500;
+  font-size: 36px;
+  font-weight: 700;
+  color: #1B4332;
   text-align: left;
-  line-height: 1.9;
+  line-height: 1.6;
   white-space: pre-line;
 }
 
