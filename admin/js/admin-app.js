@@ -84,6 +84,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     setVocabTogglesEnabled(false);
   });
   document.getElementById("bulkAddForm").addEventListener("submit", handleBulkAdd);
+  document.getElementById("backfillViAudioBtn").addEventListener("click", handleBackfillViAudio);
+  document.getElementById("stopBackfillViAudioBtn").addEventListener("click", handleStopBackfillViAudio);
   document.getElementById("bulkAddSentenceForm").addEventListener("submit", handleBulkAddSentences);
   document.getElementById("bulkAddGrammarMcqForm").addEventListener("submit", handleBulkAddGrammarMcq);
   document.getElementById("addGrammarMcqSetBtn").addEventListener("click", handleAddGrammarMcqSet);

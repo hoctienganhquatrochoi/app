@@ -727,6 +727,126 @@ async function buildVocabAudioViLookup() {
   return lookup;
 }
 
+async function buildCombinedAudioViLookup() {
+  var lookup = await buildVocabAudioViLookup();
+  var pageSize = 1000;
+  var from = 0;
+  while (true) {
+    var result = await supabaseClient
+      .from("game_sentences")
+      .select("meaning_vi, audio_vi_url")
+      .not("audio_vi_url", "is", null)
+      .range(from, from + pageSize - 1);
+    var rows = result.data || [];
+    rows.forEach(function (row) {
+      var key = (row.meaning_vi || "").trim().toLowerCase();
+      if (key && !lookup[key]) {
+        lookup[key] = row.audio_vi_url;
+      }
+    });
+    if (rows.length < pageSize) {
+      break;
+    }
+    from += pageSize;
+  }
+  return lookup;
+}
+
+var backfillViAudioStop = false;
+
+function setBackfillViAudioStatus(text) {
+  document.getElementById("backfillViAudioStatus").textContent = text;
+}
+
+async function backfillViAudioForTable(tableName, textColumn, audioColumn, unitColumn, idColumn, lookup, counts) {
+  var pageSize = 100;
+  while (!backfillViAudioStop) {
+    var result = await supabaseClient
+      .from(tableName)
+      .select("*")
+      .is(audioColumn, null)
+      .limit(pageSize);
+    var rows = result.data || [];
+    if (!rows.length) {
+      break;
+    }
+
+    for (var i = 0; i < rows.length; i++) {
+      if (backfillViAudioStop) {
+        break;
+      }
+      var row = rows[i];
+      var text = (row[textColumn] || "").trim();
+      var key = text.toLowerCase();
+      counts.processed++;
+
+      if (!text) {
+        var emptyPayload = {};
+        emptyPayload[audioColumn] = "";
+        await supabaseClient.from(tableName).update(emptyPayload).eq(idColumn, row.id);
+        continue;
+      }
+
+      var url;
+      if (lookup[key]) {
+        url = lookup[key];
+        counts.reused++;
+      } else {
+        url = await generateAudio(text, "vi", row[unitColumn] + "/" + row.id + "_vi.mp3", function () {});
+        if (url) {
+          lookup[key] = url;
+          counts.generated++;
+        } else {
+          counts.errors++;
+          url = "";
+        }
+        await sleep(1200);
+      }
+
+      if (url) {
+        var payload = {};
+        payload[audioColumn] = url;
+        await supabaseClient.from(tableName).update(payload).eq(idColumn, row.id);
+      }
+
+      setBackfillViAudioStatus(
+        "Đang xử lý (" + tableName + ")... Đã xong " + counts.processed +
+        " (tạo mới " + counts.generated + ", dùng lại " + counts.reused +
+        (counts.errors ? ", lỗi " + counts.errors : "") + ")"
+      );
+    }
+  }
+}
+
+async function handleBackfillViAudio() {
+  backfillViAudioStop = false;
+  document.getElementById("backfillViAudioBtn").style.display = "none";
+  document.getElementById("stopBackfillViAudioBtn").style.display = "inline-block";
+
+  setBackfillViAudioStatus("Đang tải danh sách âm thanh đã có...");
+  var lookup = await buildCombinedAudioViLookup();
+  var counts = { processed: 0, generated: 0, reused: 0, errors: 0 };
+
+  await backfillViAudioForTable("game_vocab", "meaning_vi", "audio_vi_url", "unit_id", "id", lookup, counts);
+  if (!backfillViAudioStop) {
+    await backfillViAudioForTable("game_sentences", "meaning_vi", "audio_vi_url", "unit_id", "id", lookup, counts);
+  }
+
+  document.getElementById("backfillViAudioBtn").style.display = "inline-block";
+  document.getElementById("stopBackfillViAudioBtn").style.display = "none";
+
+  if (backfillViAudioStop) {
+    setBackfillViAudioStatus("Đã dừng. Đã xử lý " + counts.processed + " mục (tạo mới " + counts.generated + ", dùng lại " + counts.reused + "). Bấm lại để tiếp tục.");
+  } else {
+    setBackfillViAudioStatus("Xong! Đã tạo âm thanh tiếng Việt cho toàn bộ (" + counts.processed + " mục, tạo mới " + counts.generated + ", dùng lại " + counts.reused + (counts.errors ? ", lỗi " + counts.errors : "") + ").");
+  }
+}
+
+function handleStopBackfillViAudio() {
+  backfillViAudioStop = true;
+  setBackfillViAudioStatus("Đang dừng...");
+}
+
 async function handleBulkAdd(e) {
   e.preventDefault();
 
