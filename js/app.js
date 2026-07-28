@@ -514,7 +514,7 @@ async function renderMainContent() {
     return;
   }
 
-  if (activity.type === "grammar-mcq" || activity.type === "grammar-typing" || activity.type === "grammar-matching" || activity.type === "grammar-dragfill" || activity.type === "math-dragfill") {
+  if (activity.type === "grammar-mcq" || activity.type === "grammar-typing" || activity.type === "grammar-matching" || activity.type === "grammar-dragfill" || activity.type === "math-dragfill" || activity.type === "text-dragfill") {
     var grammarLoading = document.createElement("div");
     grammarLoading.className = "placeholder";
     grammarLoading.textContent = "Đang tải nội dung...";
@@ -529,8 +529,10 @@ async function renderMainContent() {
       grammarItems = await loadGrammarMatchingForUnit(unit.id, activity.setName);
     } else if (activity.type === "grammar-dragfill") {
       grammarItems = await loadGrammarDragfillForUnit(unit.id, activity.setName);
-    } else {
+    } else if (activity.type === "math-dragfill") {
       grammarItems = await loadMathDragfillForUnit(unit.id, activity.setName);
+    } else {
+      grammarItems = await loadTextDragfillForUnit(unit.id, activity.setName);
     }
 
     if (!state.selectedActivity || state.selectedActivity.unit.id !== unit.id || state.selectedActivity.activity.id !== activity.id) {
@@ -555,8 +557,10 @@ async function renderMainContent() {
       renderGrammarMatching(main, breadcrumbText, grammarItems, unit.id, activity.setName);
     } else if (activity.type === "grammar-dragfill") {
       renderGrammarDragfill(main, breadcrumbText, grammarItems, unit.id, activity.setName);
+    } else if (activity.type === "math-dragfill") {
+      renderMathDragfill(main, breadcrumbText, grammarItems, unit.id, activity.setName, "math-dragfill");
     } else {
-      renderMathDragfill(main, breadcrumbText, grammarItems, unit.id, activity.setName);
+      renderMathDragfill(main, breadcrumbText, grammarItems, unit.id, activity.setName, "text-dragfill");
     }
     return;
   }

@@ -89,6 +89,8 @@ async function loadCurriculumData() {
   var photoQuizByUnit = buildNamedSetActivities(photoQuizUnitsResult.data || [], "pq_", "photo-quiz");
   var mathDragfillUnitsResult = await supabaseClient.from("game_math_dragfill").select("unit_id, set_name").order("sort_order", { ascending: true });
   var mathDragfillByUnit = buildNamedSetActivities(mathDragfillUnitsResult.data || [], "md_", "math-dragfill");
+  var textDragfillUnitsResult = await supabaseClient.from("game_text_dragfill").select("unit_id, set_name").order("sort_order", { ascending: true });
+  var textDragfillByUnit = buildNamedSetActivities(textDragfillUnitsResult.data || [], "td_", "text-dragfill");
   var classes = (classesResult.data || []).map(function (row) {
     return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order };
   });
@@ -124,6 +126,7 @@ async function loadCurriculumData() {
       .concat(grammarDragfillByUnit[urow.id] || [])
       .concat(photoQuizByUnit[urow.id] || [])
       .concat(mathDragfillByUnit[urow.id] || [])
+      .concat(textDragfillByUnit[urow.id] || [])
       .concat(wordwallByUnit[urow.id] || []);
     subj.units.push(unit);
   }

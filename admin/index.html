@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260719zk">
-<link rel="stylesheet" href="css/admin.css?v=20260719zk">
+<link rel="stylesheet" href="../css/style.css?v=20260719zl">
+<link rel="stylesheet" href="css/admin.css?v=20260719zl">
 </head>
 <body>
 
@@ -254,6 +254,7 @@
               <button class="admin-subtab" type="button" data-composesubtab="grammarTyping">Viết câu trả lời</button>
               <button class="admin-subtab" type="button" data-composesubtab="grammarMatching">Nối câu</button>
               <button class="admin-subtab" type="button" data-composesubtab="grammarDragfill">Điền từ vào chỗ trống</button>
+              <button class="admin-subtab" type="button" data-composesubtab="textDragfill">Điền đoạn văn/hội thoại</button>
               <button class="admin-subtab" type="button" data-composesubtab="photoQuiz">Đọc/Nghe theo ảnh</button>
               <button class="admin-subtab" type="button" data-composesubtab="mathDragfill">Toán - Điền số</button>
             </nav>
@@ -525,6 +526,51 @@ Những cây đèn để bàn ở đâu?
               </form>
 
               <div id="grammarDragfillTableWrap"></div>
+            </div>
+
+            <div id="textDragfillComposeSubPanel" style="display:none">
+              <p class="admin-hint">Đoạn văn hoặc đoạn hội thoại tiếng Anh, nhiều chỗ trống dùng chung 1 nhóm đáp án. Viết đoạn văn/hội thoại bình thường với từ thật ở đúng chỗ trống (không cần đánh dấu, không cần đánh số (1)(2)...) — hệ thống sẽ tự tìm các từ ở dòng "Đáp án đúng" trong bài và biến thành chỗ trống. Lưu ý: nếu từ đó còn xuất hiện lặp lại ở chỗ khác trong bài (không phải chỗ trống), hệ thống sẽ báo lỗi vì không biết chắc chỗ nào — khi đó sửa lại câu cho từ đó chỉ xuất hiện đúng ở chỗ trống thôi. Xuống dòng trong bài (VD mỗi câu thoại 1 dòng) sẽ được giữ nguyên khi hiển thị cho học sinh.</p>
+
+              <div class="admin-form" id="textDragfillSetManageBox">
+                <h3>Quản lý bài</h3>
+                <div id="textDragfillSetListWrap"></div>
+                <div class="admin-form-row">
+                  <div class="admin-field">
+                    <label>Tên bài mới</label>
+                    <input type="text" id="newTextDragfillSetName" placeholder="VD: Hội thoại Unit 1">
+                  </div>
+                  <div class="admin-field admin-field-btn">
+                    <button type="button" class="admin-btn-primary" id="addTextDragfillSetBtn">+ Thêm bài</button>
+                  </div>
+                </div>
+                <div class="admin-status" id="textDragfillSetStatus"></div>
+              </div>
+
+              <label class="admin-label" for="textDragfillSetSelect">Đang soạn bài cho</label>
+              <select class="admin-select" id="textDragfillSetSelect"></select>
+
+              <form class="admin-form" id="bulkAddTextDragfillForm">
+                <h3>Nhập hàng loạt</h3>
+                <p class="admin-hint">
+                  Mỗi bài cách nhau 1 dòng trống: các dòng đầu là đoạn văn/hội thoại (mỗi câu thoại 1 dòng nếu muốn),
+                  dòng <code>Đáp án đúng: ...</code> liệt kê các từ đúng theo đúng thứ tự xuất hiện trong bài (cách nhau bằng dấu chấm phẩy hoặc dấu phẩy),
+                  dòng <code>Đáp án sai: ...</code> liệt kê thêm từ sai để đánh lừa. Bài sẽ được thêm vào bài đang chọn ở trên.
+                </p>
+                <textarea class="admin-textarea" id="bulkTextDragfillTextarea" rows="12" placeholder="Lan: Hello.
+James: Hi.
+Lan: Who is your name?
+James: My name James.
+Lan: I am Lan.
+James: Where are you from, Lan?
+Lan: I'm from Vietnam.
+James: I love Vietnam.
+Đáp án đúng: Who; name; am; Where; from
+Đáp án sai: What; is; are; When; in"></textarea>
+                <button type="submit" class="admin-btn-primary admin-btn-bulk">Thêm tất cả</button>
+                <div class="admin-status" id="bulkTextDragfillStatus"></div>
+              </form>
+
+              <div id="textDragfillTableWrap"></div>
             </div>
 
             <div id="photoQuizComposeSubPanel" style="display:none">
@@ -821,24 +867,25 @@ What is Alex's family name?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260719zk"></script>
-<script src="../js/supabase-config.js?v=20260719zk"></script>
-<script src="js/admin-auth.js?v=20260719zk"></script>
-<script src="../js/curriculum-data.js?v=20260719zk"></script>
-<script src="js/content-admin.js?v=20260719zk"></script>
-<script src="js/sentences-admin.js?v=20260719zk"></script>
-<script src="js/grammar-admin.js?v=20260719zk"></script>
-<script src="js/math-admin.js?v=20260719zk"></script>
-<script src="js/photo-quiz-admin.js?v=20260719zk"></script>
-<script src="js/speaking-admin.js?v=20260719zk"></script>
-<script src="js/wordwall-admin.js?v=20260719zk"></script>
-<script src="js/wordwall-templates-admin.js?v=20260719zk"></script>
-<script src="js/groups-admin.js?v=20260719zk"></script>
-<script src="js/students-admin.js?v=20260719zk"></script>
-<script src="js/assignments-admin.js?v=20260719zk"></script>
-<script src="js/results-admin.js?v=20260719zk"></script>
-<script src="js/activity-toggles-admin.js?v=20260719zk"></script>
-<script src="js/curriculum-admin.js?v=20260719zk"></script>
-<script src="js/admin-app.js?v=20260719zk"></script>
+<script src="../js/data.js?v=20260719zl"></script>
+<script src="../js/supabase-config.js?v=20260719zl"></script>
+<script src="js/admin-auth.js?v=20260719zl"></script>
+<script src="../js/curriculum-data.js?v=20260719zl"></script>
+<script src="js/content-admin.js?v=20260719zl"></script>
+<script src="js/sentences-admin.js?v=20260719zl"></script>
+<script src="js/grammar-admin.js?v=20260719zl"></script>
+<script src="js/math-admin.js?v=20260719zl"></script>
+<script src="js/text-dragfill-admin.js?v=20260719zl"></script>
+<script src="js/photo-quiz-admin.js?v=20260719zl"></script>
+<script src="js/speaking-admin.js?v=20260719zl"></script>
+<script src="js/wordwall-admin.js?v=20260719zl"></script>
+<script src="js/wordwall-templates-admin.js?v=20260719zl"></script>
+<script src="js/groups-admin.js?v=20260719zl"></script>
+<script src="js/students-admin.js?v=20260719zl"></script>
+<script src="js/assignments-admin.js?v=20260719zl"></script>
+<script src="js/results-admin.js?v=20260719zl"></script>
+<script src="js/activity-toggles-admin.js?v=20260719zl"></script>
+<script src="js/curriculum-admin.js?v=20260719zl"></script>
+<script src="js/admin-app.js?v=20260719zl"></script>
 </body>
 </html>

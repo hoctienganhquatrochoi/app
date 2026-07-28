@@ -799,6 +799,7 @@ function switchComposeSubTab(target) {
   document.getElementById("grammarDragfillComposeSubPanel").style.display = target === "grammarDragfill" ? "" : "none";
   document.getElementById("photoQuizComposeSubPanel").style.display = target === "photoQuiz" ? "" : "none";
   document.getElementById("mathDragfillComposeSubPanel").style.display = target === "mathDragfill" ? "" : "none";
+  document.getElementById("textDragfillComposeSubPanel").style.display = target === "textDragfill" ? "" : "none";
 
   if (target === "sentence") {
     loadSentenceTable();
@@ -817,6 +818,8 @@ function switchComposeSubTab(target) {
     });
   } else if (target === "mathDragfill") {
     loadMathDragfillSetList().then(loadMathDragfillTable);
+  } else if (target === "textDragfill") {
+    loadTextDragfillSetList().then(loadTextDragfillTable);
   }
 }
 
@@ -881,6 +884,7 @@ async function getUnitContentCounts(unitId) {
   var grammarDragfillResult = await supabaseClient.from("game_grammar_dragfill").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var photoQuizResult = await supabaseClient.from("game_photo_quiz_questions").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   var mathDragfillResult = await supabaseClient.from("game_math_dragfill").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
+  var textDragfillResult = await supabaseClient.from("game_text_dragfill").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
   return {
     vocab: vocabResult.count || 0,
     sentence: sentenceResult.count || 0,
@@ -890,7 +894,8 @@ async function getUnitContentCounts(unitId) {
     grammarMatching: grammarMatchingResult.count || 0,
     grammarDragfill: grammarDragfillResult.count || 0,
     photoQuiz: photoQuizResult.count || 0,
-    mathDragfill: mathDragfillResult.count || 0
+    mathDragfill: mathDragfillResult.count || 0,
+    textDragfill: textDragfillResult.count || 0
   };
 }
 
@@ -922,6 +927,9 @@ function describeUnitContentCounts(counts) {
   }
   if (counts.mathDragfill > 0) {
     warnParts.push(counts.mathDragfill + " bài toán điền số");
+  }
+  if (counts.textDragfill > 0) {
+    warnParts.push(counts.textDragfill + " bài đoạn văn/hội thoại điền từ");
   }
   return warnParts;
 }
@@ -965,6 +973,9 @@ async function deleteUnitAndContent(unitId, counts) {
   }
   if (counts.mathDragfill > 0) {
     await supabaseClient.from("game_math_dragfill").delete().eq("unit_id", unitId);
+  }
+  if (counts.textDragfill > 0) {
+    await supabaseClient.from("game_text_dragfill").delete().eq("unit_id", unitId);
   }
   await supabaseClient.from("game_photo_quiz_sets").delete().eq("unit_id", unitId);
   await supabaseClient.from("game_unit_settings").delete().eq("unit_id", unitId);

@@ -14,7 +14,8 @@ var TODAY_HISTORY_ACTIVITY_LABELS = {
   "grammar-matching": "Nối câu",
   "grammar-dragfill": "Điền từ vào chỗ trống",
   "photo-quiz": "Đọc/Nghe theo ảnh",
-  "math-dragfill": "Toán - Điền số"
+  "math-dragfill": "Toán - Điền số",
+  "text-dragfill": "Điền đoạn văn/hội thoại"
 };
 
 async function fetchUnitNamesByIds(unitIds) {
