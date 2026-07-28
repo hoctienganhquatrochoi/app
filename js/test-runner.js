@@ -66,11 +66,20 @@ async function renderTestActivity(container, breadcrumbText, unit) {
       return;
     }
 
+    container.innerHTML = "";
+
+    var labelBanner = document.createElement("div");
+    labelBanner.className = "test-section-label-banner";
+    labelBanner.textContent = (section.label || config.label);
+    container.appendChild(labelBanner);
+
+    var sectionContainer = document.createElement("div");
+    container.appendChild(sectionContainer);
+
     var loading = document.createElement("div");
     loading.className = "placeholder";
     loading.textContent = "Đang tải nội dung...";
-    container.innerHTML = "";
-    container.appendChild(loading);
+    sectionContainer.appendChild(loading);
 
     var items = await config.load(section.source_unit_id, section.source_set_name);
     if (!items || !items.length) {
@@ -79,7 +88,7 @@ async function renderTestActivity(container, breadcrumbText, unit) {
     }
 
     var sectionBreadcrumb = breadcrumbText + " › " + (section.label || config.label);
-    config.render(container, sectionBreadcrumb, items, section.source_unit_id, section.source_set_name, function (score, total) {
+    config.render(sectionContainer, sectionBreadcrumb, items, section.source_unit_id, section.source_set_name, function (score, total) {
       finishSectionAndAdvance(section, index, score, total);
     });
   }

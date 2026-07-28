@@ -52,7 +52,7 @@ function renderTestSectionsTable() {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  ["#", "Nhãn", "Dạng bài", "Bài", ""].forEach(function (h) {
+  ["#", "Nhãn", "Dạng bài", ""].forEach(function (h) {
     var th = document.createElement("th");
     th.textContent = h;
     headRow.appendChild(th);
@@ -66,7 +66,6 @@ function renderTestSectionsTable() {
     tr.appendChild(makeTd("" + (idx + 1)));
     tr.appendChild(makeTd(row.label || "(không đặt tên)"));
     tr.appendChild(makeTd(TEST_SECTION_LABELS[row.section_type] || row.section_type));
-    tr.appendChild(makeTd(row.source_set_name));
 
     var actionsTd = document.createElement("td");
 

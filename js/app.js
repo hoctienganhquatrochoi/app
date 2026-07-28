@@ -283,9 +283,11 @@ function buildUnitItem(unit) {
   wrap.className = "unit-item";
 
   var isOpen = state.openUnitId === unit.id;
+  var isTest = unit.content_type === "test";
+  var isTestSelected = isTest && state.selectedActivity && state.selectedActivity.unit.id === unit.id;
 
   var header = document.createElement("div");
-  header.className = "unit-header" + (isOpen ? " open" : "");
+  header.className = "unit-header" + (isOpen || isTestSelected ? " open" : "");
 
   var name = document.createElement("span");
   name.className = "unit-name";
@@ -305,6 +307,18 @@ function buildUnitItem(unit) {
   header.appendChild(progress);
 
   header.addEventListener("click", function () {
+    if (isTest) {
+      if (!unitHasAccess(unit)) {
+        showAccessNeededMessage();
+        return;
+      }
+      state.selectedActivity = { unit: unit, activity: unit.activities[0] };
+      document.getElementById("sidebar").classList.remove("mobile-open");
+      renderSidebar();
+      renderMainContent();
+      updateUrlHash();
+      return;
+    }
     var willOpen = !isOpen;
     state.openUnitId = willOpen ? unit.id : null;
     if (willOpen && unitDisabledActivities[unit.id] === undefined) {
@@ -316,7 +330,7 @@ function buildUnitItem(unit) {
 
   wrap.appendChild(header);
 
-  if (isOpen) {
+  if (isOpen && !isTest) {
     var list = document.createElement("div");
     list.className = "activity-list";
     var disabledIds = unitDisabledActivities[unit.id] || [];
