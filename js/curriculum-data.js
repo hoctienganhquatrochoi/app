@@ -1,11 +1,11 @@
 var VOCAB_ACTIVITY_TEMPLATE = [
   { id: "a1", name: "Thẻ đọc", type: "flashcard", locked: false },
   { id: "a14", name: "Thẻ lật", type: "flip-card", locked: false },
+  { id: "a2e", name: "Dịch Anh - Việt", type: "quiz", format: "word-to-meaning", locked: false },
+  { id: "a2f", name: "Dịch Việt - Anh", type: "quiz", format: "text-to-word", locked: false },
   { id: "a2a", name: "Nghe từ, chọn hình", type: "quiz", format: "word-to-image", locked: false },
   { id: "a2b", name: "Nhìn hình, chọn từ", type: "quiz", format: "image-to-word", locked: false },
   { id: "a2d", name: "Chỉ nhìn hình, đoán từ", type: "quiz", format: "image-only-to-word", locked: false },
-  { id: "a2e", name: "Dịch Anh - Việt", type: "quiz", format: "word-to-meaning", locked: false },
-  { id: "a2f", name: "Dịch Việt - Anh", type: "quiz", format: "text-to-word", locked: false },
   { id: "a3", name: "Đánh máy có gợi ý", type: "typing", mode: "hint", locked: false },
   { id: "a4", name: "Đánh máy không gợi ý", type: "typing", mode: "blank", locked: false },
   { id: "a16", name: "Nghe - Đánh máy (key)", type: "free-typing", mode: "hint", locked: false },
@@ -134,14 +134,14 @@ async function loadCurriculumData() {
     } else {
       unit.activities = VOCAB_ACTIVITY_TEMPLATE
         .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
-        .concat(grammarMcqByUnit[urow.id] || [])
-        .concat(grammarTypingByUnit[urow.id] || [])
-        .concat(grammarMatchingByUnit[urow.id] || [])
-        .concat(grammarDragfillByUnit[urow.id] || [])
         .concat(photoQuizByUnit[urow.id] || [])
         .concat(mathDragfillByUnit[urow.id] || [])
         .concat(textDragfillByUnit[urow.id] || [])
-        .concat(wordwallByUnit[urow.id] || []);
+        .concat(wordwallByUnit[urow.id] || [])
+        .concat(grammarMcqByUnit[urow.id] || [])
+        .concat(grammarTypingByUnit[urow.id] || [])
+        .concat(grammarMatchingByUnit[urow.id] || [])
+        .concat(grammarDragfillByUnit[urow.id] || []);
     }
     subj.units.push(unit);
   }

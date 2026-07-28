@@ -1701,7 +1701,8 @@ html, body {
     font-size: 22px;
   }
   .quiz-option {
-    font-size: 20px;
+    font-size: 26px;
+    padding: 12px;
   }
 }
 
