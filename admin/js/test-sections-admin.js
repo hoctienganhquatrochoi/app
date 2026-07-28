@@ -1,4 +1,4 @@
-/* ---------- Đề kiểm tra: quản lý danh sách mục (section) trỏ tới bài đã soạn ở Unit khác ---------- */
+/* ---------- Đề kiểm tra: soạn nội dung trực tiếp trong chính Unit này, chỉ chọn thứ tự hiển thị ---------- */
 
 var TEST_SECTION_TABLES = {
   "grammar-mcq": "game_grammar_mcq",
@@ -33,14 +33,6 @@ async function loadTestSections() {
 
   currentTestSections = result.data;
   renderTestSectionsTable();
-  populateTestSectionUnitSelect();
-  populateTestSectionSetSelect();
-}
-
-function testSectionSourceLabel(row) {
-  buildAllUnitsFlat();
-  var unitEntry = ALL_UNITS_FLAT.filter(function (u) { return u.id === row.source_unit_id; })[0];
-  return (unitEntry ? unitEntry.label : row.source_unit_id) + " — " + row.source_set_name;
 }
 
 function renderTestSectionsTable() {
@@ -60,7 +52,7 @@ function renderTestSectionsTable() {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  ["#", "Nhãn", "Dạng bài", "Nguồn", ""].forEach(function (h) {
+  ["#", "Nhãn", "Dạng bài", "Bài", ""].forEach(function (h) {
     var th = document.createElement("th");
     th.textContent = h;
     headRow.appendChild(th);
@@ -74,7 +66,7 @@ function renderTestSectionsTable() {
     tr.appendChild(makeTd("" + (idx + 1)));
     tr.appendChild(makeTd(row.label || "(không đặt tên)"));
     tr.appendChild(makeTd(TEST_SECTION_LABELS[row.section_type] || row.section_type));
-    tr.appendChild(makeTd(testSectionSourceLabel(row)));
+    tr.appendChild(makeTd(row.source_set_name));
 
     var actionsTd = document.createElement("td");
 
@@ -97,7 +89,7 @@ function renderTestSectionsTable() {
     var delBtn = document.createElement("button");
     delBtn.className = "admin-btn-danger";
     delBtn.type = "button";
-    delBtn.textContent = "Xóa";
+    delBtn.textContent = "Xóa khỏi đề";
     delBtn.addEventListener("click", function () { deleteTestSection(row.id); });
     actionsTd.appendChild(delBtn);
 
@@ -122,7 +114,7 @@ async function moveTestSection(idx, delta) {
 }
 
 async function deleteTestSection(id) {
-  if (!window.confirm("Xóa mục này khỏi đề?")) {
+  if (!window.confirm("Xóa mục này khỏi thứ tự đề? (Nội dung bài vẫn còn ở tab tương ứng, không bị xóa)")) {
     return;
   }
   var result = await supabaseClient.from("game_test_sections").delete().eq("id", id);
@@ -134,60 +126,62 @@ async function deleteTestSection(id) {
   loadCurriculumData().then(loadActivityToggles);
 }
 
-function populateTestSectionUnitSelect() {
-  populateSearchableUnitSelect("testSectionUnitSearch", "testSectionUnitSelect");
-}
+var TEST_SECTION_CONTENT_HELP = {
+  "grammar-mcq": {
+    hint: "Mỗi câu 3 dòng, cách nhau 1 dòng trống: câu hỏi (gạch chân 1 đoạn thì đặt dấu _ ở 2 đầu, VD gr_ea_t), dòng \"Đáp án đúng: ...\", dòng \"Đáp án sai: ...\" (cách nhau dấu phẩy).",
+    placeholder: "Tom and Lucy are my _________.\nĐáp án đúng: friends\nĐáp án sai: friend, classmate, brother"
+  },
+  "grammar-typing": {
+    hint: "Mỗi dòng 1 câu, cách nhau dấu |: Câu hỏi | Đáp án.",
+    placeholder: "I am a student. | I am not a student.\nTôi có hai anh em trai. | I have two brothers."
+  },
+  "grammar-matching": {
+    hint: "Mỗi dòng 1 cặp, cách nhau dấu |: Vế trái | Vế phải.",
+    placeholder: "This is | my friend Lan.\nHow | old are you?"
+  },
+  "grammar-dragfill": {
+    hint: "Mỗi câu cách nhau 1 dòng trống: câu có 1 chỗ trống đánh dấu bằng _____, dòng \"Đáp án đúng: ...\", dòng \"Đáp án sai: ...\".",
+    placeholder: "Where are the _____?\nĐáp án đúng: lamps\nĐáp án sai: a lamp, lamp"
+  },
+  "math-dragfill": {
+    hint: "Đề bài viết bình thường, số nào là chỗ trống thì bọc trong ⟦ ⟧ (VD ⟦105⟧). Dòng \"Đáp án sai\" không bắt buộc.",
+    placeholder: "Một cửa hàng bán được 15kg gạo nếp, số gạo tẻ bán được gấp 7 lần số gạo nếp. Vậy số gạo tẻ bán được là: ⟦105⟧ kg.\nĐáp án sai: 95, 110"
+  },
+  "text-dragfill": {
+    hint: "Đoạn văn/hội thoại, giữ nguyên xuống dòng theo từng câu — từ nào là chỗ trống thì bọc trong ⟦ ⟧ (VD ⟦Who⟧). Dòng \"Đáp án sai\" không bắt buộc.",
+    placeholder: "Lan: Hello.\nJames: Hi.\nLan: ⟦Who⟧ is your name?\nJames: My ⟦name⟧ is James."
+  }
+};
 
-async function populateTestSectionSetSelect() {
+function updateTestSectionContentHint() {
   var sectionType = document.getElementById("newTestSectionType").value;
-  var sourceUnitId = document.getElementById("testSectionUnitSelect").value;
-  var select = document.getElementById("testSectionSetSelect");
-  select.innerHTML = "";
-
-  var table = TEST_SECTION_TABLES[sectionType];
-  if (!table || !sourceUnitId) {
+  var help = TEST_SECTION_CONTENT_HELP[sectionType];
+  if (!help) {
     return;
   }
-
-  var result = await supabaseClient.from(table).select("set_name").eq("unit_id", sourceUnitId);
-  if (result.error) {
-    return;
-  }
-
-  var seen = {};
-  var names = [];
-  result.data.forEach(function (row) {
-    if (!seen[row.set_name]) {
-      seen[row.set_name] = true;
-      names.push(row.set_name);
-    }
-  });
-
-  if (!names.length) {
-    var opt = document.createElement("option");
-    opt.value = "";
-    opt.text = "Unit này chưa có bài dạng này";
-    select.appendChild(opt);
-    return;
-  }
-
-  names.forEach(function (name) {
-    var opt = document.createElement("option");
-    opt.value = name;
-    opt.text = name;
-    select.appendChild(opt);
-  });
+  document.getElementById("newTestSectionHint").textContent = help.hint;
+  document.getElementById("newTestSectionContent").placeholder = help.placeholder;
 }
 
 async function handleAddTestSection() {
   var unitId = document.getElementById("unitSelect").value;
   var sectionType = document.getElementById("newTestSectionType").value;
-  var sourceUnitId = document.getElementById("testSectionUnitSelect").value;
-  var sourceSetName = document.getElementById("testSectionSetSelect").value;
   var label = document.getElementById("newTestSectionLabel").value.trim();
+  var content = document.getElementById("newTestSectionContent").value;
 
-  if (!sourceUnitId || !sourceSetName) {
-    window.alert("Chưa chọn được Unit/bài nguồn — Unit đó có thể chưa có bài dạng này.");
+  if (!label) {
+    window.alert("Đặt nhãn cho mục này (VD Exercise 1) trước đã.");
+    return;
+  }
+  if (!content.trim()) {
+    window.alert("Chưa dán nội dung nào.");
+    return;
+  }
+
+  document.getElementById("testSectionStatus").textContent = "Đang xử lý...";
+  var insertRes = await insertParsedSectionContent(sectionType, unitId, label, content);
+  if (insertRes.error) {
+    window.alert("Lỗi: " + insertRes.error);
     return;
   }
 
@@ -196,18 +190,178 @@ async function handleAddTestSection() {
     unit_id: unitId,
     sort_order: nextSortOrder,
     section_type: sectionType,
-    source_unit_id: sourceUnitId,
-    source_set_name: sourceSetName,
-    label: label || null
+    source_unit_id: unitId,
+    source_set_name: label,
+    label: label
   });
 
   if (result.error) {
-    window.alert("Lỗi lưu: " + result.error.message);
+    window.alert("Lỗi lưu thứ tự: " + result.error.message);
     return;
   }
 
   document.getElementById("newTestSectionLabel").value = "";
-  document.getElementById("testSectionStatus").textContent = "Đã thêm mục vào đề.";
+  document.getElementById("newTestSectionContent").value = "";
+  document.getElementById("testSectionStatus").textContent = "Đã thêm " + insertRes.count + " câu vào mục \"" + label + "\".";
+  loadTestSections();
+  loadCurriculumData().then(loadActivityToggles);
+}
+
+/* ---------- Dán nhanh cả đề: tách theo "Dán vào tab: ..." rồi tạo nội dung + thứ tự trong 1 lần ---------- */
+
+function normalizeTabLabelForMatch(s) {
+  return (s || "").toLowerCase().trim().replace(/\s+/g, " ");
+}
+
+var TAB_LABEL_TO_TYPE = (function () {
+  var map = {};
+  Object.keys(TEST_SECTION_LABELS).forEach(function (key) {
+    map[normalizeTabLabelForMatch(TEST_SECTION_LABELS[key])] = key;
+  });
+  return map;
+})();
+
+function parseMegaTestImport(text) {
+  var lines = text.split("\n");
+  var markerRe = /^\s*dán\s*vào\s*tab\s*:\s*(.+?)\s*$/i;
+  var markers = [];
+  lines.forEach(function (line, idx) {
+    var m = line.match(markerRe);
+    if (m) {
+      markers.push({ idx: idx, typeLabelRaw: m[1].trim() });
+    }
+  });
+
+  function findHeadingIdx(fromIdx) {
+    var i = fromIdx;
+    while (i >= 0 && lines[i].trim() === "") {
+      i--;
+    }
+    return i;
+  }
+
+  var sections = [];
+  markers.forEach(function (marker, i) {
+    var headingIdx = findHeadingIdx(marker.idx - 1);
+    var label = headingIdx >= 0 ? lines[headingIdx].trim() : ("Mục " + (i + 1));
+
+    var contentStart = marker.idx + 1;
+    while (contentStart < lines.length && lines[contentStart].trim() === "") {
+      contentStart++;
+    }
+
+    var contentEnd = lines.length;
+    if (i + 1 < markers.length) {
+      var nextHeadingIdx = findHeadingIdx(markers[i + 1].idx - 1);
+      contentEnd = nextHeadingIdx > marker.idx ? nextHeadingIdx : markers[i + 1].idx;
+    }
+
+    var content = lines.slice(contentStart, contentEnd).join("\n").trim();
+    var typeKey = TAB_LABEL_TO_TYPE[normalizeTabLabelForMatch(marker.typeLabelRaw)];
+
+    sections.push({ label: label, typeLabelRaw: marker.typeLabelRaw, typeKey: typeKey, content: content });
+  });
+
+  return sections;
+}
+
+async function insertParsedSectionContent(typeKey, unitId, setName, content) {
+  var table = TEST_SECTION_TABLES[typeKey];
+  var existingCountResult = await supabaseClient.from(table).select("id", { count: "exact", head: true }).eq("unit_id", unitId).eq("set_name", setName);
+  var nextSortOrder = existingCountResult.count || 0;
+
+  var rows = [];
+  if (typeKey === "grammar-mcq") {
+    var mcqItems = parseGrammarMcqBulkText(content).filter(function (it) { return it.correct_answer && it.wrong_answers.length; });
+    rows = mcqItems.map(function (it, idx) {
+      return { unit_id: unitId, set_name: setName, sort_order: nextSortOrder + idx, question: it.question, correct_answer: it.correct_answer, wrong_answers: it.wrong_answers };
+    });
+  } else if (typeKey === "grammar-typing") {
+    var typingLines = content.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+    var typingItems = typingLines.map(parseGrammarTypingBulkLine).filter(function (it) { return it.prompt && it.answer; });
+    rows = typingItems.map(function (it, idx) {
+      return { unit_id: unitId, set_name: setName, sort_order: nextSortOrder + idx, prompt: it.prompt, answer: it.answer };
+    });
+  } else if (typeKey === "grammar-matching") {
+    var matchLines = content.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+    var matchItems = matchLines.map(parseGrammarMatchingBulkLine).filter(function (it) { return it.left_text && it.right_text; });
+    rows = matchItems.map(function (it, idx) {
+      return { unit_id: unitId, set_name: setName, sort_order: nextSortOrder + idx, left_text: it.left_text, right_text: it.right_text };
+    });
+  } else if (typeKey === "grammar-dragfill") {
+    var dragfillItems = parseGrammarDragfillBulkText(content).filter(function (it) { return it.question_en && it.correct_answer && it.wrong_answers.length; });
+    rows = dragfillItems.map(function (it, idx) {
+      return { unit_id: unitId, set_name: setName, sort_order: nextSortOrder + idx, question_en: it.question_en, question_vi: it.question_vi, correct_answer: it.correct_answer, wrong_answers: it.wrong_answers };
+    });
+  } else if (typeKey === "math-dragfill" || typeKey === "text-dragfill") {
+    var joinWithNewline = typeKey === "text-dragfill";
+    var dfItems = parseMathDragfillBulkText(content, joinWithNewline).filter(function (it) { return it.passage && it.correct_answers.length; });
+    rows = dfItems.map(function (it, idx) {
+      return { unit_id: unitId, set_name: setName, sort_order: nextSortOrder + idx, passage: it.passage, correct_answers: it.correct_answers, wrong_answers: it.wrong_answers };
+    });
+  }
+
+  if (!rows.length) {
+    return { count: 0, error: "không đọc được nội dung hợp lệ" };
+  }
+
+  var insertResult = await supabaseClient.from(table).insert(rows);
+  if (insertResult.error) {
+    return { count: 0, error: insertResult.error.message };
+  }
+  return { count: rows.length, error: null };
+}
+
+async function handleMegaImport() {
+  var unitId = document.getElementById("unitSelect").value;
+  var text = document.getElementById("megaImportTextarea").value;
+  var sections = parseMegaTestImport(text);
+
+  if (!sections.length) {
+    window.alert("Không tìm thấy dòng \"Dán vào tab: ...\" nào trong nội dung dán vào.");
+    return;
+  }
+
+  var nextSortOrder = currentTestSections.length;
+  var successCount = 0;
+  var messages = [];
+
+  for (var i = 0; i < sections.length; i++) {
+    var sec = sections[i];
+    if (!sec.typeKey) {
+      messages.push("Mục \"" + sec.label + "\": không nhận ra tên tab \"" + sec.typeLabelRaw + "\".");
+      continue;
+    }
+    document.getElementById("megaImportStatus").textContent = "Đang xử lý mục " + (i + 1) + "/" + sections.length + "...";
+
+    var insertRes = await insertParsedSectionContent(sec.typeKey, unitId, sec.label, sec.content);
+    if (insertRes.error) {
+      messages.push("Mục \"" + sec.label + "\": " + insertRes.error + ".");
+      continue;
+    }
+
+    var sectionInsert = await supabaseClient.from("game_test_sections").insert({
+      unit_id: unitId,
+      sort_order: nextSortOrder + successCount,
+      section_type: sec.typeKey,
+      source_unit_id: unitId,
+      source_set_name: sec.label,
+      label: sec.label
+    });
+    if (sectionInsert.error) {
+      messages.push("Mục \"" + sec.label + "\": lưu thứ tự lỗi - " + sectionInsert.error.message + ".");
+      continue;
+    }
+    successCount++;
+  }
+
+  var summary = "Xong! Đã tạo " + successCount + "/" + sections.length + " mục.";
+  if (messages.length) {
+    summary += " " + messages.join(" ");
+  }
+  document.getElementById("megaImportStatus").textContent = summary;
+  document.getElementById("megaImportTextarea").value = "";
+
   loadTestSections();
   loadCurriculumData().then(loadActivityToggles);
 }

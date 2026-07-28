@@ -104,9 +104,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("addTextDragfillSetBtn").addEventListener("click", handleAddTextDragfillSet);
   document.getElementById("textDragfillSetSelect").addEventListener("change", loadTextDragfillTable);
   document.getElementById("addTestSectionBtn").addEventListener("click", handleAddTestSection);
-  document.getElementById("newTestSectionType").addEventListener("change", populateTestSectionSetSelect);
-  document.getElementById("testSectionUnitSearch").addEventListener("input", populateTestSectionUnitSelect);
-  document.getElementById("testSectionUnitSelect").addEventListener("change", populateTestSectionSetSelect);
+  document.getElementById("newTestSectionType").addEventListener("change", updateTestSectionContentHint);
+  document.getElementById("megaImportBtn").addEventListener("click", handleMegaImport);
   document.getElementById("bulkAddPhotoQuizForm").addEventListener("submit", handleBulkAddPhotoQuiz);
   document.getElementById("addPhotoQuizSetBtn").addEventListener("click", handleAddPhotoQuizSet);
   document.getElementById("photoQuizSetSelect").addEventListener("change", function () {

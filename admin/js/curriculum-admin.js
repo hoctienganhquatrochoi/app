@@ -790,6 +790,7 @@ function selectUnitForComposing(unitId) {
 
   if (isTest) {
     hideAllComposeSubPanels();
+    updateTestSectionContentHint();
     loadTestSections();
   } else {
     switchComposeSubTab("vocab");
