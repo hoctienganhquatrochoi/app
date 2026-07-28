@@ -1,18 +1,29 @@
 var MATH_DRAGFILL_CORRECT_DELAY_MS = 1200;
 
+function findWholeWordInPassage(passage, word, fromIndex) {
+  var escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  var re = new RegExp("\\b" + escaped + "\\b", "i");
+  var remaining = passage.slice(fromIndex);
+  var match = remaining.match(re);
+  if (!match) {
+    return null;
+  }
+  return { index: fromIndex + match.index, length: match[0].length };
+}
+
 function splitMathPassageAroundBlanks(passage, correctAnswers) {
   var tokens = [];
   var searchFrom = 0;
   correctAnswers.forEach(function (answer, index) {
-    var foundAt = passage.indexOf(answer, searchFrom);
-    if (foundAt === -1) {
+    var found = findWholeWordInPassage(passage, answer, searchFrom);
+    if (!found) {
       return;
     }
-    if (foundAt > searchFrom) {
-      tokens.push({ type: "text", value: passage.slice(searchFrom, foundAt) });
+    if (found.index > searchFrom) {
+      tokens.push({ type: "text", value: passage.slice(searchFrom, found.index) });
     }
     tokens.push({ type: "blank", index: index });
-    searchFrom = foundAt + answer.length;
+    searchFrom = found.index + found.length;
   });
   if (searchFrom < passage.length) {
     tokens.push({ type: "text", value: passage.slice(searchFrom) });
