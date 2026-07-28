@@ -64,12 +64,14 @@ function makeTd(text) {
 function makeAudioTd(url) {
   var td = document.createElement("td");
   if (url) {
-    var audio = document.createElement("audio");
-    audio.controls = true;
-    audio.preload = "metadata";
-    audio.src = url;
-    audio.style.width = "150px";
-    td.appendChild(audio);
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "admin-audio-play-btn";
+    btn.textContent = "▶ Nghe";
+    btn.addEventListener("click", function () {
+      new Audio(url).play();
+    });
+    td.appendChild(btn);
   } else {
     td.textContent = "—";
   }

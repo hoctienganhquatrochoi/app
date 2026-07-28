@@ -293,6 +293,21 @@
   margin-left: 6px;
 }
 
+.admin-audio-play-btn {
+  background: #E7F0EA;
+  color: #1B4332;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-audio-play-btn:hover {
+  background: #D3E4D9;
+}
+
 .admin-btn-secondary {
   background: #F1F5F2;
   color: #1B4332;
