@@ -209,17 +209,17 @@ function renderGop(num, body, autoSpeak) {
   ));
 
   var shelvesWrap = document.createElement("div");
-  shelvesWrap.className = "tachgop-boxes";
+  shelvesWrap.className = "tachgop-boxes gop-boxes";
 
   var shelf1 = document.createElement("div");
-  shelf1.className = "drop-pool tachgop-box-items tachgop-rect-box";
+  shelf1.className = "drop-pool tachgop-box-items gop-shelf-items tachgop-rect-box";
   var shelf1Box = document.createElement("div");
   shelf1Box.className = "tachgop-box";
   shelf1Box.innerHTML = '<div class="section-label">Ô 1</div>';
   shelf1Box.appendChild(shelf1);
 
   var shelf2 = document.createElement("div");
-  shelf2.className = "drop-pool tachgop-box-items tachgop-rect-box";
+  shelf2.className = "drop-pool tachgop-box-items gop-shelf-items tachgop-rect-box";
   var shelf2Box = document.createElement("div");
   shelf2Box.className = "tachgop-box";
   shelf2Box.innerHTML = '<div class="section-label">Ô 2</div>';

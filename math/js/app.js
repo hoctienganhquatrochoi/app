@@ -50,7 +50,7 @@ function renderNumberPicker(mode) {
       var btn = document.createElement("button");
       btn.className = "number-pill";
       btn.type = "button";
-      btn.textContent = num;
+      btn.textContent = MODES[mode].pillLabel ? MODES[mode].pillLabel(num) : num;
       btn.addEventListener("click", function () {
         var pills = picker.querySelectorAll(".number-pill");
         for (var i = 0; i < pills.length; i++) { pills[i].classList.remove("active"); }

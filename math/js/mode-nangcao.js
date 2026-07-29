@@ -2,6 +2,7 @@ MODES.nangcao = {
   label: "Nâng cao",
   icon: "✨",
   range: [5, 9],
+  pillLabel: function (n) { return "+" + n; },
   onSelect: function (anchor, contentEl) {
     contentEl.innerHTML = "";
 
@@ -86,16 +87,11 @@ function renderMakeTenAddition(anchor, body, autoSpeak) {
   var n = nextFromBag(nangcaoAddBags, anchor, function () { return makeTenAddends(anchor); });
   var sum = anchor + n;
 
-  var speakText = "Kéo hình từ nhóm 2 lên nhóm 1 cho đủ mười nhé";
+  var speakText = numberToWords(anchor) + " cộng " + numberToWords(n) + " bằng mấy?";
   body.appendChild(buildPromptRow(
-    "Kéo hình từ nhóm 2 lên nhóm 1 cho đủ <b>10</b>, xem còn lại bao nhiêu nhé!",
+    "<span class=\"nangcao-equation-top\">" + anchor + " + " + n + " = ?</span>",
     speakText
   ));
-
-  var equationTop = document.createElement("div");
-  equationTop.className = "nangcao-equation-top";
-  equationTop.textContent = anchor + " + " + n + " = ?";
-  body.appendChild(equationTop);
 
   var frameLabel = document.createElement("div");
   frameLabel.className = "section-label";
@@ -200,7 +196,7 @@ function renderMakeTenSubtraction(subtractor, body, autoSpeak) {
   var minuend = nextFromBag(nangcaoSubBags, subtractor, function () { return makeTenMinuends(subtractor); });
   var remainderCount = minuend - 10;
 
-  var speakText = "Kéo " + numberToWords(subtractor) + " hình từ ô chục xuống ô đã lấy ra nhé";
+  var speakText = numberToWords(minuend) + " trừ " + numberToWords(subtractor) + " bằng mấy? Kéo " + numberToWords(subtractor) + " hình từ ô chục xuống ô đã lấy ra nhé";
   body.appendChild(buildPromptRow(
     "Kéo <b>" + subtractor + "</b> hình từ ô Chục xuống \"Đã lấy ra\" nhé!",
     speakText
