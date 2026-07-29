@@ -193,19 +193,24 @@ async function uploadAndSetVocabImage(vocabId, unitId, file) {
 }
 
 async function loadSiteBannerSettings() {
-  var result = await supabaseClient.from("game_admin_settings").select("banner_image_url, banner_link_url").eq("id", 1).maybeSingle();
+  var result = await supabaseClient.from("game_admin_settings")
+    .select("banner_image_url, banner_link_url, popup_title, popup_subtitle, popup_button_text")
+    .eq("id", 1).maybeSingle();
   var previewWrap = document.getElementById("siteBannerPreviewWrap");
   previewWrap.innerHTML = "";
-  var linkInput = document.getElementById("siteBannerLinkInput");
-  if (result.data && result.data.banner_image_url) {
+  var data = result.data || {};
+
+  if (data.banner_image_url) {
     var img = document.createElement("img");
-    img.src = result.data.banner_image_url;
+    img.src = data.banner_image_url;
     img.style.cssText = "max-width: 100%; max-height: 120px; display: block; margin-bottom: 8px; border-radius: 8px;";
     previewWrap.appendChild(img);
-    linkInput.value = result.data.banner_link_url || "";
-  } else {
-    linkInput.value = "";
   }
+
+  document.getElementById("siteBannerLinkInput").value = data.banner_link_url || "";
+  document.getElementById("popupTitleInput").value = data.popup_title || "";
+  document.getElementById("popupSubtitleInput").value = data.popup_subtitle || "";
+  document.getElementById("popupButtonTextInput").value = data.popup_button_text || "";
 }
 
 async function handleUploadSiteBanner() {
@@ -238,27 +243,37 @@ async function handleUploadSiteBanner() {
 }
 
 async function handleSaveSiteBannerLink() {
-  var link = document.getElementById("siteBannerLinkInput").value.trim();
   var statusEl = document.getElementById("siteBannerStatus");
-  var result = await supabaseClient.from("game_admin_settings").update({ banner_link_url: link || null }).eq("id", 1);
+  var result = await supabaseClient.from("game_admin_settings").update({
+    banner_link_url: document.getElementById("siteBannerLinkInput").value.trim() || null,
+    popup_title: document.getElementById("popupTitleInput").value.trim() || null,
+    popup_subtitle: document.getElementById("popupSubtitleInput").value.trim() || null,
+    popup_button_text: document.getElementById("popupButtonTextInput").value.trim() || null
+  }).eq("id", 1);
   if (result.error) {
-    statusEl.textContent = "Lỗi lưu link: " + result.error.message;
+    statusEl.textContent = "Lỗi lưu: " + result.error.message;
     return;
   }
-  statusEl.textContent = "Đã lưu link.";
+  statusEl.textContent = "Đã lưu nội dung popup.";
 }
 
 async function handleRemoveSiteBanner() {
-  if (!window.confirm("Xóa banner quảng cáo trang chủ?")) {
+  if (!window.confirm("Xóa popup quảng cáo trang chủ (cả ảnh lẫn nội dung)?")) {
     return;
   }
   var statusEl = document.getElementById("siteBannerStatus");
-  var result = await supabaseClient.from("game_admin_settings").update({ banner_image_url: null, banner_link_url: null }).eq("id", 1);
+  var result = await supabaseClient.from("game_admin_settings").update({
+    banner_image_url: null,
+    banner_link_url: null,
+    popup_title: null,
+    popup_subtitle: null,
+    popup_button_text: null
+  }).eq("id", 1);
   if (result.error) {
     statusEl.textContent = "Lỗi xóa: " + result.error.message;
     return;
   }
-  statusEl.textContent = "Đã xóa banner.";
+  statusEl.textContent = "Đã xóa popup.";
   await loadSiteBannerSettings();
 }
 

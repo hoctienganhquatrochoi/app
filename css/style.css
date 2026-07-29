@@ -56,12 +56,89 @@ html, body {
   align-items: center;
 }
 
-/* ---------- Site banner ---------- */
-.site-banner-img {
-  display: block;
+/* ---------- Site popup ---------- */
+.site-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.site-popup-card {
+  position: relative;
+  background: linear-gradient(160deg, #1B4332, #2D6A4F);
+  border-radius: 20px;
+  padding: 34px 28px 24px;
+  max-width: 340px;
   width: 100%;
-  max-height: 240px;
-  object-fit: cover;
+  text-align: center;
+  color: #FFFFFF;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.site-popup-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #F4E9CB;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.site-popup-icon {
+  font-size: 48px;
+  margin-bottom: 6px;
+}
+
+.site-popup-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.site-popup-subtitle {
+  font-size: 15px;
+  color: #DCEAE2;
+  margin: 0 0 22px;
+}
+
+.site-popup-btn {
+  background: #F4A261;
+  color: #1B4332;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 32px;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.site-popup-btn:hover {
+  background: #E8934A;
+}
+
+.site-popup-dismiss {
+  display: block;
+  color: #C9D6CE;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.site-popup-img {
+  max-width: 100%;
+  border-radius: 14px;
+  display: block;
+  cursor: pointer;
 }
 
 /* ---------- Demo banner ---------- */

@@ -884,29 +884,100 @@ async function openDemoClass(cls) {
   document.getElementById("sidebar").classList.add("mobile-open");
 }
 
-async function renderSiteBanner() {
-  var wrap = document.getElementById("siteBannerWrap");
-  wrap.innerHTML = "";
-  var result = await supabaseClient.from("game_admin_settings").select("banner_image_url, banner_link_url").eq("id", 1).maybeSingle();
-  if (!result.data || !result.data.banner_image_url) {
+async function renderSitePopup() {
+  if (sessionStorage.getItem("efkPopupDismissed") === "yes") {
     return;
   }
 
-  var img = document.createElement("img");
-  img.src = result.data.banner_image_url;
-  img.className = "site-banner-img";
-  img.alt = "";
-
-  if (result.data.banner_link_url) {
-    var link = document.createElement("a");
-    link.href = result.data.banner_link_url;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.appendChild(img);
-    wrap.appendChild(link);
-  } else {
-    wrap.appendChild(img);
+  var result = await supabaseClient.from("game_admin_settings")
+    .select("banner_image_url, banner_link_url, popup_title, popup_subtitle, popup_button_text")
+    .eq("id", 1).maybeSingle();
+  var data = result.data;
+  if (!data || (!data.banner_image_url && !data.popup_title)) {
+    return;
   }
+
+  var overlay = document.createElement("div");
+  overlay.className = "site-popup-overlay";
+
+  function closePopup() {
+    sessionStorage.setItem("efkPopupDismissed", "yes");
+    overlay.remove();
+  }
+
+  var card = document.createElement("div");
+  card.className = "site-popup-card";
+
+  var closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.className = "site-popup-close";
+  closeBtn.textContent = "×";
+  closeBtn.addEventListener("click", closePopup);
+  card.appendChild(closeBtn);
+
+  if (data.banner_image_url) {
+    var img = document.createElement("img");
+    img.src = data.banner_image_url;
+    img.className = "site-popup-img";
+    if (data.banner_link_url) {
+      var imgLink = document.createElement("a");
+      imgLink.href = data.banner_link_url;
+      imgLink.target = "_blank";
+      imgLink.rel = "noopener noreferrer";
+      imgLink.addEventListener("click", closePopup);
+      imgLink.appendChild(img);
+      card.appendChild(imgLink);
+    } else {
+      card.appendChild(img);
+    }
+  } else {
+    var icon = document.createElement("div");
+    icon.className = "site-popup-icon";
+    icon.textContent = "🎁";
+    card.appendChild(icon);
+
+    var title = document.createElement("h3");
+    title.className = "site-popup-title";
+    title.textContent = data.popup_title;
+    card.appendChild(title);
+
+    if (data.popup_subtitle) {
+      var subtitle = document.createElement("p");
+      subtitle.className = "site-popup-subtitle";
+      subtitle.textContent = data.popup_subtitle;
+      card.appendChild(subtitle);
+    }
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "site-popup-btn";
+    btn.textContent = data.popup_button_text || "Xem ngay";
+    btn.addEventListener("click", function () {
+      closePopup();
+      if (data.banner_link_url) {
+        window.open(data.banner_link_url, "_blank");
+      }
+    });
+    card.appendChild(btn);
+
+    var dismiss = document.createElement("a");
+    dismiss.className = "site-popup-dismiss";
+    dismiss.href = "#";
+    dismiss.textContent = "Không, cảm ơn";
+    dismiss.addEventListener("click", function (e) {
+      e.preventDefault();
+      closePopup();
+    });
+    card.appendChild(dismiss);
+  }
+
+  overlay.appendChild(card);
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay) {
+      closePopup();
+    }
+  });
+  document.body.appendChild(overlay);
 }
 
 function renderDemoBanner() {
@@ -944,7 +1015,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   await loadCurriculumData();
   renderDemoBanner();
-  renderSiteBanner();
+  renderSitePopup();
 
   var matched = applyUrlHash();
   if (!matched) {
