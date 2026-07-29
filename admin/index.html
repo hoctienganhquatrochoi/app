@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260729i">
-<link rel="stylesheet" href="css/admin.css?v=20260729i">
+<link rel="stylesheet" href="../css/style.css?v=20260729j">
+<link rel="stylesheet" href="css/admin.css?v=20260729j">
 </head>
 <body>
 
@@ -138,7 +138,9 @@
       <h3>Popup quảng cáo trang chủ</h3>
       <p class="admin-hint">Hiện lên khi vừa vào trang học sinh (trước khi đăng nhập), bấm ra ngoài hoặc bấm nút là đóng lại học bình thường. Không điền gì / không tải ảnh thì trang vẫn bình thường, không hiện popup nào.</p>
 
-      <p class="admin-hint"><b>Cách 1 — Tự soạn nội dung (dễ sửa nhất):</b></p>
+      <p class="admin-hint"><b>
+        <label><input type="radio" name="popupModeRadio" id="popupModeTextRadio" value="text"> Cách 1 — Tự soạn nội dung (dễ sửa nhất)</label>
+      </b></p>
       <div class="admin-form-row">
         <div class="admin-field">
           <label>Tiêu đề</label>
@@ -154,7 +156,10 @@
         </div>
       </div>
 
-      <p class="admin-hint"><b>Cách 2 — Tải hẳn 1 ảnh banner tự thiết kế (thay cho cách 1 ở trên):</b></p>
+      <p class="admin-hint"><b>
+        <label><input type="radio" name="popupModeRadio" id="popupModeImageRadio" value="image"> Cách 2 — Tải hẳn 1 ảnh banner tự thiết kế</label>
+      </b></p>
+      <p class="admin-hint">Tích chọn Cách 1 hoặc Cách 2 ở trên để quyết định cái nào hiện lên — dù có điền/tải cả 2, chỉ cái đang tích mới hiện cho học sinh.</p>
       <div id="siteBannerPreviewWrap"></div>
       <div class="admin-form-row">
         <div class="admin-field">
@@ -1016,26 +1021,26 @@ What is Alex's family name?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260729i"></script>
-<script src="../js/supabase-config.js?v=20260729i"></script>
-<script src="js/admin-auth.js?v=20260729i"></script>
-<script src="../js/curriculum-data.js?v=20260729i"></script>
-<script src="js/content-admin.js?v=20260729i"></script>
-<script src="js/sentences-admin.js?v=20260729i"></script>
-<script src="js/grammar-admin.js?v=20260729i"></script>
-<script src="js/math-admin.js?v=20260729i"></script>
-<script src="js/text-dragfill-admin.js?v=20260729i"></script>
-<script src="js/test-sections-admin.js?v=20260729i"></script>
-<script src="js/photo-quiz-admin.js?v=20260729i"></script>
-<script src="js/speaking-admin.js?v=20260729i"></script>
-<script src="js/wordwall-admin.js?v=20260729i"></script>
-<script src="js/wordwall-templates-admin.js?v=20260729i"></script>
-<script src="js/groups-admin.js?v=20260729i"></script>
-<script src="js/students-admin.js?v=20260729i"></script>
-<script src="js/assignments-admin.js?v=20260729i"></script>
-<script src="js/results-admin.js?v=20260729i"></script>
-<script src="js/activity-toggles-admin.js?v=20260729i"></script>
-<script src="js/curriculum-admin.js?v=20260729i"></script>
-<script src="js/admin-app.js?v=20260729i"></script>
+<script src="../js/data.js?v=20260729j"></script>
+<script src="../js/supabase-config.js?v=20260729j"></script>
+<script src="js/admin-auth.js?v=20260729j"></script>
+<script src="../js/curriculum-data.js?v=20260729j"></script>
+<script src="js/content-admin.js?v=20260729j"></script>
+<script src="js/sentences-admin.js?v=20260729j"></script>
+<script src="js/grammar-admin.js?v=20260729j"></script>
+<script src="js/math-admin.js?v=20260729j"></script>
+<script src="js/text-dragfill-admin.js?v=20260729j"></script>
+<script src="js/test-sections-admin.js?v=20260729j"></script>
+<script src="js/photo-quiz-admin.js?v=20260729j"></script>
+<script src="js/speaking-admin.js?v=20260729j"></script>
+<script src="js/wordwall-admin.js?v=20260729j"></script>
+<script src="js/wordwall-templates-admin.js?v=20260729j"></script>
+<script src="js/groups-admin.js?v=20260729j"></script>
+<script src="js/students-admin.js?v=20260729j"></script>
+<script src="js/assignments-admin.js?v=20260729j"></script>
+<script src="js/results-admin.js?v=20260729j"></script>
+<script src="js/activity-toggles-admin.js?v=20260729j"></script>
+<script src="js/curriculum-admin.js?v=20260729j"></script>
+<script src="js/admin-app.js?v=20260729j"></script>
 </body>
 </html>

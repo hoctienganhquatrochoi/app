@@ -194,7 +194,7 @@ async function uploadAndSetVocabImage(vocabId, unitId, file) {
 
 async function loadSiteBannerSettings() {
   var result = await supabaseClient.from("game_admin_settings")
-    .select("banner_image_url, banner_link_url, popup_title, popup_subtitle, popup_button_text")
+    .select("banner_image_url, banner_link_url, popup_title, popup_subtitle, popup_button_text, popup_mode")
     .eq("id", 1).maybeSingle();
   var previewWrap = document.getElementById("siteBannerPreviewWrap");
   previewWrap.innerHTML = "";
@@ -214,6 +214,10 @@ async function loadSiteBannerSettings() {
   document.getElementById("popupTitleInput").value = data.popup_title || "";
   document.getElementById("popupSubtitleInput").value = data.popup_subtitle || "";
   document.getElementById("popupButtonTextInput").value = data.popup_button_text || "";
+
+  var mode = data.popup_mode || (data.banner_image_url ? "image" : "text");
+  document.getElementById("popupModeImageRadio").checked = mode === "image";
+  document.getElementById("popupModeTextRadio").checked = mode !== "image";
 }
 
 async function handleUploadSiteBanner() {
@@ -234,41 +238,46 @@ async function handleUploadSiteBanner() {
   }
 
   var publicUrlResult = supabaseClient.storage.from("vocab-images").getPublicUrl(path);
-  var result = await supabaseClient.from("game_admin_settings").update({ banner_image_url: publicUrlResult.data.publicUrl }).eq("id", 1);
+  var result = await supabaseClient.from("game_admin_settings").update({
+    banner_image_url: publicUrlResult.data.publicUrl,
+    popup_mode: "image"
+  }).eq("id", 1);
   if (result.error) {
     statusEl.textContent = "Lỗi lưu: " + result.error.message;
     return;
   }
 
   fileInput.value = "";
-  statusEl.textContent = "Đã tải banner lên.";
+  statusEl.textContent = "Đã tải banner lên và chuyển sang hiện ảnh này cho học sinh.";
   await loadSiteBannerSettings();
 }
 
 async function handleRemoveSiteBannerImageOnly() {
   var statusEl = document.getElementById("siteBannerStatus");
-  var result = await supabaseClient.from("game_admin_settings").update({ banner_image_url: null }).eq("id", 1);
+  var result = await supabaseClient.from("game_admin_settings").update({ banner_image_url: null, popup_mode: "text" }).eq("id", 1);
   if (result.error) {
     statusEl.textContent = "Lỗi xóa ảnh: " + result.error.message;
     return;
   }
-  statusEl.textContent = "Đã xóa ảnh (tiêu đề/mô tả/link vẫn giữ nguyên, chưa lưu popup nào thì popup sẽ ẩn).";
+  statusEl.textContent = "Đã xóa ảnh (tiêu đề/mô tả/link vẫn giữ nguyên, tự chuyển sang Cách 1 — chưa điền gì thì popup sẽ ẩn).";
   await loadSiteBannerSettings();
 }
 
 async function handleSaveSiteBannerLink() {
   var statusEl = document.getElementById("siteBannerStatus");
+  var mode = document.getElementById("popupModeImageRadio").checked ? "image" : "text";
   var result = await supabaseClient.from("game_admin_settings").update({
     banner_link_url: document.getElementById("siteBannerLinkInput").value.trim() || null,
     popup_title: document.getElementById("popupTitleInput").value.trim() || null,
     popup_subtitle: document.getElementById("popupSubtitleInput").value.trim() || null,
-    popup_button_text: document.getElementById("popupButtonTextInput").value.trim() || null
+    popup_button_text: document.getElementById("popupButtonTextInput").value.trim() || null,
+    popup_mode: mode
   }).eq("id", 1);
   if (result.error) {
     statusEl.textContent = "Lỗi lưu: " + result.error.message;
     return;
   }
-  statusEl.textContent = "Đã lưu nội dung popup.";
+  statusEl.textContent = "Đã lưu nội dung popup — đang hiện " + (mode === "image" ? "ảnh (Cách 2)." : "nội dung tự soạn (Cách 1).");
 }
 
 async function handleRemoveSiteBanner() {
@@ -281,7 +290,8 @@ async function handleRemoveSiteBanner() {
     banner_link_url: null,
     popup_title: null,
     popup_subtitle: null,
-    popup_button_text: null
+    popup_button_text: null,
+    popup_mode: null
   }).eq("id", 1);
   if (result.error) {
     statusEl.textContent = "Lỗi xóa: " + result.error.message;

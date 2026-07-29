@@ -1005,7 +1005,7 @@ function showDemoClassPopup(cls) {
   document.body.appendChild(overlay);
 }
 
-function showCustomAdPopup(data) {
+function showCustomAdPopup(data, useImage) {
   var overlay = document.createElement("div");
   overlay.className = "site-popup-overlay";
 
@@ -1016,7 +1016,7 @@ function showCustomAdPopup(data) {
 
   var card = buildPopupCard(overlay, closePopup);
 
-  if (data.banner_image_url) {
+  if (useImage) {
     var img = document.createElement("img");
     img.src = data.banner_image_url;
     img.className = "site-popup-img";
@@ -1072,13 +1072,18 @@ async function renderHomePopup() {
   }
 
   var result = await supabaseClient.from("game_admin_settings")
-    .select("banner_image_url, banner_link_url, popup_title, popup_subtitle, popup_button_text")
+    .select("banner_image_url, banner_link_url, popup_title, popup_subtitle, popup_button_text, popup_mode")
     .eq("id", 1).maybeSingle();
   var data = result.data;
-  if (!data || (!data.banner_image_url && !data.popup_title)) {
+  if (!data) {
     return;
   }
-  showCustomAdPopup(data);
+  var useImage = data.popup_mode === "image" ? true : (data.popup_mode === "text" ? false : !!data.banner_image_url);
+  var hasContent = useImage ? !!data.banner_image_url : !!data.popup_title;
+  if (!hasContent) {
+    return;
+  }
+  showCustomAdPopup(data, useImage);
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
