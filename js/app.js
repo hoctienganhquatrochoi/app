@@ -114,7 +114,8 @@ function buildClassItem(cls) {
       state.selectedClassId = null;
     } else {
       state.selectedClassId = cls.id;
-      autoOpenFirstSubject();
+      state.openSubjectId = null;
+      state.openUnitId = null;
     }
     renderSidebar();
     updateUrlHash();
