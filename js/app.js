@@ -983,7 +983,7 @@ function showDemoClassPopup(cls) {
   var body = buildPopupTemplateContent(
     card,
     "Đang mở demo miễn phí!",
-    "Trải nghiệm ngay chương trình " + cls.name + " — không cần tài khoản.",
+    "Trải nghiệm ngay chương trình " + cls.name + "\nKhông cần tài khoản.",
     "Thử ngay →",
     function () {
       closePopup();
