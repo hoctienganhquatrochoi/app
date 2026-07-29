@@ -231,16 +231,38 @@ async function handleHistoryExportPdf() {
 
   try {
     var canvas = await html2canvas(exportArea, { scale: 1.5, backgroundColor: "#ffffff" });
-    var imgData = canvas.toDataURL("image/jpeg", 0.85);
     var jsPDFCtor = window.jspdf.jsPDF;
     var pxToMm = 0.264583 / 1.5;
     var pageWidthMm = canvas.width * pxToMm;
-    var pageHeightMm = canvas.height * pxToMm;
-    var doc = new jsPDFCtor({ unit: "mm", format: [pageWidthMm, pageHeightMm] });
-    doc.addImage(imgData, "JPEG", 0, 0, pageWidthMm, pageHeightMm);
+    var PAGE_HEIGHT_MM = 297;
+    var pageHeightPx = Math.floor(PAGE_HEIGHT_MM / pxToMm);
+    var totalPages = Math.max(1, Math.ceil(canvas.height / pageHeightPx));
+
+    var doc = new jsPDFCtor({ unit: "mm", format: [pageWidthMm, PAGE_HEIGHT_MM] });
+    var p;
+    for (p = 0; p < totalPages; p++) {
+      var sourceY = p * pageHeightPx;
+      var sliceHeightPx = Math.min(pageHeightPx, canvas.height - sourceY);
+
+      var sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = pageHeightPx;
+      var sctx = sliceCanvas.getContext("2d");
+      sctx.fillStyle = "#ffffff";
+      sctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+      sctx.drawImage(canvas, 0, sourceY, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+
+      var sliceImgData = sliceCanvas.toDataURL("image/jpeg", 0.85);
+      if (p > 0) {
+        doc.addPage([pageWidthMm, PAGE_HEIGHT_MM]);
+      }
+      doc.addImage(sliceImgData, "JPEG", 0, 0, pageWidthMm, PAGE_HEIGHT_MM);
+    }
 
     var todayStr = formatDateInputValue(new Date());
     doc.save("bao_cao_" + reportLabel + "_" + todayStr + ".pdf");
+  } catch (err) {
+    window.alert("Lỗi khi xuất PDF: " + (err && err.message ? err.message : err) + " — thử chọn khoảng ngày ngắn hơn.");
   } finally {
     exportArea.remove();
     btn.disabled = false;
