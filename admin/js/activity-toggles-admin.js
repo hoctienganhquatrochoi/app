@@ -13,6 +13,11 @@ function findUnitById(unitId) {
   return null;
 }
 
+function isTemplateActivityId(id) {
+  return VOCAB_ACTIVITY_TEMPLATE.some(function (a) { return a.id === id; }) ||
+    SENTENCE_ACTIVITY_TEMPLATE.some(function (a) { return a.id === id; });
+}
+
 function orderActivities(activities, orderIds) {
   if (!orderIds || !orderIds.length) {
     return activities.slice();
@@ -21,23 +26,37 @@ function orderActivities(activities, orderIds) {
   activities.forEach(function (a) {
     byId[a.id] = a;
   });
+
+  // The vocab/sentence template block always follows the current canonical
+  // template order — it's not something meant to be drag-reordered per unit,
+  // so a stale saved position for an activity added after the last save
+  // (e.g. "Dịch Việt - Anh") can't leave it stuck in the wrong spot relative
+  // to its siblings. Only non-template content (grammar/wordwall/etc) keeps
+  // whatever relative order was saved.
+  var templateActivities = activities.filter(function (a) {
+    return isTemplateActivityId(a.id);
+  });
+  var nonTemplateSavedIds = orderIds.filter(function (id) {
+    return byId[id] && !isTemplateActivityId(id);
+  });
+
+  var ordered = templateActivities.slice();
+  var usedIds = {};
+  ordered.forEach(function (a) {
+    usedIds[a.id] = true;
+  });
+  nonTemplateSavedIds.forEach(function (id) {
+    ordered.push(byId[id]);
+    usedIds[id] = true;
+  });
+
+  // Any non-template activity never saved (e.g. a brand-new grammar/wordwall
+  // set) gets slotted in at the position matching its rank in the fresh
+  // order, instead of always landing at the very end.
   var freshIndex = {};
   activities.forEach(function (a, i) {
     freshIndex[a.id] = i;
   });
-
-  var ordered = [];
-  var usedIds = {};
-  orderIds.forEach(function (id) {
-    if (byId[id]) {
-      ordered.push(byId[id]);
-      usedIds[id] = true;
-    }
-  });
-
-  // Activities not present in the saved order (added to the template since it was last saved)
-  // get slotted in at the position matching their rank in the fresh/default order, instead of
-  // always being dumped at the very end.
   activities.forEach(function (a) {
     if (usedIds[a.id]) {
       return;
