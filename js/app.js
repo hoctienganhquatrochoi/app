@@ -263,18 +263,38 @@ function orderedActivitiesForUnit(unit) {
   unit.activities.forEach(function (a) {
     byId[a.id] = a;
   });
+  var freshIndex = {};
+  unit.activities.forEach(function (a, i) {
+    freshIndex[a.id] = i;
+  });
+
   var ordered = [];
+  var usedIds = {};
   orderIds.forEach(function (id) {
     if (byId[id]) {
       ordered.push(byId[id]);
-      delete byId[id];
+      usedIds[id] = true;
     }
   });
+
+  // Activities not present in the saved order (added to the template since it was last saved)
+  // get slotted in at the position matching their rank in the fresh/default order, instead of
+  // always being dumped at the very end.
   unit.activities.forEach(function (a) {
-    if (byId[a.id]) {
-      ordered.push(a);
+    if (usedIds[a.id]) {
+      return;
     }
+    var freshPos = freshIndex[a.id];
+    var insertAt = ordered.length;
+    for (var i = 0; i < ordered.length; i++) {
+      if (freshIndex[ordered[i].id] > freshPos) {
+        insertAt = i;
+        break;
+      }
+    }
+    ordered.splice(insertAt, 0, a);
   });
+
   return ordered;
 }
 
