@@ -141,6 +141,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     loadGroupHistory();
   });
   document.getElementById("historyExportPdfBtn").addEventListener("click", handleHistoryExportPdf);
+  document.getElementById("historyExportRankingImgBtn").addEventListener("click", handleExportRankingImage);
   document.getElementById("resultsUnitSearch").addEventListener("input", populateResultsUnitSelect);
   document.getElementById("resultsUnitSelect").addEventListener("change", function () {
     currentResultsAssignmentId = null;

@@ -270,6 +270,39 @@ async function handleHistoryExportPdf() {
   }
 }
 
+async function handleExportRankingImage() {
+  var box = document.getElementById("diligenceRankingBox");
+  if (!box) {
+    window.alert("Không có bảng xếp hạng để lưu (bảng xếp hạng chỉ hiện khi xem theo Nhóm học sinh, không phải theo 1 học sinh).");
+    return;
+  }
+
+  var btn = document.getElementById("historyExportRankingImgBtn");
+  btn.disabled = true;
+  var originalBtnText = btn.textContent;
+  btn.textContent = "Đang tạo ảnh...";
+
+  var clone = box.cloneNode(true);
+  clone.style.cssText = "position: fixed; left: -9999px; top: 0; width: 700px; background: #fff; padding: 16px;";
+  document.body.appendChild(clone);
+
+  try {
+    var canvas = await html2canvas(clone, { scale: 2, backgroundColor: "#ffffff" });
+    var reportLabel = currentHistoryReportLabel() || "nhom";
+    var todayStr = formatDateInputValue(new Date());
+    var link = document.createElement("a");
+    link.download = "xep_hang_" + reportLabel + "_" + todayStr + ".png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  } catch (err) {
+    window.alert("Lỗi khi lưu ảnh: " + (err && err.message ? err.message : err));
+  } finally {
+    clone.remove();
+    btn.disabled = false;
+    btn.textContent = originalBtnText;
+  }
+}
+
 function localDateKey(dateInput) {
   var d = dateInput instanceof Date ? dateInput : new Date(dateInput);
   var yyyy = d.getFullYear();
@@ -319,6 +352,7 @@ function computeDiligenceRanking(rows) {
 
 function buildDiligenceRanking(ranked) {
   var box = document.createElement("div");
+  box.id = "diligenceRankingBox";
   box.className = "admin-form";
   box.style.marginBottom = "16px";
 
@@ -364,6 +398,8 @@ function buildDiligenceRanking(ranked) {
 function renderGroupHistory(attempts, opens, showRanking) {
   var wrap = document.getElementById("historyListWrap");
   wrap.innerHTML = "";
+  var rankingWrap = document.getElementById("diligenceRankingWrap");
+  rankingWrap.innerHTML = "";
 
   buildAllUnitsFlat();
   var unitLabelById = {};
@@ -411,7 +447,7 @@ function renderGroupHistory(attempts, opens, showRanking) {
 
   var ranked = computeDiligenceRanking(rows);
   if (showRanking) {
-    wrap.appendChild(buildDiligenceRanking(ranked));
+    rankingWrap.appendChild(buildDiligenceRanking(ranked));
   }
 
   var countedByName = {};
