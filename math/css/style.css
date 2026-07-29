@@ -453,6 +453,11 @@ body[data-mode="nangcao"] .number-pill { color: var(--m-nangcao-deep); }
   cursor: grabbing;
   box-shadow: 0 10px 18px rgba(74,87,80,0.22);
   opacity: 0.95;
+  transform: scale(1.06);
+}
+
+.drag-icon.drag-source-hidden {
+  opacity: 0.3;
 }
 
 .drag-icon.locked {
@@ -540,6 +545,17 @@ body[data-mode="nangcao"] .number-pill { color: var(--m-nangcao-deep); }
   cursor: pointer;
   margin-top: 10px;
   box-shadow: 0 4px 10px rgba(102,179,125,0.35);
+}
+
+.tachgop-action-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.primary-btn.next-btn {
+  background: var(--sky-deep);
+  box-shadow: 0 4px 10px rgba(28,127,219,0.35);
 }
 
 .result-msg {

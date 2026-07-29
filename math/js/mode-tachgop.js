@@ -52,6 +52,28 @@ MODES.tachgop = {
   }
 };
 
+// Draws a target's target-count 1..num in shuffled order, one full cycle before repeating any
+// value, so a student who keeps hitting "Làm tiếp" is guaranteed to eventually see every case.
+var subtractionTargetBags = {};
+
+function nextSubtractionTarget(num) {
+  var bag = subtractionTargetBags[num];
+  if (!bag || bag.length === 0) {
+    bag = [];
+    for (var i = 1; i <= num; i++) {
+      bag.push(i);
+    }
+    for (var i = bag.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = bag[i];
+      bag[i] = bag[j];
+      bag[j] = tmp;
+    }
+    subtractionTargetBags[num] = bag;
+  }
+  return bag.pop();
+}
+
 function renderSplitAddition(num, body, autoSpeak) {
   body.innerHTML = "";
   var icon = randomIcon();
@@ -106,11 +128,25 @@ function renderSplitAddition(num, body, autoSpeak) {
     makeDraggable(item, function () { return [pool, boxAItems, boxBItems]; }, updateEquation);
   }
 
+  var actionRow = document.createElement("div");
+  actionRow.className = "tachgop-action-row";
+  body.appendChild(actionRow);
+
   var doneBtn = document.createElement("button");
   doneBtn.className = "primary-btn";
   doneBtn.type = "button";
   doneBtn.textContent = "✅ Hoàn thành";
-  body.appendChild(doneBtn);
+  actionRow.appendChild(doneBtn);
+
+  var nextBtn = document.createElement("button");
+  nextBtn.className = "primary-btn next-btn";
+  nextBtn.type = "button";
+  nextBtn.textContent = "🔁 Làm tiếp";
+  nextBtn.style.display = "none";
+  nextBtn.addEventListener("click", function () {
+    renderSplitAddition(num, body, true);
+  });
+  actionRow.appendChild(nextBtn);
 
   var resultEl = document.createElement("div");
   resultEl.className = "result-msg";
@@ -140,6 +176,8 @@ function renderSplitAddition(num, body, autoSpeak) {
     }
     resultEl.textContent = "✅ " + a + " + " + b + " = " + num;
     resultEl.className = "result-msg is-correct";
+    doneBtn.style.display = "none";
+    nextBtn.style.display = "";
     speak(numberToWords(num) + " bằng " + numberToWords(a) + " cộng " + numberToWords(b));
     submitMathAttempt("math-tachgop-cong", 1, 1, startedAt, [{ number: num, a: a, b: b }]);
   });
@@ -153,11 +191,11 @@ function renderSplitSubtraction(num, body, autoSpeak) {
   body.innerHTML = "";
   var icon = randomIcon();
   var startedAt = new Date();
-  var target = 1 + Math.floor(Math.random() * num);
+  var target = nextSubtractionTarget(num);
 
-  var speakText = "Lấy bớt " + numberToWords(target) + " " + icon.name + " nhé";
+  var speakText = "Kéo bớt " + numberToWords(target) + " " + icon.name + " sang ô bên cạnh nhé";
   body.appendChild(buildPromptRow(
-    "Lấy bớt <b>" + target + "</b> " + icon.name + " nhé!",
+    "Kéo bớt <b>" + target + "</b> " + icon.name + " sang ô bên cạnh nhé!",
     speakText
   ));
 
@@ -170,58 +208,74 @@ function renderSplitSubtraction(num, body, autoSpeak) {
   mainWrap.className = "drop-pool tachgop-rect-box";
   body.appendChild(mainWrap);
 
+  var removedLabel = document.createElement("div");
+  removedLabel.className = "section-label";
+  removedLabel.textContent = "Đã lấy ra:";
+  body.appendChild(removedLabel);
+
+  var removedBox = document.createElement("div");
+  removedBox.className = "drop-pool tachgop-rect-box";
+  body.appendChild(removedBox);
+
   var equation = document.createElement("div");
   equation.className = "tachgop-equation";
   body.appendChild(equation);
 
-  var items = [];
   var sizeClass = iconSizeClass(num);
   for (var i = 0; i < num; i++) {
     var item = document.createElement("div");
-    item.className = "drag-icon tappable " + sizeClass;
+    item.className = "drag-icon " + sizeClass;
     item.innerHTML = icon.svg;
-    item.addEventListener("click", function () {
-      this.classList.toggle("crossed");
-      updateEquation();
-    });
     mainWrap.appendChild(item);
-    items.push(item);
+    makeDraggable(item, function () { return [mainWrap, removedBox]; }, updateEquation);
   }
+
+  var actionRow = document.createElement("div");
+  actionRow.className = "tachgop-action-row";
+  body.appendChild(actionRow);
 
   var doneBtn = document.createElement("button");
   doneBtn.className = "primary-btn";
   doneBtn.type = "button";
   doneBtn.textContent = "✅ Hoàn thành";
-  body.appendChild(doneBtn);
+  actionRow.appendChild(doneBtn);
+
+  var nextBtn = document.createElement("button");
+  nextBtn.className = "primary-btn next-btn";
+  nextBtn.type = "button";
+  nextBtn.textContent = "🔁 Làm tiếp";
+  nextBtn.style.display = "none";
+  nextBtn.addEventListener("click", function () {
+    renderSplitSubtraction(num, body, true);
+  });
+  actionRow.appendChild(nextBtn);
 
   var resultEl = document.createElement("div");
   resultEl.className = "result-msg";
   body.appendChild(resultEl);
 
-  function countCrossed() {
-    return items.filter(function (el) { return el.classList.contains("crossed"); }).length;
-  }
-
   function updateEquation() {
-    var crossed = countCrossed();
-    var remain = num - crossed;
-    equation.textContent = (crossed > 0) ? (num + " - " + crossed + " = " + remain) : "";
+    var removed = removedBox.children.length;
+    var remain = mainWrap.children.length;
+    equation.textContent = (removed > 0) ? (num + " - " + removed + " = " + remain) : "";
   }
 
   doneBtn.addEventListener("click", function () {
-    var crossed = countCrossed();
-    var remain = num - crossed;
-    var correct = crossed === target;
+    var removed = removedBox.children.length;
+    var remain = mainWrap.children.length;
+    var correct = removed === target;
     if (!correct) {
-      resultEl.textContent = "❌ Cần lấy bớt đúng " + target + " hình, hiện đang lấy " + crossed + ", thử lại nhé!";
+      resultEl.textContent = "❌ Cần kéo đúng " + target + " hình sang ô bên, hiện đang có " + removed + ", thử lại nhé!";
       resultEl.className = "result-msg is-wrong";
       playResultSound(false);
       return;
     }
-    resultEl.textContent = "✅ " + num + " - " + crossed + " = " + remain;
+    resultEl.textContent = "✅ " + num + " - " + removed + " = " + remain;
     resultEl.className = "result-msg is-correct";
-    speak(numberToWords(num) + " trừ " + numberToWords(crossed) + " bằng " + numberToWords(remain));
-    submitMathAttempt("math-tachgop-tru", 1, 1, startedAt, [{ number: num, target: target, removed: crossed, remain: remain }]);
+    doneBtn.style.display = "none";
+    nextBtn.style.display = "";
+    speak(numberToWords(num) + " trừ " + numberToWords(removed) + " bằng " + numberToWords(remain));
+    submitMathAttempt("math-tachgop-tru", 1, 1, startedAt, [{ number: num, target: target, removed: removed, remain: remain }]);
   });
 
   if (autoSpeak) {

@@ -1,16 +1,20 @@
 // Generic pointer-based drag-and-drop (works for mouse and touch alike).
+// Uses a floating "ghost" clone that follows the pointer, while the real item stays put
+// (just dimmed) until it's actually dropped on a valid zone - this avoids the pool
+// reflowing/jumping the instant you pick something up.
 // getZones() returns the current list of drop-zone elements (evaluated fresh on every drop,
 // so modes can add/remove zones dynamically). onDrop(item, zoneEl|null) is called after the
-// item has already been re-parented into the zone (or returned to its original spot).
+// item has already been re-parented into the zone (if a valid drop happened).
 function makeDraggable(item, getZones, onDrop) {
   var dragging = false;
-  var origParent, origNextSibling, offsetX, offsetY;
+  var ghost = null;
+  var offsetX, offsetY;
 
   item.classList.add("draggable-item");
 
-  function moveTo(x, y) {
-    item.style.left = (x - offsetX) + "px";
-    item.style.top = (y - offsetY) + "px";
+  function moveGhost(x, y) {
+    ghost.style.left = (x - offsetX) + "px";
+    ghost.style.top = (y - offsetY) + "px";
   }
 
   function onPointerDown(e) {
@@ -24,22 +28,25 @@ function makeDraggable(item, getZones, onDrop) {
     var rect = item.getBoundingClientRect();
     offsetX = e.clientX - rect.left;
     offsetY = e.clientY - rect.top;
-    origParent = item.parentNode;
-    origNextSibling = item.nextSibling;
 
-    item.classList.add("dragging");
-    item.style.position = "fixed";
-    item.style.width = rect.width + "px";
-    item.style.height = rect.height + "px";
-    moveTo(e.clientX, e.clientY);
-    document.body.appendChild(item);
+    ghost = item.cloneNode(true);
+    ghost.classList.add("dragging");
+    ghost.style.position = "fixed";
+    ghost.style.width = rect.width + "px";
+    ghost.style.height = rect.height + "px";
+    ghost.style.pointerEvents = "none";
+    ghost.style.zIndex = "1000";
+    moveGhost(e.clientX, e.clientY);
+    document.body.appendChild(ghost);
+
+    item.classList.add("drag-source-hidden");
   }
 
   function onPointerMove(e) {
     if (!dragging) {
       return;
     }
-    moveTo(e.clientX, e.clientY);
+    moveGhost(e.clientX, e.clientY);
   }
 
   function onPointerUp(e) {
@@ -47,12 +54,12 @@ function makeDraggable(item, getZones, onDrop) {
       return;
     }
     dragging = false;
-    item.classList.remove("dragging");
-    item.style.position = "";
-    item.style.left = "";
-    item.style.top = "";
-    item.style.width = "";
-    item.style.height = "";
+    item.classList.remove("drag-source-hidden");
+
+    if (ghost) {
+      ghost.remove();
+      ghost = null;
+    }
 
     var zones = getZones();
     var target = null;
@@ -66,10 +73,6 @@ function makeDraggable(item, getZones, onDrop) {
 
     if (target) {
       target.appendChild(item);
-    } else if (origNextSibling) {
-      origParent.insertBefore(item, origNextSibling);
-    } else {
-      origParent.appendChild(item);
     }
 
     onDrop(item, target);
