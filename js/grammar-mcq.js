@@ -6,7 +6,7 @@ function buildGrammarMcqQuestions(items) {
       return { text: text, isCorrect: false };
     });
     var options = shuffleArray([{ text: row.correct_answer, isCorrect: true }].concat(wrongOptions));
-    return { id: row.id, question: row.question, options: options, answered: false, selectedIndex: null };
+    return { id: row.id, question: row.question, passage: row.passage, options: options, answered: false, selectedIndex: null };
   });
 }
 
@@ -30,6 +30,13 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
 
     var body = document.createElement("div");
     body.className = "quiz-body";
+
+    if (q.passage) {
+      var passageEl = document.createElement("div");
+      passageEl.className = "grammar-mcq-passage";
+      passageEl.textContent = q.passage;
+      body.appendChild(passageEl);
+    }
 
     if (q.question) {
       var prompt = document.createElement("div");

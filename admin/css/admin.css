@@ -374,6 +374,15 @@ tr.editing-row {
   font-weight: 600;
 }
 
+.class-level-group-header {
+  background: #F7F5EE;
+  color: #556355;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 .status-badge {
   display: inline-block;
   padding: 4px 10px;

@@ -134,8 +134,8 @@ async function deleteTestSection(id) {
 
 var TEST_SECTION_CONTENT_HELP = {
   "grammar-mcq": {
-    hint: "Mỗi câu 3 dòng, cách nhau 1 dòng trống: câu hỏi (gạch chân 1 đoạn thì đặt dấu _ ở 2 đầu, VD gr_ea_t), dòng \"Đáp án đúng: ...\", dòng \"Đáp án sai: ...\" (cách nhau dấu phẩy).",
-    placeholder: "Tom and Lucy are my _________.\nĐáp án đúng: friends\nĐáp án sai: friend, classmate, brother"
+    hint: "Mỗi câu 3 dòng, cách nhau 1 dòng trống: câu hỏi (gạch chân 1 đoạn thì đặt dấu _ ở 2 đầu, VD gr_ea_t), dòng \"Đáp án đúng: ...\", dòng \"Đáp án sai: ...\" (cách nhau dấu phẩy). Bài đọc hiểu (có đoạn văn dùng chung): dán đoạn văn ở đầu, xuống dòng ghi riêng 1 dòng ba gạch ngang --- rồi mới đến các câu hỏi — đoạn văn sẽ hiện cố định phía trên khi làm bài.",
+    placeholder: "My name is Trang Nhi. I'm in class 3A and I'm eight years old...\n---\nTrang Nhi is _________ years old.\nĐáp án đúng: eight\nĐáp án sai: nine, ten"
   },
   "grammar-typing": {
     hint: "Mỗi dòng 1 câu, cách nhau dấu |: Câu hỏi | Đáp án.",
@@ -188,9 +188,11 @@ function resetTestSectionForm() {
 
 function reconstructSectionContent(sectionType, rows) {
   if (sectionType === "grammar-mcq") {
-    return rows.map(function (r) {
+    var mcqBody = rows.map(function (r) {
       return [r.question || "", "Đáp án đúng: " + r.correct_answer, "Đáp án sai: " + (r.wrong_answers || []).join(", ")].join("\n");
     }).join("\n\n");
+    var sharedPassage = rows.length && rows[0].passage ? rows[0].passage : null;
+    return sharedPassage ? (sharedPassage + "\n---\n" + mcqBody) : mcqBody;
   }
   if (sectionType === "grammar-typing") {
     return rows.map(function (r) { return r.prompt + " | " + r.answer; }).join("\n");
@@ -364,6 +366,25 @@ function parseMegaTestImport(text) {
   return sections;
 }
 
+function splitPassageFromGrammarMcqContent(content) {
+  var lines = content.split("\n");
+  var sepIndex = -1;
+  var i;
+  for (i = 0; i < lines.length; i++) {
+    if (lines[i].trim() === "---") {
+      sepIndex = i;
+      break;
+    }
+  }
+  if (sepIndex === -1) {
+    return { passage: null, content: content };
+  }
+  return {
+    passage: lines.slice(0, sepIndex).join("\n").trim(),
+    content: lines.slice(sepIndex + 1).join("\n")
+  };
+}
+
 async function insertParsedSectionContent(typeKey, unitId, setName, content) {
   var table = TEST_SECTION_TABLES[typeKey];
   var existingCountResult = await supabaseClient.from(table).select("id", { count: "exact", head: true }).eq("unit_id", unitId).eq("set_name", setName);
@@ -371,9 +392,10 @@ async function insertParsedSectionContent(typeKey, unitId, setName, content) {
 
   var rows = [];
   if (typeKey === "grammar-mcq") {
-    var mcqItems = parseGrammarMcqBulkText(content).filter(function (it) { return it.correct_answer && it.wrong_answers.length; });
+    var mcqSplit = splitPassageFromGrammarMcqContent(content);
+    var mcqItems = parseGrammarMcqBulkText(mcqSplit.content).filter(function (it) { return it.correct_answer && it.wrong_answers.length; });
     rows = mcqItems.map(function (it, idx) {
-      return { unit_id: unitId, set_name: setName, sort_order: nextSortOrder + idx, question: it.question, correct_answer: it.correct_answer, wrong_answers: it.wrong_answers };
+      return { unit_id: unitId, set_name: setName, sort_order: nextSortOrder + idx, question: it.question, correct_answer: it.correct_answer, wrong_answers: it.wrong_answers, passage: mcqSplit.passage || null };
     });
   } else if (typeKey === "grammar-typing") {
     var typingLines = content.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });

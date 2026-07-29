@@ -497,6 +497,7 @@ async function handleBulkAddGrammarMcq(e) {
   var unitId = document.getElementById("unitSelect").value;
   var setName = document.getElementById("grammarMcqSetSelect").value;
   var text = document.getElementById("bulkGrammarMcqTextarea").value;
+  var passage = document.getElementById("bulkGrammarMcqPassage").value.trim();
   var items = parseGrammarMcqBulkText(text);
 
   if (!setName) {
@@ -530,7 +531,8 @@ async function handleBulkAddGrammarMcq(e) {
       sort_order: nextSortOrder + successCount,
       question: item.question,
       correct_answer: item.correct_answer,
-      wrong_answers: item.wrong_answers
+      wrong_answers: item.wrong_answers,
+      passage: passage || null
     });
 
     if (insertResult.error) {
@@ -550,6 +552,7 @@ async function handleBulkAddGrammarMcq(e) {
   setBulkGrammarMcqStatus(summary);
 
   document.getElementById("bulkGrammarMcqTextarea").value = "";
+  document.getElementById("bulkGrammarMcqPassage").value = "";
   loadGrammarMcqTable();
   loadGrammarMcqSetList();
   loadCurriculumData().then(loadActivityToggles);

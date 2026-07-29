@@ -218,17 +218,47 @@ function switchCurriculumSubTab(target) {
 
 var editingClassId = null;
 
+function groupClassesByLevel() {
+  var groups = CLASS_LEVEL_OPTIONS.map(function (pair) {
+    return { level: pair[0], label: pair[1], classes: [] };
+  });
+  var otherGroup = { level: null, label: "Khác", classes: [] };
+  DATA.classes.forEach(function (cls) {
+    var matches = groups.filter(function (g) { return g.level === cls.level; });
+    (matches[0] || otherGroup).classes.push(cls);
+  });
+  groups.push(otherGroup);
+  return groups.filter(function (g) { return g.classes.length > 0; });
+}
+
 function renderClassList() {
   var wrap = document.getElementById("classListWrap");
   wrap.innerHTML = "";
-  wrap.appendChild(buildTableWrap(DATA.classes.length > 0, function (tbody) {
-    DATA.classes.forEach(function (cls, idx) {
-      tbody.appendChild(editingClassId === cls.id ? buildClassEditRow(cls) : buildClassRow(cls, idx));
+  if (DATA.classes.length === 0) {
+    wrap.appendChild(buildTableWrap(false, function () {}));
+    return;
+  }
+  var table = document.createElement("table");
+  table.className = "admin-table";
+  var tbody = document.createElement("tbody");
+  groupClassesByLevel().forEach(function (group) {
+    var headerRow = document.createElement("tr");
+    var headerTd = document.createElement("td");
+    headerTd.colSpan = 4;
+    headerTd.className = "class-level-group-header";
+    headerTd.textContent = group.label;
+    headerRow.appendChild(headerTd);
+    tbody.appendChild(headerRow);
+
+    group.classes.forEach(function (cls, idx) {
+      tbody.appendChild(editingClassId === cls.id ? buildClassEditRow(cls) : buildClassRow(cls, idx, group.classes.length));
     });
-  }));
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
 }
 
-function buildClassRow(cls, idx) {
+function buildClassRow(cls, idxInGroup, groupLength) {
   var tr = document.createElement("tr");
 
   var nameTd = document.createElement("td");
@@ -244,9 +274,9 @@ function buildClassRow(cls, idx) {
 
   var moveTd = document.createElement("td");
   var upBtn = buildActionBtn("↑", "admin-btn-secondary", function () { moveClass(cls.id, -1); });
-  upBtn.disabled = idx === 0;
+  upBtn.disabled = idxInGroup === 0;
   var downBtn = buildActionBtn("↓", "admin-btn-secondary", function () { moveClass(cls.id, 1); });
-  downBtn.disabled = idx === DATA.classes.length - 1;
+  downBtn.disabled = idxInGroup === groupLength - 1;
   moveTd.appendChild(upBtn);
   moveTd.appendChild(downBtn);
   tr.appendChild(moveTd);
@@ -318,17 +348,22 @@ function buildClassEditRow(cls) {
 }
 
 async function moveClass(classId, direction) {
-  var idx = DATA.classes.findIndex(function (c) { return c.id === classId; });
+  var cls = DATA.classes.filter(function (c) { return c.id === classId; })[0];
+  if (!cls) {
+    return;
+  }
+  var siblings = DATA.classes.filter(function (c) { return c.level === cls.level; });
+  var idx = siblings.findIndex(function (c) { return c.id === classId; });
   var swapIdx = idx + direction;
-  if (idx === -1 || swapIdx < 0 || swapIdx >= DATA.classes.length) {
+  if (idx === -1 || swapIdx < 0 || swapIdx >= siblings.length) {
     return;
   }
 
-  var a = DATA.classes[idx];
-  var b = DATA.classes[swapIdx];
+  var a = siblings[idx];
+  var b = siblings[swapIdx];
 
-  await supabaseClient.from("game_classes").update({ sort_order: swapIdx }).eq("id", a.id);
-  await supabaseClient.from("game_classes").update({ sort_order: idx }).eq("id", b.id);
+  await supabaseClient.from("game_classes").update({ sort_order: b.sort_order }).eq("id", a.id);
+  await supabaseClient.from("game_classes").update({ sort_order: a.sort_order }).eq("id", b.id);
 
   await refreshCurriculumEverywhere();
 }
@@ -343,7 +378,10 @@ async function handleAddClass() {
   }
 
   setCurriculumStatus("Đang tạo lớp...");
-  var result = await supabaseClient.from("game_classes").insert({ id: genId("c"), name: name, level: level, sort_order: DATA.classes.length });
+  var siblingMaxSort = DATA.classes.reduce(function (max, c) {
+    return c.level === level ? Math.max(max, c.sort_order) : max;
+  }, -1);
+  var result = await supabaseClient.from("game_classes").insert({ id: genId("c"), name: name, level: level, sort_order: siblingMaxSort + 1 });
   if (result.error) {
     setCurriculumStatus("Lỗi tạo lớp: " + result.error.message);
     return;

@@ -888,6 +888,19 @@ html, body {
   color: #1B4332;
 }
 
+.grammar-mcq-passage {
+  font-size: 20px;
+  line-height: 1.6;
+  color: #333;
+  background: #FFF8E7;
+  border: 2px solid #F4A261;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 18px;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
 .vocab-visual-frame {
   overflow: hidden;
   border-radius: 16px;

@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260719zz">
-<link rel="stylesheet" href="css/admin.css?v=20260719zz">
+<link rel="stylesheet" href="../css/style.css?v=20260729b">
+<link rel="stylesheet" href="css/admin.css?v=20260729b">
 </head>
 <body>
 
@@ -462,10 +462,17 @@ What's this? | It's a pen."></textarea>
               <form class="admin-form" id="bulkAddGrammarMcqForm">
                 <h3>Nhập hàng loạt</h3>
                 <p class="admin-hint">
+                  Nếu là bài đọc hiểu (1 đoạn văn dùng chung cho nhiều câu hỏi bên dưới, VD "Read the text and choose the correct answer"),
+                  dán đoạn văn vào ô "Đoạn văn" — đoạn văn sẽ hiện cố định phía trên trong lúc học sinh làm các câu hỏi. Không phải bài đọc thì để trống ô này.
+                </p>
+                <textarea class="admin-textarea" id="bulkGrammarMcqPassage" rows="5" placeholder="(Tuỳ chọn) Dán đoạn văn ở đây nếu các câu hỏi bên dưới đều dựa vào 1 đoạn văn chung, VD:
+My name is Trang Nhi. I'm in class 3A and I'm eight years old. I have three friends. This is Phong. He is in class 3A..."></textarea>
+                <p class="admin-hint">
                   Mỗi câu 3 dòng, cách các câu bằng 1 dòng trống: dòng 1 là câu hỏi (có thể để trống nếu chỉ cần chọn đáp án),
                   dòng 2 <code>Đáp án đúng: ...</code>, dòng 3 <code>Đáp án sai: ...</code> (nhiều đáp án sai cách nhau bằng dấu phẩy).
                   Hệ thống tự xáo trộn vị trí đáp án và thứ tự câu hỏi cho học sinh. Để gạch chân 1 phần chữ, đặt dấu gạch dưới <code>_</code>
                   ở hai đầu phần đó — VD <code>gr_ea_t</code> sẽ hiện "great" với "ea" được gạch chân. Câu sẽ được thêm vào bài đang chọn ở trên.
+                  Dạng Đúng/Sai thì để 2 đáp án: <code>Đáp án đúng: Đúng</code> / <code>Đáp án sai: Sai</code>.
                 </p>
                 <textarea class="admin-textarea" id="bulkGrammarMcqTextarea" rows="10" placeholder="Tom and Lucy are my _________.
 Đáp án đúng: friends
@@ -931,26 +938,26 @@ What is Alex's family name?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260719zz"></script>
-<script src="../js/supabase-config.js?v=20260719zz"></script>
-<script src="js/admin-auth.js?v=20260719zz"></script>
-<script src="../js/curriculum-data.js?v=20260719zz"></script>
-<script src="js/content-admin.js?v=20260719zz"></script>
-<script src="js/sentences-admin.js?v=20260719zz"></script>
-<script src="js/grammar-admin.js?v=20260719zz"></script>
-<script src="js/math-admin.js?v=20260719zz"></script>
-<script src="js/text-dragfill-admin.js?v=20260719zz"></script>
-<script src="js/test-sections-admin.js?v=20260719zz"></script>
-<script src="js/photo-quiz-admin.js?v=20260719zz"></script>
-<script src="js/speaking-admin.js?v=20260719zz"></script>
-<script src="js/wordwall-admin.js?v=20260719zz"></script>
-<script src="js/wordwall-templates-admin.js?v=20260719zz"></script>
-<script src="js/groups-admin.js?v=20260719zz"></script>
-<script src="js/students-admin.js?v=20260719zz"></script>
-<script src="js/assignments-admin.js?v=20260719zz"></script>
-<script src="js/results-admin.js?v=20260719zz"></script>
-<script src="js/activity-toggles-admin.js?v=20260719zz"></script>
-<script src="js/curriculum-admin.js?v=20260719zz"></script>
-<script src="js/admin-app.js?v=20260719zz"></script>
+<script src="../js/data.js?v=20260729b"></script>
+<script src="../js/supabase-config.js?v=20260729b"></script>
+<script src="js/admin-auth.js?v=20260729b"></script>
+<script src="../js/curriculum-data.js?v=20260729b"></script>
+<script src="js/content-admin.js?v=20260729b"></script>
+<script src="js/sentences-admin.js?v=20260729b"></script>
+<script src="js/grammar-admin.js?v=20260729b"></script>
+<script src="js/math-admin.js?v=20260729b"></script>
+<script src="js/text-dragfill-admin.js?v=20260729b"></script>
+<script src="js/test-sections-admin.js?v=20260729b"></script>
+<script src="js/photo-quiz-admin.js?v=20260729b"></script>
+<script src="js/speaking-admin.js?v=20260729b"></script>
+<script src="js/wordwall-admin.js?v=20260729b"></script>
+<script src="js/wordwall-templates-admin.js?v=20260729b"></script>
+<script src="js/groups-admin.js?v=20260729b"></script>
+<script src="js/students-admin.js?v=20260729b"></script>
+<script src="js/assignments-admin.js?v=20260729b"></script>
+<script src="js/results-admin.js?v=20260729b"></script>
+<script src="js/activity-toggles-admin.js?v=20260729b"></script>
+<script src="js/curriculum-admin.js?v=20260729b"></script>
+<script src="js/admin-app.js?v=20260729b"></script>
 </body>
 </html>
