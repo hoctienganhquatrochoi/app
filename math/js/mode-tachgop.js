@@ -10,78 +10,80 @@ MODES.tachgop = {
 
     var subTabs = document.createElement("div");
     subTabs.className = "subtabs";
-    var addBtn = document.createElement("button");
-    addBtn.className = "subtab active";
-    addBtn.type = "button";
-    addBtn.textContent = "➕ Tách / Gộp";
-    var subBtn = document.createElement("button");
-    subBtn.className = "subtab";
-    subBtn.type = "button";
-    subBtn.textContent = "➖ Bớt đi";
-    subTabs.appendChild(addBtn);
-    subTabs.appendChild(subBtn);
+    var tachBtn = document.createElement("button");
+    tachBtn.className = "subtab active";
+    tachBtn.type = "button";
+    tachBtn.textContent = "✂️ Tách";
+    var gopBtn = document.createElement("button");
+    gopBtn.className = "subtab";
+    gopBtn.type = "button";
+    gopBtn.textContent = "➕ Gộp";
+    var truBtn = document.createElement("button");
+    truBtn.className = "subtab";
+    truBtn.type = "button";
+    truBtn.textContent = "➖ Trừ";
+    subTabs.appendChild(tachBtn);
+    subTabs.appendChild(gopBtn);
+    subTabs.appendChild(truBtn);
     wrap.appendChild(subTabs);
 
     var panels = document.createElement("div");
     panels.className = "tachgop-panels";
-    var addPanel = document.createElement("div");
-    addPanel.className = "tachgop-panel active";
-    var subPanel = document.createElement("div");
-    subPanel.className = "tachgop-panel";
-    panels.appendChild(addPanel);
-    panels.appendChild(subPanel);
+    var tachPanel = document.createElement("div");
+    tachPanel.className = "tachgop-panel active";
+    var gopPanel = document.createElement("div");
+    gopPanel.className = "tachgop-panel";
+    var truPanel = document.createElement("div");
+    truPanel.className = "tachgop-panel";
+    panels.appendChild(tachPanel);
+    panels.appendChild(gopPanel);
+    panels.appendChild(truPanel);
     wrap.appendChild(panels);
 
     contentEl.appendChild(wrap);
 
-    renderSplitAddition(num, addPanel, true);
-    renderSplitSubtraction(num, subPanel, false);
+    renderTach(num, tachPanel, true);
+    renderGop(num, gopPanel, false);
+    renderTru(num, truPanel, false);
 
-    addBtn.addEventListener("click", function () {
-      addBtn.classList.add("active");
-      subBtn.classList.remove("active");
-      addPanel.classList.add("active");
-      subPanel.classList.remove("active");
-    });
-    subBtn.addEventListener("click", function () {
-      subBtn.classList.add("active");
-      addBtn.classList.remove("active");
-      subPanel.classList.add("active");
-      addPanel.classList.remove("active");
-    });
+    var tabs = [tachBtn, gopBtn, truBtn];
+    var thePanels = [tachPanel, gopPanel, truPanel];
+    function activate(idx) {
+      for (var i = 0; i < tabs.length; i++) {
+        tabs[i].classList.toggle("active", i === idx);
+        thePanels[i].classList.toggle("active", i === idx);
+      }
+    }
+    tachBtn.addEventListener("click", function () { activate(0); });
+    gopBtn.addEventListener("click", function () { activate(1); });
+    truBtn.addEventListener("click", function () { activate(2); });
   }
 };
 
-// Draws a target's target-count 1..num in shuffled order, one full cycle before repeating any
-// value, so a student who keeps hitting "Làm tiếp" is guaranteed to eventually see every case.
-var subtractionTargetBags = {};
+// Shuffled bags so every split/target case shows up once before any repeats.
+var tachBags = {};
+var gopBags = {};
+var truBags = {};
 
-function nextSubtractionTarget(num) {
-  var bag = subtractionTargetBags[num];
-  if (!bag || bag.length === 0) {
-    bag = [];
-    for (var i = 1; i <= num; i++) {
-      bag.push(i);
-    }
-    for (var i = bag.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = bag[i];
-      bag[i] = bag[j];
-      bag[j] = tmp;
-    }
-    subtractionTargetBags[num] = bag;
+function splitPairs(num) {
+  var pairs = [];
+  for (var a = 1; a < num; a++) {
+    pairs.push([a, num - a]);
   }
-  return bag.pop();
+  return pairs;
 }
 
-function renderSplitAddition(num, body, autoSpeak) {
+// ---------- Tách: split N into Phần 1 / Phần 2 with a specific target ----------
+function renderTach(num, body, autoSpeak) {
   body.innerHTML = "";
   var icon = randomIcon();
   var startedAt = new Date();
+  var pair = nextFromBag(tachBags, num, function () { return splitPairs(num); });
+  var targetA = pair[0], targetB = pair[1];
 
-  var speakText = "Kéo " + numberToWords(num) + " " + icon.name + " chia làm 2 phần nhé";
+  var speakText = "Tách " + numberToWords(num) + " thành " + numberToWords(targetA) + " và " + numberToWords(targetB) + " nhé";
   body.appendChild(buildPromptRow(
-    "Kéo <b>" + num + "</b> " + icon.name + " chia làm 2 phần nhé!",
+    "Tách <b>" + num + "</b> thành <b>" + targetA + "</b> và <b>" + targetB + "</b> nhé!",
     speakText
   ));
 
@@ -125,7 +127,10 @@ function renderSplitAddition(num, body, autoSpeak) {
     item.className = "drag-icon " + sizeClass;
     item.innerHTML = icon.svg;
     pool.appendChild(item);
-    makeDraggable(item, function () { return [pool, boxAItems, boxBItems]; }, updateEquation);
+    makeDraggable(item, function () { return [pool, boxAItems, boxBItems]; }, function () {
+      syncPlaceholders(pool, num, icon.svg, sizeClass);
+      updateEquation();
+    });
   }
 
   var actionRow = document.createElement("div");
@@ -143,33 +148,168 @@ function renderSplitAddition(num, body, autoSpeak) {
   nextBtn.type = "button";
   nextBtn.textContent = "🔁 Làm tiếp";
   nextBtn.style.display = "none";
-  nextBtn.addEventListener("click", function () {
-    renderSplitAddition(num, body, true);
-  });
+  nextBtn.addEventListener("click", function () { renderTach(num, body, true); });
   actionRow.appendChild(nextBtn);
 
   var resultEl = document.createElement("div");
   resultEl.className = "result-msg";
   body.appendChild(resultEl);
 
-  var equationStyle = Math.random() < 0.5;
+  function realCount(el) {
+    return el.querySelectorAll(".drag-icon:not(.used-placeholder)").length;
+  }
 
   function updateEquation() {
-    var a = boxAItems.children.length;
-    var b = boxBItems.children.length;
-    if (pool.children.length === 0) {
-      equation.textContent = equationStyle ? (num + " = " + a + " + " + b) : (a + " + " + b + " = " + num);
+    var a = realCount(boxAItems);
+    var b = realCount(boxBItems);
+    if (realCount(pool) === 0) {
+      equation.textContent = a + " + " + b + " = " + num;
     } else {
       equation.textContent = "";
     }
   }
 
   doneBtn.addEventListener("click", function () {
-    var a = boxAItems.children.length;
-    var b = boxBItems.children.length;
-    var correct = pool.children.length === 0;
+    var a = realCount(boxAItems);
+    var b = realCount(boxBItems);
+    var correct = a === targetA && b === targetB;
     if (!correct) {
-      resultEl.textContent = "❌ Kéo hết hình chia vào 2 phần nhé, đừng để sót trong kho!";
+      resultEl.textContent = "❌ Cần tách đúng " + targetA + " và " + targetB + ", thử lại nhé!";
+      resultEl.className = "result-msg is-wrong";
+      playResultSound(false);
+      return;
+    }
+    resultEl.textContent = "✅ " + num + " = " + a + " + " + b;
+    resultEl.className = "result-msg is-correct";
+    doneBtn.style.display = "none";
+    nextBtn.style.display = "";
+    speak(numberToWords(num) + " bằng " + numberToWords(a) + " cộng " + numberToWords(b));
+    submitMathAttempt("math-tach", 1, 1, startedAt, [{ number: num, a: a, b: b }]);
+  });
+
+  if (autoSpeak) {
+    speak(speakText);
+  }
+}
+
+// ---------- Gộp: pick specific counts from 2 colored source shelves, combine, read total ----------
+function renderGop(num, body, autoSpeak) {
+  body.innerHTML = "";
+  var icons = randomIconPair();
+  var icon1 = icons[0], icon2 = icons[1];
+  var startedAt = new Date();
+  var pair = nextFromBag(gopBags, num, function () { return splitPairs(num); });
+  var targetA = pair[0], targetB = pair[1];
+  var SHELF_SIZE = 10;
+
+  var speakText = "Lấy " + numberToWords(targetA) + " " + icon1.name + " ở ô 1 và " + numberToWords(targetB) + " " + icon2.name + " ở ô 2, gộp lại nhé";
+  body.appendChild(buildPromptRow(
+    "Lấy <b>" + targetA + "</b> " + icon1.name + " ở ô 1 và <b>" + targetB + "</b> " + icon2.name + " ở ô 2, kéo xuống gộp lại nhé!",
+    speakText
+  ));
+
+  var shelvesWrap = document.createElement("div");
+  shelvesWrap.className = "tachgop-boxes";
+
+  var shelf1 = document.createElement("div");
+  shelf1.className = "drop-pool tachgop-box-items tachgop-rect-box";
+  var shelf1Box = document.createElement("div");
+  shelf1Box.className = "tachgop-box";
+  shelf1Box.innerHTML = '<div class="section-label">Ô 1</div>';
+  shelf1Box.appendChild(shelf1);
+
+  var shelf2 = document.createElement("div");
+  shelf2.className = "drop-pool tachgop-box-items tachgop-rect-box";
+  var shelf2Box = document.createElement("div");
+  shelf2Box.className = "tachgop-box";
+  shelf2Box.innerHTML = '<div class="section-label">Ô 2</div>';
+  shelf2Box.appendChild(shelf2);
+
+  shelvesWrap.appendChild(shelf1Box);
+  shelvesWrap.appendChild(shelf2Box);
+  body.appendChild(shelvesWrap);
+
+  var resultLabel = document.createElement("div");
+  resultLabel.className = "section-label";
+  resultLabel.textContent = "Gộp lại:";
+  body.appendChild(resultLabel);
+
+  var resultBox = document.createElement("div");
+  resultBox.className = "drop-pool tachgop-rect-box";
+  body.appendChild(resultBox);
+
+  var equation = document.createElement("div");
+  equation.className = "tachgop-equation";
+  body.appendChild(equation);
+
+  var sizeClass = iconSizeClass(SHELF_SIZE);
+
+  for (var i = 0; i < SHELF_SIZE; i++) {
+    var item1 = document.createElement("div");
+    item1.className = "drag-icon " + sizeClass;
+    item1.innerHTML = icon1.svg;
+    item1.dataset.origin = "shelf1";
+    shelf1.appendChild(item1);
+    makeDraggable(item1, function () { return [shelf1, resultBox]; }, function () {
+      syncPlaceholders(shelf1, SHELF_SIZE, icon1.svg, sizeClass);
+      updateEquation();
+    });
+  }
+
+  for (var j = 0; j < SHELF_SIZE; j++) {
+    var item2 = document.createElement("div");
+    item2.className = "drag-icon " + sizeClass;
+    item2.innerHTML = icon2.svg;
+    item2.dataset.origin = "shelf2";
+    shelf2.appendChild(item2);
+    makeDraggable(item2, function () { return [shelf2, resultBox]; }, function () {
+      syncPlaceholders(shelf2, SHELF_SIZE, icon2.svg, sizeClass);
+      updateEquation();
+    });
+  }
+
+  var actionRow = document.createElement("div");
+  actionRow.className = "tachgop-action-row";
+  body.appendChild(actionRow);
+
+  var doneBtn = document.createElement("button");
+  doneBtn.className = "primary-btn";
+  doneBtn.type = "button";
+  doneBtn.textContent = "✅ Hoàn thành";
+  actionRow.appendChild(doneBtn);
+
+  var nextBtn = document.createElement("button");
+  nextBtn.className = "primary-btn next-btn";
+  nextBtn.type = "button";
+  nextBtn.textContent = "🔁 Làm tiếp";
+  nextBtn.style.display = "none";
+  nextBtn.addEventListener("click", function () { renderGop(num, body, true); });
+  actionRow.appendChild(nextBtn);
+
+  var resultEl = document.createElement("div");
+  resultEl.className = "result-msg";
+  body.appendChild(resultEl);
+
+  function countInResult(origin) {
+    return resultBox.querySelectorAll('[data-origin="' + origin + '"]').length;
+  }
+
+  function updateEquation() {
+    var a = countInResult("shelf1");
+    var b = countInResult("shelf2");
+    if (a > 0 || b > 0) {
+      equation.textContent = a + " + " + b + " = " + (a + b);
+    } else {
+      equation.textContent = "";
+    }
+  }
+
+  doneBtn.addEventListener("click", function () {
+    var a = countInResult("shelf1");
+    var b = countInResult("shelf2");
+    var correct = a === targetA && b === targetB;
+    if (!correct) {
+      resultEl.textContent = "❌ Cần lấy đúng " + targetA + " ở ô 1 và " + targetB + " ở ô 2, thử lại nhé!";
       resultEl.className = "result-msg is-wrong";
       playResultSound(false);
       return;
@@ -178,8 +318,8 @@ function renderSplitAddition(num, body, autoSpeak) {
     resultEl.className = "result-msg is-correct";
     doneBtn.style.display = "none";
     nextBtn.style.display = "";
-    speak(numberToWords(num) + " bằng " + numberToWords(a) + " cộng " + numberToWords(b));
-    submitMathAttempt("math-tachgop-cong", 1, 1, startedAt, [{ number: num, a: a, b: b }]);
+    speak(numberToWords(a) + " cộng " + numberToWords(b) + " bằng " + numberToWords(num));
+    submitMathAttempt("math-gop", 1, 1, startedAt, [{ number: num, a: a, b: b }]);
   });
 
   if (autoSpeak) {
@@ -187,11 +327,18 @@ function renderSplitAddition(num, body, autoSpeak) {
   }
 }
 
-function renderSplitSubtraction(num, body, autoSpeak) {
+// ---------- Trừ: drag a specific count out of "Ô ban đầu" into "Đã lấy ra" ----------
+function renderTru(num, body, autoSpeak) {
   body.innerHTML = "";
   var icon = randomIcon();
   var startedAt = new Date();
-  var target = nextSubtractionTarget(num);
+  var target = nextFromBag(truBags, num, function () {
+    var arr = [];
+    for (var i = 1; i <= num; i++) {
+      arr.push(i);
+    }
+    return arr;
+  });
 
   var speakText = "Kéo bớt " + numberToWords(target) + " " + icon.name + " sang ô bên cạnh nhé";
   body.appendChild(buildPromptRow(
@@ -227,7 +374,10 @@ function renderSplitSubtraction(num, body, autoSpeak) {
     item.className = "drag-icon " + sizeClass;
     item.innerHTML = icon.svg;
     mainWrap.appendChild(item);
-    makeDraggable(item, function () { return [mainWrap, removedBox]; }, updateEquation);
+    makeDraggable(item, function () { return [mainWrap, removedBox]; }, function () {
+      syncPlaceholders(mainWrap, num, icon.svg, sizeClass);
+      updateEquation();
+    });
   }
 
   var actionRow = document.createElement("div");
@@ -245,24 +395,26 @@ function renderSplitSubtraction(num, body, autoSpeak) {
   nextBtn.type = "button";
   nextBtn.textContent = "🔁 Làm tiếp";
   nextBtn.style.display = "none";
-  nextBtn.addEventListener("click", function () {
-    renderSplitSubtraction(num, body, true);
-  });
+  nextBtn.addEventListener("click", function () { renderTru(num, body, true); });
   actionRow.appendChild(nextBtn);
 
   var resultEl = document.createElement("div");
   resultEl.className = "result-msg";
   body.appendChild(resultEl);
 
+  function realCount(el) {
+    return el.querySelectorAll(".drag-icon:not(.used-placeholder)").length;
+  }
+
   function updateEquation() {
-    var removed = removedBox.children.length;
-    var remain = mainWrap.children.length;
+    var removed = realCount(removedBox);
+    var remain = num - removed;
     equation.textContent = (removed > 0) ? (num + " - " + removed + " = " + remain) : "";
   }
 
   doneBtn.addEventListener("click", function () {
-    var removed = removedBox.children.length;
-    var remain = mainWrap.children.length;
+    var removed = realCount(removedBox);
+    var remain = num - removed;
     var correct = removed === target;
     if (!correct) {
       resultEl.textContent = "❌ Cần kéo đúng " + target + " hình sang ô bên, hiện đang có " + removed + ", thử lại nhé!";

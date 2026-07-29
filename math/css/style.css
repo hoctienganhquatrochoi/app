@@ -488,6 +488,26 @@ body[data-mode="nangcao"] .number-pill { color: var(--m-nangcao-deep); }
   transform: rotate(-30deg);
 }
 
+.drag-icon.used-placeholder {
+  position: relative;
+  opacity: 0.35;
+  cursor: default;
+  box-shadow: none;
+}
+
+.drag-icon.used-placeholder::after {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 50%;
+  height: 5px;
+  margin-top: -2.5px;
+  background: #E63946;
+  border-radius: 3px;
+  transform: rotate(-30deg);
+}
+
 .tachgop-rect-box {
   background: #FFF8F0;
   border: 3px solid var(--coral);

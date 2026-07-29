@@ -33,6 +33,51 @@ function randomIcon() {
   return ICON_SETS[Math.floor(Math.random() * ICON_SETS.length)];
 }
 
+// Two distinct colors, for exercises with two separate groups (e.g. Nâng cao, Gộp).
+function randomIconPair() {
+  var i1 = Math.floor(Math.random() * ICON_SETS.length);
+  var i2 = Math.floor(Math.random() * (ICON_SETS.length - 1));
+  if (i2 >= i1) {
+    i2++;
+  }
+  return [ICON_SETS[i1], ICON_SETS[i2]];
+}
+
+// Pulls one value from a shuffled "bag" so every possibility in generateItems() shows up
+// once before any repeats. bagStore/key let callers keep a separate bag per number/anchor.
+function nextFromBag(bagStore, key, generateItems) {
+  var bag = bagStore[key];
+  if (!bag || bag.length === 0) {
+    bag = generateItems().slice();
+    for (var i = bag.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = bag[i];
+      bag[i] = bag[j];
+      bag[j] = tmp;
+    }
+    bagStore[key] = bag;
+  }
+  return bagStore[key].pop();
+}
+
+// Keeps a source pool showing its full original count even as real items get dragged out:
+// removes old fade markers, then tops back up with faded/crossed placeholders so
+// (real items) + (placeholders) === originalCount. Call after every drag in that pool.
+function syncPlaceholders(poolEl, originalCount, iconSvg, sizeClass) {
+  var existing = poolEl.querySelectorAll(".used-placeholder");
+  for (var i = 0; i < existing.length; i++) {
+    existing[i].remove();
+  }
+  var realCount = poolEl.querySelectorAll(".drag-icon:not(.used-placeholder)").length;
+  var missing = originalCount - realCount;
+  for (var j = 0; j < missing; j++) {
+    var ph = document.createElement("div");
+    ph.className = "drag-icon used-placeholder " + (sizeClass || "");
+    ph.innerHTML = iconSvg;
+    poolEl.appendChild(ph);
+  }
+}
+
 // Shrink icons a bit once a group needs more than one row, so bigger counts don't push
 // the rest of the screen (basket, done button) out of view.
 function iconSizeClass(count) {
