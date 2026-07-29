@@ -884,27 +884,7 @@ async function openDemoClass(cls) {
   document.getElementById("sidebar").classList.add("mobile-open");
 }
 
-async function renderSitePopup() {
-  if (sessionStorage.getItem("efkPopupDismissed") === "yes") {
-    return;
-  }
-
-  var result = await supabaseClient.from("game_admin_settings")
-    .select("banner_image_url, banner_link_url, popup_title, popup_subtitle, popup_button_text")
-    .eq("id", 1).maybeSingle();
-  var data = result.data;
-  if (!data || (!data.banner_image_url && !data.popup_title)) {
-    return;
-  }
-
-  var overlay = document.createElement("div");
-  overlay.className = "site-popup-overlay";
-
-  function closePopup() {
-    sessionStorage.setItem("efkPopupDismissed", "yes");
-    overlay.remove();
-  }
-
+function buildPopupCard(overlay, closePopup) {
   var card = document.createElement("div");
   card.className = "site-popup-card";
 
@@ -914,6 +894,75 @@ async function renderSitePopup() {
   closeBtn.textContent = "×";
   closeBtn.addEventListener("click", closePopup);
   card.appendChild(closeBtn);
+
+  overlay.appendChild(card);
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay) {
+      closePopup();
+    }
+  });
+  return card;
+}
+
+function showDemoClassPopup(cls) {
+  var overlay = document.createElement("div");
+  overlay.className = "site-popup-overlay";
+
+  function closePopup() {
+    sessionStorage.setItem("efkPopupDismissed", "yes");
+    overlay.remove();
+  }
+
+  var card = buildPopupCard(overlay, closePopup);
+
+  var icon = document.createElement("div");
+  icon.className = "site-popup-icon";
+  icon.textContent = "🎁";
+  card.appendChild(icon);
+
+  var title = document.createElement("h3");
+  title.className = "site-popup-title";
+  title.textContent = "Đang mở demo miễn phí!";
+  card.appendChild(title);
+
+  var subtitle = document.createElement("p");
+  subtitle.className = "site-popup-subtitle";
+  subtitle.textContent = "Trải nghiệm ngay chương trình " + cls.name + " — không cần tài khoản.";
+  card.appendChild(subtitle);
+
+  var btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "site-popup-btn";
+  btn.textContent = "Thử ngay →";
+  btn.addEventListener("click", function () {
+    closePopup();
+    openDemoClass(cls);
+  });
+  card.appendChild(btn);
+
+  var dismiss = document.createElement("a");
+  dismiss.className = "site-popup-dismiss";
+  dismiss.href = "#";
+  dismiss.textContent = "Để sau";
+  dismiss.addEventListener("click", function (e) {
+    e.preventDefault();
+    closePopup();
+  });
+  card.appendChild(dismiss);
+
+  document.body.appendChild(overlay);
+}
+
+function showCustomAdPopup(data) {
+  var overlay = document.createElement("div");
+  overlay.className = "site-popup-overlay";
+
+  function closePopup() {
+    sessionStorage.setItem("efkPopupDismissed", "yes");
+    overlay.remove();
+  }
+
+  var card = buildPopupCard(overlay, closePopup);
 
   if (data.banner_image_url) {
     var img = document.createElement("img");
@@ -971,51 +1020,35 @@ async function renderSitePopup() {
     card.appendChild(dismiss);
   }
 
-  overlay.appendChild(card);
-  overlay.addEventListener("click", function (e) {
-    if (e.target === overlay) {
-      closePopup();
-    }
-  });
   document.body.appendChild(overlay);
 }
 
-function renderDemoBanner() {
-  var wrap = document.getElementById("demoBannerWrap");
-  wrap.innerHTML = "";
-  var demoClasses = DATA.classes.filter(classHasActiveDemo);
-  if (!demoClasses.length) {
+async function renderHomePopup() {
+  if (sessionStorage.getItem("efkPopupDismissed") === "yes") {
     return;
   }
 
-  demoClasses.forEach(function (cls) {
-    var banner = document.createElement("div");
-    banner.className = "demo-banner";
+  var demoClass = DATA.classes.filter(classHasActiveDemo)[0];
+  if (demoClass) {
+    showDemoClassPopup(demoClass);
+    return;
+  }
 
-    var text = document.createElement("span");
-    text.className = "demo-banner-text";
-    text.textContent = "🎁 Đang mở demo miễn phí: " + cls.name + " — trải nghiệm ngay, không cần tài khoản!";
-    banner.appendChild(text);
-
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "demo-banner-btn";
-    btn.textContent = "Thử ngay →";
-    btn.addEventListener("click", function () {
-      openDemoClass(cls);
-    });
-    banner.appendChild(btn);
-
-    wrap.appendChild(banner);
-  });
+  var result = await supabaseClient.from("game_admin_settings")
+    .select("banner_image_url, banner_link_url, popup_title, popup_subtitle, popup_button_text")
+    .eq("id", 1).maybeSingle();
+  var data = result.data;
+  if (!data || (!data.banner_image_url && !data.popup_title)) {
+    return;
+  }
+  showCustomAdPopup(data);
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("sidebar").innerHTML = '<div class="placeholder">Đang tải...</div>';
 
   await loadCurriculumData();
-  renderDemoBanner();
-  renderSitePopup();
+  renderHomePopup();
 
   var matched = applyUrlHash();
   if (!matched) {
