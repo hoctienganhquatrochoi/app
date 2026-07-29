@@ -103,7 +103,7 @@ async function loadCurriculumData() {
     testSectionsByUnit[row.unit_id].push(row);
   });
   var classes = (classesResult.data || []).map(function (row) {
-    return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order };
+    return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order, demo_until: row.demo_until || null };
   });
 
   var subjectsByClass = {};

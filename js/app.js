@@ -439,8 +439,15 @@ function buildUnitItem(unit) {
   return wrap;
 }
 
+function classHasActiveDemo(cls) {
+  return !!(cls && cls.demo_until && new Date(cls.demo_until) > new Date());
+}
+
 function unitHasAccess(unit) {
   if (unit.is_demo) {
+    return true;
+  }
+  if (classHasActiveDemo(findClassById(unit.class_id))) {
     return true;
   }
   if (!currentStudent) {
@@ -831,10 +838,113 @@ function applyUrlHash() {
   return true;
 }
 
+function findFirstUnitForClass(cls) {
+  var subjects = DATA.subjectsByClass[cls.id] || [];
+  var s, c;
+  for (s = 0; s < subjects.length; s++) {
+    var subj = subjects[s];
+    if (subj.chapters && subj.chapters.length) {
+      for (c = 0; c < subj.chapters.length; c++) {
+        if (subj.chapters[c].units.length) {
+          return subj.chapters[c].units[0];
+        }
+      }
+    }
+    var ungrouped = subj.units.filter(function (u) { return !u.chapter_id; });
+    if (ungrouped.length) {
+      return ungrouped[0];
+    }
+  }
+  return null;
+}
+
+async function openDemoClass(cls) {
+  state.selectedClassId = cls.id;
+  state.openSubjectId = null;
+  state.openChapterId = null;
+  state.openUnitId = null;
+  state.selectedActivity = null;
+
+  var firstUnit = findFirstUnitForClass(cls);
+  if (firstUnit) {
+    state.openSubjectId = firstUnit.subject_id;
+    state.openChapterId = firstUnit.chapter_id || null;
+    state.openUnitId = firstUnit.id;
+    var firstActivity = (firstUnit.activities || []).filter(function (a) { return !a.locked; })[0];
+    if (firstActivity) {
+      state.selectedActivity = { unit: firstUnit, activity: firstActivity };
+    }
+    await loadUnitDisabledActivities(firstUnit.id);
+  } else {
+    renderSidebar();
+  }
+
+  renderMainContent();
+  updateUrlHash();
+  document.getElementById("sidebar").classList.add("mobile-open");
+}
+
+async function renderSiteBanner() {
+  var wrap = document.getElementById("siteBannerWrap");
+  wrap.innerHTML = "";
+  var result = await supabaseClient.from("game_admin_settings").select("banner_image_url, banner_link_url").eq("id", 1).maybeSingle();
+  if (!result.data || !result.data.banner_image_url) {
+    return;
+  }
+
+  var img = document.createElement("img");
+  img.src = result.data.banner_image_url;
+  img.className = "site-banner-img";
+  img.alt = "";
+
+  if (result.data.banner_link_url) {
+    var link = document.createElement("a");
+    link.href = result.data.banner_link_url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.appendChild(img);
+    wrap.appendChild(link);
+  } else {
+    wrap.appendChild(img);
+  }
+}
+
+function renderDemoBanner() {
+  var wrap = document.getElementById("demoBannerWrap");
+  wrap.innerHTML = "";
+  var demoClasses = DATA.classes.filter(classHasActiveDemo);
+  if (!demoClasses.length) {
+    return;
+  }
+
+  demoClasses.forEach(function (cls) {
+    var banner = document.createElement("div");
+    banner.className = "demo-banner";
+
+    var text = document.createElement("span");
+    text.className = "demo-banner-text";
+    text.textContent = "🎁 Đang mở demo miễn phí: " + cls.name + " — trải nghiệm ngay, không cần tài khoản!";
+    banner.appendChild(text);
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "demo-banner-btn";
+    btn.textContent = "Thử ngay →";
+    btn.addEventListener("click", function () {
+      openDemoClass(cls);
+    });
+    banner.appendChild(btn);
+
+    wrap.appendChild(banner);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("sidebar").innerHTML = '<div class="placeholder">Đang tải...</div>';
 
   await loadCurriculumData();
+  renderDemoBanner();
+  renderSiteBanner();
 
   var matched = applyUrlHash();
   if (!matched) {

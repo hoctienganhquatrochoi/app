@@ -401,6 +401,12 @@ tr.editing-row {
   color: #8A5A00;
 }
 
+.status-demo {
+  background: #FDE2C8;
+  color: #B5590A;
+  margin-right: 8px;
+}
+
 .status-expired {
   background: #FBE0E0;
   color: #8A1F1F;

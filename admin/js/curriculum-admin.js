@@ -53,6 +53,42 @@ var CLASS_LEVEL_OPTIONS = [
   ["ielts", "IELTS"]
 ];
 
+function classHasActiveDemo(cls) {
+  return !!(cls && cls.demo_until && new Date(cls.demo_until) > new Date());
+}
+
+function formatShortDate(isoStr) {
+  var d = new Date(isoStr);
+  var dd = d.getDate() < 10 ? "0" + d.getDate() : "" + d.getDate();
+  var mm = (d.getMonth() + 1) < 10 ? "0" + (d.getMonth() + 1) : "" + (d.getMonth() + 1);
+  return dd + "/" + mm;
+}
+
+async function handleToggleClassDemo(cls) {
+  if (classHasActiveDemo(cls)) {
+    if (!window.confirm("Tắt demo cho lớp \"" + cls.name + "\" ngay bây giờ?")) {
+      return;
+    }
+    await supabaseClient.from("game_classes").update({ demo_until: null }).eq("id", cls.id);
+    await refreshCurriculumEverywhere();
+    return;
+  }
+
+  var daysStr = window.prompt("Mở demo cho lớp \"" + cls.name + "\" trong bao nhiêu ngày?", "7");
+  if (!daysStr) {
+    return;
+  }
+  var days = parseInt(daysStr, 10);
+  if (!days || days <= 0) {
+    window.alert("Số ngày không hợp lệ");
+    return;
+  }
+  var until = new Date();
+  until.setDate(until.getDate() + days);
+  await supabaseClient.from("game_classes").update({ demo_until: until.toISOString() }).eq("id", cls.id);
+  await refreshCurriculumEverywhere();
+}
+
 function classLevelLabel(level) {
   var i;
   for (i = 0; i < CLASS_LEVEL_OPTIONS.length; i++) {
@@ -248,7 +284,7 @@ function renderClassList() {
   groupClassesByLevel().forEach(function (group) {
     var headerRow = document.createElement("tr");
     var headerTd = document.createElement("td");
-    headerTd.colSpan = 4;
+    headerTd.colSpan = 5;
     headerTd.className = "class-level-group-header";
     headerTd.textContent = group.label;
     headerRow.appendChild(headerTd);
@@ -275,6 +311,19 @@ function buildClassRow(cls, idxInGroup, groupLength) {
   badge.textContent = classLevelLabel(cls.level);
   badgeTd.appendChild(badge);
   tr.appendChild(badgeTd);
+
+  var demoTd = document.createElement("td");
+  var demoActive = classHasActiveDemo(cls);
+  if (demoActive) {
+    var demoBadge = document.createElement("span");
+    demoBadge.className = "status-badge status-demo";
+    demoBadge.textContent = "🎁 Demo đến " + formatShortDate(cls.demo_until);
+    demoTd.appendChild(demoBadge);
+  }
+  demoTd.appendChild(buildActionBtn(demoActive ? "Tắt demo" : "🎁 Mở demo", demoActive ? "admin-btn-danger" : "admin-btn-secondary", function () {
+    handleToggleClassDemo(cls);
+  }));
+  tr.appendChild(demoTd);
 
   var moveTd = document.createElement("td");
   var upBtn = buildActionBtn("↑", "admin-btn-secondary", function () { moveClass(cls.id, -1); });
@@ -325,6 +374,7 @@ function buildClassEditRow(cls) {
   levelTd.appendChild(levelSelect);
   tr.appendChild(levelTd);
 
+  tr.appendChild(document.createElement("td"));
   tr.appendChild(document.createElement("td"));
 
   var actionTd = document.createElement("td");

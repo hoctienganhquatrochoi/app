@@ -192,6 +192,76 @@ async function uploadAndSetVocabImage(vocabId, unitId, file) {
   loadVocabTable();
 }
 
+async function loadSiteBannerSettings() {
+  var result = await supabaseClient.from("game_admin_settings").select("banner_image_url, banner_link_url").eq("id", 1).maybeSingle();
+  var previewWrap = document.getElementById("siteBannerPreviewWrap");
+  previewWrap.innerHTML = "";
+  var linkInput = document.getElementById("siteBannerLinkInput");
+  if (result.data && result.data.banner_image_url) {
+    var img = document.createElement("img");
+    img.src = result.data.banner_image_url;
+    img.style.cssText = "max-width: 100%; max-height: 120px; display: block; margin-bottom: 8px; border-radius: 8px;";
+    previewWrap.appendChild(img);
+    linkInput.value = result.data.banner_link_url || "";
+  } else {
+    linkInput.value = "";
+  }
+}
+
+async function handleUploadSiteBanner() {
+  var fileInput = document.getElementById("siteBannerFileInput");
+  var file = fileInput.files[0];
+  var statusEl = document.getElementById("siteBannerStatus");
+  if (!file) {
+    window.alert("Chọn 1 ảnh trước đã");
+    return;
+  }
+
+  statusEl.textContent = "Đang tải lên...";
+  var path = "_site/banner_" + Date.now() + "." + fileExtension(file);
+  var uploadResult = await supabaseClient.storage.from("vocab-images").upload(path, file, { contentType: file.type, upsert: true });
+  if (uploadResult.error) {
+    statusEl.textContent = "Lỗi tải lên: " + uploadResult.error.message;
+    return;
+  }
+
+  var publicUrlResult = supabaseClient.storage.from("vocab-images").getPublicUrl(path);
+  var result = await supabaseClient.from("game_admin_settings").update({ banner_image_url: publicUrlResult.data.publicUrl }).eq("id", 1);
+  if (result.error) {
+    statusEl.textContent = "Lỗi lưu: " + result.error.message;
+    return;
+  }
+
+  fileInput.value = "";
+  statusEl.textContent = "Đã tải banner lên.";
+  await loadSiteBannerSettings();
+}
+
+async function handleSaveSiteBannerLink() {
+  var link = document.getElementById("siteBannerLinkInput").value.trim();
+  var statusEl = document.getElementById("siteBannerStatus");
+  var result = await supabaseClient.from("game_admin_settings").update({ banner_link_url: link || null }).eq("id", 1);
+  if (result.error) {
+    statusEl.textContent = "Lỗi lưu link: " + result.error.message;
+    return;
+  }
+  statusEl.textContent = "Đã lưu link.";
+}
+
+async function handleRemoveSiteBanner() {
+  if (!window.confirm("Xóa banner quảng cáo trang chủ?")) {
+    return;
+  }
+  var statusEl = document.getElementById("siteBannerStatus");
+  var result = await supabaseClient.from("game_admin_settings").update({ banner_image_url: null, banner_link_url: null }).eq("id", 1);
+  if (result.error) {
+    statusEl.textContent = "Lỗi xóa: " + result.error.message;
+    return;
+  }
+  statusEl.textContent = "Đã xóa banner.";
+  await loadSiteBannerSettings();
+}
+
 function makeImageTd(row) {
   var td = document.createElement("td");
   td.className = "admin-image-cell";

@@ -84,6 +84,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     setVocabTogglesEnabled(false);
   });
   document.getElementById("bulkAddForm").addEventListener("submit", handleBulkAdd);
+  document.getElementById("uploadSiteBannerBtn").addEventListener("click", handleUploadSiteBanner);
+  document.getElementById("saveSiteBannerLinkBtn").addEventListener("click", handleSaveSiteBannerLink);
+  document.getElementById("removeSiteBannerBtn").addEventListener("click", handleRemoveSiteBanner);
+  loadSiteBannerSettings();
   document.getElementById("backfillViAudioBtn").addEventListener("click", handleBackfillViAudio);
   document.getElementById("stopBackfillViAudioBtn").addEventListener("click", handleStopBackfillViAudio);
   document.getElementById("bulkAddSentenceForm").addEventListener("submit", handleBulkAddSentences);
