@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1-2-3 Toán Mầm Non Trực Quan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=5">
+</head>
+<body>
+
+<header class="banner">
+  <div class="banner-left">
+    <div class="logo-badge">
+      <div class="logo-badge-numbers"><span style="color:#EF5350">1</span><span style="color:#26C6DA">2</span><span style="color:#AB47BC">3</span></div>
+      <div class="logo-badge-shapes">
+        <span class="shape-dot" style="background:#FFA726"></span>
+        <span class="shape-dot" style="background:#66BB6A"></span>
+        <span class="shape-dot" style="background:#42A5F5"></span>
+        <span class="shape-dot" style="background:#EC407A"></span>
+      </div>
+    </div>
+    <div class="brand-text">
+      <div class="brand-name">TOÁN MẦM NON<br>TRỰC QUAN</div>
+    </div>
+  </div>
+  <nav class="mode-tabs" id="modeTabs"></nav>
+  <div id="authArea"></div>
+</header>
+
+<div id="lockedNotice" class="locked-notice" style="display:none">
+  <div class="locked-notice-box">
+    <div class="locked-notice-icon">🔒</div>
+    <div class="locked-notice-title">Cần đăng nhập để bắt đầu học nhé!</div>
+    <div class="locked-notice-sub">Hỏi cô giáo để lấy tài khoản và mã PIN.</div>
+    <button class="login-btn locked-notice-btn" type="button" onclick="openLoginModal()">Đăng nhập học sinh</button>
+  </div>
+</div>
+
+<div id="appMain" style="display:none">
+  <div class="number-picker" id="numberPicker"></div>
+  <div class="content-area" id="content"></div>
+</div>
+
+<div class="login-modal-overlay" id="loginModalOverlay" style="display:none">
+  <div class="login-modal">
+    <h3>Đăng nhập học sinh</h3>
+    <div class="admin-field">
+      <label>Tài khoản</label>
+      <input type="text" id="loginUsername">
+    </div>
+    <div class="admin-field">
+      <label>Mã PIN</label>
+      <div class="password-input-wrap">
+        <input type="password" id="loginPin">
+        <button type="button" class="password-toggle-btn" data-target="loginPin">👁️</button>
+      </div>
+    </div>
+    <div class="login-modal-status" id="loginStatus"></div>
+    <div class="login-modal-actions">
+      <button class="login-modal-btn login-modal-btn-cancel" id="loginCancelBtn" type="button">Hủy</button>
+      <button class="login-modal-btn login-modal-btn-submit" id="loginSubmitBtn" type="button">Đăng nhập</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js?v=2"></script>
+<script src="js/auth.js?v=2"></script>
+<script src="js/utils.js?v=2"></script>
+<script src="js/drag.js?v=2"></script>
+<script src="js/app.js?v=3"></script>
+<script src="js/mode-hocso.js?v=2"></script>
+<script src="js/mode-tapdem.js?v=2"></script>
+<script src="js/mode-tachgop.js?v=2"></script>
+<script src="js/mode-nangcao.js?v=2"></script>
+</body>
+</html>
