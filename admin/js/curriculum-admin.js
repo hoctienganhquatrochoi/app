@@ -157,6 +157,7 @@ function populateUnitSubjectPicker(prefix) {
   }
   if (prefix === "add") {
     updateAddUnitSubjectFieldVisibility();
+    populateUnitChapterPicker();
   }
 }
 
@@ -206,11 +207,14 @@ function switchCurriculumSubTab(target) {
   }
   document.getElementById("classesSubPanel").style.display = target === "classes" ? "block" : "none";
   document.getElementById("subjectsSubPanel").style.display = target === "subjects" ? "block" : "none";
+  document.getElementById("chaptersSubPanel").style.display = target === "chapters" ? "block" : "none";
   document.getElementById("addContentSubPanel").style.display = target === "addContent" ? "block" : "none";
   document.getElementById("manageContentSubPanel").style.display = target === "manageContent" ? "block" : "none";
 
   if (target === "manageContent") {
     showUnitsManageView();
+  } else if (target === "chapters") {
+    renderChapterList();
   }
 }
 
@@ -593,6 +597,196 @@ async function handleDeleteSubject(subjectId) {
   await refreshCurriculumEverywhere();
 }
 
+/* ---------- Chương ---------- */
+
+var editingChapterId = null;
+
+function currentChapterSubject() {
+  return findSubjectById(document.getElementById("chapterUnitSubjectPicker").value);
+}
+
+function renderChapterList() {
+  var wrap = document.getElementById("chapterListWrap");
+  wrap.innerHTML = "";
+  var subject = currentChapterSubject();
+  var chapters = subject ? subject.chapters : [];
+  wrap.appendChild(buildTableWrap(chapters.length > 0, function (tbody) {
+    chapters.forEach(function (ch, idx) {
+      tbody.appendChild(editingChapterId === ch.id ? buildChapterEditRow(ch) : buildChapterRow(ch, idx, chapters.length));
+    });
+  }));
+}
+
+async function moveChapter(chapterId, direction) {
+  var subject = currentChapterSubject();
+  var chapters = subject ? subject.chapters : [];
+  var idx = chapters.findIndex(function (c) { return c.id === chapterId; });
+  var swapIdx = idx + direction;
+  if (idx === -1 || swapIdx < 0 || swapIdx >= chapters.length) {
+    return;
+  }
+
+  var a = chapters[idx];
+  var b = chapters[swapIdx];
+
+  await supabaseClient.from("game_chapters").update({ sort_order: swapIdx }).eq("id", a.id);
+  await supabaseClient.from("game_chapters").update({ sort_order: idx }).eq("id", b.id);
+
+  await refreshCurriculumEverywhere();
+}
+
+function buildChapterRow(ch, idx, total) {
+  var tr = document.createElement("tr");
+
+  var nameTd = document.createElement("td");
+  nameTd.textContent = ch.name;
+  tr.appendChild(nameTd);
+
+  var badgeTd = document.createElement("td");
+  var badge = document.createElement("span");
+  badge.className = "status-badge status-active";
+  badge.textContent = ch.units.length + " unit";
+  badgeTd.appendChild(badge);
+  tr.appendChild(badgeTd);
+
+  var moveTd = document.createElement("td");
+  var upBtn = buildActionBtn("↑", "admin-btn-secondary", function () { moveChapter(ch.id, -1); });
+  upBtn.disabled = idx === 0;
+  var downBtn = buildActionBtn("↓", "admin-btn-secondary", function () { moveChapter(ch.id, 1); });
+  downBtn.disabled = idx === total - 1;
+  moveTd.appendChild(upBtn);
+  moveTd.appendChild(downBtn);
+  tr.appendChild(moveTd);
+
+  var actionTd = document.createElement("td");
+  actionTd.appendChild(buildActionBtn("Sửa", "admin-btn-secondary", function () {
+    editingChapterId = ch.id;
+    renderChapterList();
+  }));
+  actionTd.appendChild(buildActionBtn("Xóa", "admin-btn-danger", function () {
+    handleDeleteChapter(ch.id);
+  }));
+  tr.appendChild(actionTd);
+
+  return tr;
+}
+
+function buildChapterEditRow(ch) {
+  var tr = document.createElement("tr");
+  tr.className = "editing-row";
+
+  var nameTd = document.createElement("td");
+  var nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.className = "admin-inline-input";
+  nameInput.value = ch.name;
+  nameTd.appendChild(nameInput);
+  tr.appendChild(nameTd);
+
+  tr.appendChild(document.createElement("td"));
+  tr.appendChild(document.createElement("td"));
+
+  var actionTd = document.createElement("td");
+  actionTd.appendChild(buildActionBtn("Lưu", "admin-btn-primary", async function () {
+    var newName = nameInput.value.trim();
+    if (!newName) {
+      window.alert("Cần nhập tên chương");
+      return;
+    }
+    var result = await supabaseClient.from("game_chapters").update({ name: newName }).eq("id", ch.id);
+    if (result.error) {
+      window.alert("Lỗi lưu: " + result.error.message);
+      return;
+    }
+    editingChapterId = null;
+    await refreshCurriculumEverywhere();
+  }));
+  actionTd.appendChild(buildActionBtn("Hủy", "admin-btn-danger", function () {
+    editingChapterId = null;
+    renderChapterList();
+  }));
+  tr.appendChild(actionTd);
+
+  return tr;
+}
+
+async function handleAddChapter() {
+  var subject = currentChapterSubject();
+  var name = document.getElementById("newChapterName").value.trim();
+
+  if (!subject) {
+    window.alert("Chưa có Môn học nào, hãy tạo Môn học trước");
+    return;
+  }
+  if (!name) {
+    window.alert("Cần nhập tên chương");
+    return;
+  }
+
+  setCurriculumStatus("Đang tạo chương...");
+  var newSortOrder = subject.chapters.length;
+  var result = await supabaseClient.from("game_chapters").insert({ id: genId("ch"), subject_id: subject.id, name: name, sort_order: newSortOrder });
+  if (result.error) {
+    setCurriculumStatus("Lỗi tạo chương: " + result.error.message);
+    return;
+  }
+
+  document.getElementById("newChapterName").value = "";
+  setCurriculumStatus("Đã tạo chương \"" + name + "\".");
+  await refreshCurriculumEverywhere();
+}
+
+async function handleDeleteChapter(chapterId) {
+  var subject = currentChapterSubject();
+  var chapter = (subject ? subject.chapters : []).filter(function (c) { return c.id === chapterId; })[0];
+  var units = chapter ? chapter.units : [];
+
+  if (units.length > 0) {
+    if (!window.confirm("Chương này còn " + units.length + " Unit. Xóa Chương sẽ xóa luôn tất cả các Unit đó và toàn bộ nội dung bên trong, không thể khôi phục. Bạn có chắc chắn muốn xóa?")) {
+      return;
+    }
+    setCurriculumStatus("Đang xóa " + units.length + " Unit...");
+    var i;
+    for (i = 0; i < units.length; i++) {
+      var counts = await getUnitContentCounts(units[i].id);
+      await deleteUnitAndContent(units[i].id, counts);
+    }
+  } else if (!window.confirm("Xóa chương \"" + (chapter ? chapter.name : chapterId) + "\"?")) {
+    return;
+  }
+
+  var result = await supabaseClient.from("game_chapters").delete().eq("id", chapterId);
+  if (result.error) {
+    window.alert("Lỗi xóa: " + result.error.message);
+    return;
+  }
+  setCurriculumStatus("Đã xóa chương.");
+  await refreshCurriculumEverywhere();
+}
+
+function populateUnitChapterPicker() {
+  var subject = findSubjectById(document.getElementById("addUnitSubjectPicker").value);
+  var select = document.getElementById("addUnitChapterPicker");
+  var previous = select.value;
+  select.innerHTML = "";
+  var noneOpt = document.createElement("option");
+  noneOpt.value = "";
+  noneOpt.text = "-- Không thuộc chương nào --";
+  select.appendChild(noneOpt);
+  var chapters = subject ? subject.chapters : [];
+  var i;
+  for (i = 0; i < chapters.length; i++) {
+    var opt = document.createElement("option");
+    opt.value = chapters[i].id;
+    opt.text = chapters[i].name;
+    select.appendChild(opt);
+  }
+  document.getElementById("addUnitChapterField").style.display = chapters.length > 0 ? "" : "none";
+  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
+    select.value = previous;
+  }
+}
+
 /* ---------- Bài học (Unit) ---------- */
 
 var editingUnitId = null;
@@ -609,7 +803,8 @@ function renderUnitList() {
     });
     wrap.appendChild(buildTableWrap(matches.length > 0, function (tbody) {
       matches.forEach(function (entry) {
-        var pathLabel = entry.cls.name + " › " + subjectDisplayName(entry.subj);
+        var entryChapter = entry.unit.chapter_id ? entry.subj.chapters.filter(function (c) { return c.id === entry.unit.chapter_id; })[0] : null;
+        var pathLabel = entry.cls.name + " › " + subjectDisplayName(entry.subj) + (entryChapter ? (" › " + entryChapter.name) : "");
         tbody.appendChild(editingUnitId === entry.unit.id ? buildUnitEditRow(entry.unit) : buildUnitRow(entry.unit, pathLabel));
       });
     }));
@@ -792,12 +987,17 @@ function updateComposeBreadcrumb() {
   var subject = unit ? findSubjectById(unit.subject_id) : null;
   var cls = subject ? findClassById(subject.class_id) : null;
 
+  var chapter = (unit && unit.chapter_id && subject) ? subject.chapters.filter(function (c) { return c.id === unit.chapter_id; })[0] : null;
+
   var parts = [];
   if (cls) {
     parts.push(cls.name);
   }
   if (subject) {
     parts.push(subjectDisplayName(subject));
+  }
+  if (chapter) {
+    parts.push(chapter.name);
   }
   if (unit) {
     parts.push(unitDisplayName(unit));
@@ -885,6 +1085,7 @@ function switchComposeSubTab(target) {
 async function handleAddUnit() {
   var classId = document.getElementById("addUnitClassPicker").value;
   var subjectId = document.getElementById("addUnitSubjectPicker").value;
+  var chapterId = document.getElementById("addUnitChapterPicker").value || null;
   var name = document.getElementById("newUnitName").value.trim();
   var contentType = document.getElementById("newUnitContentType").value;
   var newSortOrder = 0;
@@ -901,20 +1102,26 @@ async function handleAddUnit() {
       setCurriculumStatus("Lỗi tạo bài học: " + subjectResult.error.message);
       return;
     }
+    chapterId = null;
   } else {
     var subjectForOrder = findSubjectById(subjectId);
-    newSortOrder = subjectForOrder ? subjectForOrder.units.length : 0;
+    if (chapterId) {
+      var chapterForOrder = (subjectForOrder ? subjectForOrder.chapters : []).filter(function (c) { return c.id === chapterId; })[0];
+      newSortOrder = chapterForOrder ? chapterForOrder.units.length : 0;
+    } else {
+      newSortOrder = subjectForOrder ? subjectForOrder.units.length : 0;
+    }
   }
 
   setCurriculumStatus("Đang tạo bài học...");
   var newId = genId("u");
-  var result = await supabaseClient.from("game_units").insert({ id: newId, subject_id: subjectId, name: name, content_type: contentType, sort_order: newSortOrder });
+  var result = await supabaseClient.from("game_units").insert({ id: newId, subject_id: subjectId, chapter_id: chapterId, name: name, content_type: contentType, sort_order: newSortOrder });
   if (result.error) {
     setCurriculumStatus("Lỗi tạo bài học: " + result.error.message);
     return;
   }
 
-  var prevUnits = subjectForOrder ? subjectForOrder.units : [];
+  var prevUnits = chapterId && chapterForOrder ? chapterForOrder.units : (subjectForOrder ? subjectForOrder.units : []);
   var lastUnit = prevUnits.length ? prevUnits[prevUnits.length - 1] : null;
   if (lastUnit) {
     var prevSettings = await supabaseClient.from("game_unit_settings").select("disabled_activity_ids, activity_order").eq("unit_id", lastUnit.id).maybeSingle();
@@ -1080,9 +1287,11 @@ async function refreshCurriculumEverywhere(opts) {
   populateClassSelect("subjectClassPicker");
   populateUnitClassPicker("add");
   populateUnitClassPicker("manage");
+  populateUnitClassPicker("chapter");
 
   renderClassList();
   renderSubjectList();
+  renderChapterList();
   renderUnitList();
 
   if (selectedUnitId) {
@@ -1098,20 +1307,29 @@ function initCurriculumManage() {
   populateClassSelect("subjectClassPicker");
   populateUnitClassPicker("add");
   populateUnitClassPicker("manage");
+  populateUnitClassPicker("chapter");
   renderClassList();
   renderSubjectList();
+  renderChapterList();
   renderUnitList();
   showUnitsManageView();
   switchCurriculumSubTab("classes");
 
   document.getElementById("addClassBtn").addEventListener("click", handleAddClass);
   document.getElementById("addSubjectBtn").addEventListener("click", handleAddSubject);
+  document.getElementById("addChapterBtn").addEventListener("click", handleAddChapter);
   document.getElementById("addUnitBtn").addEventListener("click", handleAddUnit);
 
   document.getElementById("subjectClassPicker").addEventListener("change", renderSubjectList);
+  document.getElementById("chapterUnitClassPicker").addEventListener("change", function () {
+    populateUnitSubjectPicker("chapter");
+    renderChapterList();
+  });
+  document.getElementById("chapterUnitSubjectPicker").addEventListener("change", renderChapterList);
   document.getElementById("addUnitClassPicker").addEventListener("change", function () {
     populateUnitSubjectPicker("add");
   });
+  document.getElementById("addUnitSubjectPicker").addEventListener("change", populateUnitChapterPicker);
   document.getElementById("manageUnitClassPicker").addEventListener("change", function () {
     populateUnitSubjectPicker("manage");
     renderUnitList();

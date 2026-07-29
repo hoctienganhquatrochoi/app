@@ -422,6 +422,39 @@ html, body {
   transform: rotate(90deg);
 }
 
+/* ---------- Sidebar: chapter accordion ---------- */
+.subject-chapters {
+  padding: 2px 0 4px 14px;
+}
+
+.chapter-item {
+  margin-bottom: 4px;
+}
+
+.chapter-header {
+  display: flex;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.chapter-header:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.chapter-header.open {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.chapter-name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
 /* ---------- Sidebar: unit accordion ---------- */
 .unit-list {
   padding-left: 22px;

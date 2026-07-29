@@ -1,6 +1,7 @@
 var state = {
   selectedClassId: null,
   openSubjectId: null,
+  openChapterId: null,
   openUnitId: null,
   selectedActivity: null
 };
@@ -141,12 +142,12 @@ function buildClassItem(cls) {
   return wrap;
 }
 
-function buildUnitListForSubject(subject) {
+function buildUnitListForUnits(units) {
   var unitList = document.createElement("div");
   unitList.className = "unit-list";
   var i;
-  for (i = 0; i < subject.units.length; i++) {
-    var unit = subject.units[i];
+  for (i = 0; i < units.length; i++) {
+    var unit = units[i];
     if (unit.name) {
       unitList.appendChild(buildUnitItem(unit));
     } else {
@@ -154,6 +155,45 @@ function buildUnitListForSubject(subject) {
     }
   }
   return unitList;
+}
+
+function buildUnitListForSubject(subject) {
+  return buildUnitListForUnits(subject.units);
+}
+
+function buildChapterItem(chapter) {
+  var wrap = document.createElement("div");
+  wrap.className = "chapter-item";
+
+  var isOpen = state.openChapterId === chapter.id;
+
+  var header = document.createElement("div");
+  header.className = "chapter-header" + (isOpen ? " open" : "");
+
+  var name = document.createElement("span");
+  name.className = "chapter-name";
+  name.textContent = chapter.name;
+  header.appendChild(name);
+
+  var chevron = document.createElement("span");
+  chevron.className = "chevron" + (isOpen ? " open" : "");
+  chevron.textContent = "▸";
+  header.appendChild(chevron);
+
+  header.addEventListener("click", function () {
+    state.openChapterId = isOpen ? null : chapter.id;
+    state.openUnitId = null;
+    renderSidebar();
+    updateUrlHash();
+  });
+
+  wrap.appendChild(header);
+
+  if (isOpen) {
+    wrap.appendChild(buildUnitListForUnits(chapter.units));
+  }
+
+  return wrap;
 }
 
 function buildSubjectItem(subject) {
@@ -182,6 +222,7 @@ function buildSubjectItem(subject) {
 
   header.addEventListener("click", function () {
     state.openSubjectId = isOpen ? null : subject.id;
+    state.openChapterId = null;
     state.openUnitId = null;
     renderSidebar();
     updateUrlHash();
@@ -190,7 +231,22 @@ function buildSubjectItem(subject) {
   wrap.appendChild(header);
 
   if (isOpen) {
-    wrap.appendChild(buildUnitListForSubject(subject));
+    if (subject.chapters && subject.chapters.length > 0) {
+      var chaptersWrap = document.createElement("div");
+      chaptersWrap.className = "subject-chapters";
+      var c;
+      for (c = 0; c < subject.chapters.length; c++) {
+        chaptersWrap.appendChild(buildChapterItem(subject.chapters[c]));
+      }
+      wrap.appendChild(chaptersWrap);
+
+      var ungrouped = subject.units.filter(function (u) { return !u.chapter_id; });
+      if (ungrouped.length > 0) {
+        wrap.appendChild(buildUnitListForUnits(ungrouped));
+      }
+    } else {
+      wrap.appendChild(buildUnitListForSubject(subject));
+    }
   }
 
   return wrap;
@@ -756,6 +812,7 @@ function applyUrlHash() {
   }
 
   state.openSubjectId = foundSubject.id;
+  state.openChapterId = foundUnit.chapter_id || null;
   state.openUnitId = foundUnit.id;
 
   if (activitySlug) {

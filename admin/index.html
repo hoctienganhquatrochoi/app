@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260729b">
-<link rel="stylesheet" href="css/admin.css?v=20260729b">
+<link rel="stylesheet" href="../css/style.css?v=20260729c">
+<link rel="stylesheet" href="css/admin.css?v=20260729c">
 </head>
 <body>
 
@@ -148,6 +148,7 @@
       <nav class="admin-tabs" id="curriculumSubTabs">
         <button class="admin-subtab active" type="button" data-subtab="classes">Lớp học</button>
         <button class="admin-subtab" type="button" data-subtab="subjects">Môn học</button>
+        <button class="admin-subtab" type="button" data-subtab="chapters">Chương</button>
         <button class="admin-subtab" type="button" data-subtab="addContent">Thêm nội dung</button>
         <button class="admin-subtab" type="button" data-subtab="manageContent">Quản lý nội dung</button>
       </nav>
@@ -194,6 +195,30 @@
         </div>
       </div>
 
+      <div id="chaptersSubPanel" style="display:none">
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label>Chọn Lớp</label>
+            <select id="chapterUnitClassPicker"></select>
+          </div>
+          <div class="admin-field">
+            <label>Chọn Môn</label>
+            <select id="chapterUnitSubjectPicker"></select>
+          </div>
+        </div>
+        <p class="admin-hint">Dùng khi 1 Môn học có nhiều "chương/đầu sách" và mỗi chương lại có nhiều bài nhỏ bên trong (VD: Oxford Read and Discover) — bấm vào Môn sẽ hiện chương trước, bấm vào chương mới hiện các bài. Môn nào không tạo Chương thì bài học vẫn hiển thị bình thường như trước.</p>
+        <div id="chapterListWrap"></div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label>Tên chương mới</label>
+            <input type="text" id="newChapterName" placeholder="Schools">
+          </div>
+          <div class="admin-field admin-field-btn">
+            <button type="button" class="admin-btn-primary" id="addChapterBtn">+ Thêm chương</button>
+          </div>
+        </div>
+      </div>
+
       <div id="addContentSubPanel" style="display:none">
         <div class="admin-form-row">
           <div class="admin-field">
@@ -203,6 +228,12 @@
           <div class="admin-field" id="addUnitSubjectField">
             <label>Chọn Môn</label>
             <select id="addUnitSubjectPicker"></select>
+          </div>
+          <div class="admin-field" id="addUnitChapterField">
+            <label>Chọn Chương (không bắt buộc)</label>
+            <select id="addUnitChapterPicker">
+              <option value="">-- Không thuộc chương nào --</option>
+            </select>
           </div>
           <div class="admin-field admin-field-small">
             <label>Loại nội dung</label>
@@ -938,26 +969,26 @@ What is Alex's family name?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260729b"></script>
-<script src="../js/supabase-config.js?v=20260729b"></script>
-<script src="js/admin-auth.js?v=20260729b"></script>
-<script src="../js/curriculum-data.js?v=20260729b"></script>
-<script src="js/content-admin.js?v=20260729b"></script>
-<script src="js/sentences-admin.js?v=20260729b"></script>
-<script src="js/grammar-admin.js?v=20260729b"></script>
-<script src="js/math-admin.js?v=20260729b"></script>
-<script src="js/text-dragfill-admin.js?v=20260729b"></script>
-<script src="js/test-sections-admin.js?v=20260729b"></script>
-<script src="js/photo-quiz-admin.js?v=20260729b"></script>
-<script src="js/speaking-admin.js?v=20260729b"></script>
-<script src="js/wordwall-admin.js?v=20260729b"></script>
-<script src="js/wordwall-templates-admin.js?v=20260729b"></script>
-<script src="js/groups-admin.js?v=20260729b"></script>
-<script src="js/students-admin.js?v=20260729b"></script>
-<script src="js/assignments-admin.js?v=20260729b"></script>
-<script src="js/results-admin.js?v=20260729b"></script>
-<script src="js/activity-toggles-admin.js?v=20260729b"></script>
-<script src="js/curriculum-admin.js?v=20260729b"></script>
-<script src="js/admin-app.js?v=20260729b"></script>
+<script src="../js/data.js?v=20260729c"></script>
+<script src="../js/supabase-config.js?v=20260729c"></script>
+<script src="js/admin-auth.js?v=20260729c"></script>
+<script src="../js/curriculum-data.js?v=20260729c"></script>
+<script src="js/content-admin.js?v=20260729c"></script>
+<script src="js/sentences-admin.js?v=20260729c"></script>
+<script src="js/grammar-admin.js?v=20260729c"></script>
+<script src="js/math-admin.js?v=20260729c"></script>
+<script src="js/text-dragfill-admin.js?v=20260729c"></script>
+<script src="js/test-sections-admin.js?v=20260729c"></script>
+<script src="js/photo-quiz-admin.js?v=20260729c"></script>
+<script src="js/speaking-admin.js?v=20260729c"></script>
+<script src="js/wordwall-admin.js?v=20260729c"></script>
+<script src="js/wordwall-templates-admin.js?v=20260729c"></script>
+<script src="js/groups-admin.js?v=20260729c"></script>
+<script src="js/students-admin.js?v=20260729c"></script>
+<script src="js/assignments-admin.js?v=20260729c"></script>
+<script src="js/results-admin.js?v=20260729c"></script>
+<script src="js/activity-toggles-admin.js?v=20260729c"></script>
+<script src="js/curriculum-admin.js?v=20260729c"></script>
+<script src="js/admin-app.js?v=20260729c"></script>
 </body>
 </html>

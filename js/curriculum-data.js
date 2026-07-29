@@ -71,6 +71,7 @@ function buildWordwallActivities(rows) {
 async function loadCurriculumData() {
   var classesResult = await supabaseClient.from("game_classes").select("*").order("sort_order", { ascending: true });
   var subjectsResult = await supabaseClient.from("game_subjects").select("*").order("sort_order", { ascending: true });
+  var chaptersResult = await supabaseClient.from("game_chapters").select("*").order("sort_order", { ascending: true });
   var unitsResult = await supabaseClient.from("game_units").select("*").order("sort_order", { ascending: true });
   var wordwallResult = await supabaseClient.from("game_wordwall_activities").select("*").order("sort_order", { ascending: true });
   var wordwallByUnit = buildWordwallActivities(wordwallResult.data || []);
@@ -107,17 +108,30 @@ async function loadCurriculumData() {
 
   var subjectsByClass = {};
   var subjectById = {};
+  var chapterById = {};
   var i;
 
   var subjectRows = subjectsResult.data || [];
   for (i = 0; i < subjectRows.length; i++) {
     var srow = subjectRows[i];
-    var subject = { id: srow.id, class_id: srow.class_id, name: srow.name, color: srow.color, sort_order: srow.sort_order, units: [] };
+    var subject = { id: srow.id, class_id: srow.class_id, name: srow.name, color: srow.color, sort_order: srow.sort_order, units: [], chapters: [] };
     subjectById[srow.id] = subject;
     if (!subjectsByClass[srow.class_id]) {
       subjectsByClass[srow.class_id] = [];
     }
     subjectsByClass[srow.class_id].push(subject);
+  }
+
+  var chapterRows = chaptersResult.data || [];
+  for (i = 0; i < chapterRows.length; i++) {
+    var chrow = chapterRows[i];
+    var chapterSubj = subjectById[chrow.subject_id];
+    if (!chapterSubj) {
+      continue;
+    }
+    var chapter = { id: chrow.id, subject_id: chrow.subject_id, name: chrow.name, sort_order: chrow.sort_order, units: [] };
+    chapterById[chrow.id] = chapter;
+    chapterSubj.chapters.push(chapter);
   }
 
   var unitRows = unitsResult.data || [];
@@ -127,7 +141,7 @@ async function loadCurriculumData() {
     if (!subj) {
       continue;
     }
-    var unit = { id: urow.id, subject_id: urow.subject_id, class_id: subj.class_id, name: urow.name, content_type: urow.content_type, is_demo: !!urow.is_demo, sort_order: urow.sort_order, progress: "" };
+    var unit = { id: urow.id, subject_id: urow.subject_id, class_id: subj.class_id, chapter_id: urow.chapter_id || null, name: urow.name, content_type: urow.content_type, is_demo: !!urow.is_demo, sort_order: urow.sort_order, progress: "" };
     if (urow.content_type === "test") {
       unit.testSections = testSectionsByUnit[urow.id] || [];
       unit.activities = [{ id: "run", name: "Bắt đầu làm bài", type: "test" }];
@@ -144,6 +158,10 @@ async function loadCurriculumData() {
         .concat(grammarDragfillByUnit[urow.id] || []);
     }
     subj.units.push(unit);
+    var unitChapter = unit.chapter_id ? chapterById[unit.chapter_id] : null;
+    if (unitChapter) {
+      unitChapter.units.push(unit);
+    }
   }
 
   DATA.classes = classes;
