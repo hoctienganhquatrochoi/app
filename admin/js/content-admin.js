@@ -205,6 +205,9 @@ async function loadSiteBannerSettings() {
     img.src = data.banner_image_url;
     img.style.cssText = "max-width: 100%; max-height: 120px; display: block; margin-bottom: 8px; border-radius: 8px;";
     previewWrap.appendChild(img);
+
+    var removeImgBtn = buildActionBtn("🗑 Xóa ảnh này (giữ nguyên tiêu đề/mô tả)", "admin-btn-secondary", handleRemoveSiteBannerImageOnly);
+    previewWrap.appendChild(removeImgBtn);
   }
 
   document.getElementById("siteBannerLinkInput").value = data.banner_link_url || "";
@@ -239,6 +242,17 @@ async function handleUploadSiteBanner() {
 
   fileInput.value = "";
   statusEl.textContent = "Đã tải banner lên.";
+  await loadSiteBannerSettings();
+}
+
+async function handleRemoveSiteBannerImageOnly() {
+  var statusEl = document.getElementById("siteBannerStatus");
+  var result = await supabaseClient.from("game_admin_settings").update({ banner_image_url: null }).eq("id", 1);
+  if (result.error) {
+    statusEl.textContent = "Lỗi xóa ảnh: " + result.error.message;
+    return;
+  }
+  statusEl.textContent = "Đã xóa ảnh (tiêu đề/mô tả/link vẫn giữ nguyên, chưa lưu popup nào thì popup sẽ ẩn).";
   await loadSiteBannerSettings();
 }
 
