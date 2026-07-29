@@ -1,4 +1,52 @@
 var currentStudent = null;
+var deviceCheckInterval = null;
+
+function getDeviceId() {
+  var id = window.localStorage.getItem("deviceId");
+  if (!id) {
+    id = "dev_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 10);
+    window.localStorage.setItem("deviceId", id);
+  }
+  return id;
+}
+
+async function claimDeviceSession(studentId) {
+  await supabaseClient.from("game_students").update({
+    active_device_id: getDeviceId(),
+    active_session_at: new Date().toISOString()
+  }).eq("id", studentId);
+}
+
+async function checkDeviceSessionValid() {
+  if (!currentStudent) {
+    return;
+  }
+  var result = await supabaseClient
+    .from("game_students")
+    .select("active_device_id")
+    .eq("id", currentStudent.id)
+    .maybeSingle();
+
+  if (result.data && result.data.active_device_id && result.data.active_device_id !== getDeviceId()) {
+    var name = currentStudent.full_name;
+    currentStudent = null;
+    storeStudent(null);
+    if (deviceCheckInterval) {
+      clearInterval(deviceCheckInterval);
+      deviceCheckInterval = null;
+    }
+    renderAuthArea();
+    onAuthChanged();
+    window.alert("Tài khoản " + name + " vừa đăng nhập ở thiết bị khác nên đã bị đăng xuất ở đây.");
+  }
+}
+
+function startDeviceSessionWatch() {
+  if (deviceCheckInterval) {
+    clearInterval(deviceCheckInterval);
+  }
+  deviceCheckInterval = setInterval(checkDeviceSessionValid, 20000);
+}
 
 function localDateKey(dateInput) {
   var d = dateInput instanceof Date ? dateInput : new Date(dateInput);
@@ -79,6 +127,10 @@ function closeLoginModal() {
 function logoutStudent() {
   currentStudent = null;
   storeStudent(null);
+  if (deviceCheckInterval) {
+    clearInterval(deviceCheckInterval);
+    deviceCheckInterval = null;
+  }
   renderAuthArea();
   onAuthChanged();
 }
@@ -116,6 +168,8 @@ async function handleLoginSubmit() {
 
   currentStudent = { id: student.id, full_name: student.full_name, group_id: student.group_id };
   storeStudent(currentStudent);
+  await claimDeviceSession(currentStudent.id);
+  startDeviceSessionWatch();
   closeLoginModal();
   renderAuthArea();
   onAuthChanged();
@@ -124,6 +178,11 @@ async function handleLoginSubmit() {
 document.addEventListener("DOMContentLoaded", function () {
   currentStudent = loadStoredStudent();
   renderAuthArea();
+
+  if (currentStudent) {
+    checkDeviceSessionValid();
+    startDeviceSessionWatch();
+  }
 
   document.getElementById("loginCancelBtn").addEventListener("click", closeLoginModal);
   document.getElementById("loginSubmitBtn").addEventListener("click", handleLoginSubmit);
