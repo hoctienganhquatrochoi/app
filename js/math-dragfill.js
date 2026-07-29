@@ -195,8 +195,25 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
     }
 
     wrap.appendChild(buildProgressFooter((progressOffset || 0) + qIndex + 1, progressTotal || questions.length));
+    if (isAdminPreview()) {
+      wrap.appendChild(buildDevNavButtons(
+        function () { goToIndex(qIndex - 1); },
+        function () { goToIndex(qIndex + 1); },
+        qIndex > 0,
+        qIndex < questions.length - 1
+      ));
+    }
     container.appendChild(wrap);
     currentWrap = wrap;
+  }
+
+  function goToIndex(i) {
+    if (i < 0 || i >= questions.length) {
+      return;
+    }
+    qIndex = i;
+    resetQuestionState();
+    draw();
   }
 
   function submitAnswer() {

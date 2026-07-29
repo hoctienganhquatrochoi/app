@@ -90,11 +90,28 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
     }
 
     wrap.appendChild(buildProgressFooter((progressOffset || 0) + qIndex + 1, progressTotal || pool.length));
+    if (isAdminPreview()) {
+      wrap.appendChild(buildDevNavButtons(
+        function () { goToIndex(qIndex - 1); },
+        function () { goToIndex(qIndex + 1); },
+        qIndex > 0,
+        qIndex < pool.length - 1
+      ));
+    }
     container.appendChild(wrap);
     currentWrap = wrap;
     if (!answered) {
       input.focus();
     }
+  }
+
+  function goToIndex(i) {
+    if (i < 0 || i >= pool.length) {
+      return;
+    }
+    qIndex = i;
+    lastAnswerValue = "";
+    showQuestion();
   }
 
   function checkAnswer(value) {

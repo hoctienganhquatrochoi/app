@@ -843,6 +843,36 @@ html, body {
   text-align: center;
 }
 
+.dev-nav-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.test-section-dev-nav-label {
+  text-align: center;
+  font-size: 13px;
+  color: #9AA89E;
+  margin-top: 6px;
+}
+
+.dev-nav-btn {
+  background: #FFF3CD;
+  border: 1px solid #F0973D;
+  color: #7A4A00;
+  font-size: 20px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 4px 16px;
+  cursor: pointer;
+}
+
+.dev-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .quiz-body {
   display: block;
 }

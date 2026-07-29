@@ -39,16 +39,31 @@ async function renderTestActivity(container, breadcrumbText, unit) {
 
   var grandTotal = 0;
   var runningOffset = 0;
+  var sectionTotals = [];
 
   async function preloadGrandTotal() {
     for (var i = 0; i < sections.length; i++) {
       var cfg = TEST_SECTION_CONFIG[sections[i].section_type];
-      if (!cfg) {
-        continue;
+      var count = 0;
+      if (cfg) {
+        var secItems = await cfg.load(sections[i].source_unit_id, sections[i].source_set_name);
+        count = secItems ? secItems.length : 0;
       }
-      var secItems = await cfg.load(sections[i].source_unit_id, sections[i].source_set_name);
-      grandTotal += secItems ? secItems.length : 0;
+      sectionTotals.push(count);
+      grandTotal += count;
     }
+  }
+
+  function jumpToSection(index) {
+    if (index < 0 || index >= sections.length) {
+      return;
+    }
+    var offset = 0;
+    for (var i = 0; i < index; i++) {
+      offset += sectionTotals[i];
+    }
+    runningOffset = offset;
+    runSection(sections[index], index);
   }
 
   async function runSection(section, index) {
@@ -64,6 +79,19 @@ async function renderTestActivity(container, breadcrumbText, unit) {
     labelBanner.className = "test-section-label-banner";
     labelBanner.textContent = (section.label || config.label);
     container.appendChild(labelBanner);
+
+    if (isAdminPreview()) {
+      var sectionLabelEl = document.createElement("div");
+      sectionLabelEl.className = "test-section-dev-nav-label";
+      sectionLabelEl.textContent = "Mục " + (index + 1) + " / " + sections.length;
+      container.appendChild(sectionLabelEl);
+      container.appendChild(buildDevNavButtons(
+        function () { jumpToSection(index - 1); },
+        function () { jumpToSection(index + 1); },
+        index > 0,
+        index < sections.length - 1
+      ));
+    }
 
     var sectionContainer = document.createElement("div");
     container.appendChild(sectionContainer);

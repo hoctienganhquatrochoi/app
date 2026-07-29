@@ -35,7 +35,7 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
     if (q.question) {
       var prompt = document.createElement("div");
       prompt.className = "quiz-prompt grammar-mcq-question";
-      prompt.textContent = q.question;
+      appendTextWithUnderline(prompt, q.question);
       body.appendChild(prompt);
     }
 
@@ -49,7 +49,25 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
 
     wrap.appendChild(body);
     wrap.appendChild(buildProgressFooter((progressOffset || 0) + qIndex + 1, progressTotal || questions.length));
+    if (isAdminPreview()) {
+      wrap.appendChild(buildDevNavButtons(
+        function () { goToIndex(qIndex - 1); },
+        function () { goToIndex(qIndex + 1); },
+        qIndex > 0,
+        qIndex < questions.length - 1
+      ));
+    }
     container.appendChild(wrap);
+  }
+
+  function goToIndex(i) {
+    if (i < 0 || i >= questions.length) {
+      return;
+    }
+    qIndex = i;
+    answered = false;
+    selectedIndex = null;
+    draw();
   }
 
   function buildOption(q, option, idx) {

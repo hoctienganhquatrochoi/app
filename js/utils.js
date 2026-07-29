@@ -93,6 +93,34 @@ function appendTextWithUnderline(el, text) {
   }
 }
 
+function isAdminPreview() {
+  return typeof currentStudent !== "undefined" && !!currentStudent && !!currentStudent.full_name &&
+    currentStudent.full_name.trim().toLowerCase() === "admin";
+}
+
+function buildDevNavButtons(onPrev, onNext, canPrev, canNext) {
+  var wrap = document.createElement("div");
+  wrap.className = "dev-nav-buttons";
+
+  var prevBtn = document.createElement("button");
+  prevBtn.type = "button";
+  prevBtn.className = "dev-nav-btn";
+  prevBtn.textContent = "◁";
+  prevBtn.disabled = !canPrev;
+  prevBtn.addEventListener("click", onPrev);
+  wrap.appendChild(prevBtn);
+
+  var nextBtn = document.createElement("button");
+  nextBtn.type = "button";
+  nextBtn.className = "dev-nav-btn";
+  nextBtn.textContent = "▷";
+  nextBtn.disabled = !canNext;
+  nextBtn.addEventListener("click", onNext);
+  wrap.appendChild(nextBtn);
+
+  return wrap;
+}
+
 function shuffleArray(arr) {
   var copy = arr.slice();
   var i, j, tmp;
