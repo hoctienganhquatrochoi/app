@@ -34,33 +34,34 @@ function buildMathDragfillQuestions(items) {
       passage: row.passage,
       tokens: split.tokens,
       answers: split.answers,
-      options: options
+      options: options,
+      filledByBlank: split.answers.map(function () { return null; }),
+      answered: false,
+      lastCorrect: false
     };
   });
 }
 
 function renderMathDragfill(container, breadcrumbText, items, unitId, setName, activityType, onTestComplete, progressOffset, progressTotal, scoreOffset) {
   activityType = activityType || "math-dragfill";
-  var questions, qIndex, score, filledByBlank, answered, lastCorrect, firstAttemptDone, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
+  var questions, qIndex, score, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
+  var freeNav = !!onTestComplete;
 
   function resetState() {
     questions = buildMathDragfillQuestions(items);
     qIndex = 0;
     score = 0;
-    resetQuestionState();
     answersLog = [];
     startedAt = new Date();
     timerIntervalId = startActivityTimer(startedAt);
     tabTracker = startTabSwitchTracker();
   }
 
-  function resetQuestionState() {
-    var q = questions[qIndex];
-    filledByBlank = q.answers.map(function () { return null; });
+  function resetQuestionState(q) {
+    q.filledByBlank = q.answers.map(function () { return null; });
     q.options.forEach(function (o) { o.used = false; });
-    answered = false;
-    lastCorrect = false;
-    firstAttemptDone = false;
+    q.answered = false;
+    q.lastCorrect = false;
   }
 
   function handleGlobalKeydown(e) {
@@ -71,40 +72,41 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
     if (e.key !== "Enter") {
       return;
     }
-    if (answered) {
-      if (lastCorrect) {
+    var q = questions[qIndex];
+    if (q.answered) {
+      if (freeNav || q.lastCorrect) {
         clearTimeout(advanceTimeoutId);
         goNext();
       }
-    } else if (allBlanksFilled()) {
+    } else if (allBlanksFilled(q)) {
       submitAnswer();
     }
   }
   document.addEventListener("keydown", handleGlobalKeydown);
 
-  function allBlanksFilled() {
-    return filledByBlank.every(function (o) { return o !== null; });
+  function allBlanksFilled(q) {
+    return q.filledByBlank.every(function (o) { return o !== null; });
   }
 
-  function handleTileClick(option) {
-    if (answered || option.used) {
+  function handleTileClick(q, option) {
+    if (q.answered || option.used) {
       return;
     }
-    var nextEmptyIndex = filledByBlank.indexOf(null);
+    var nextEmptyIndex = q.filledByBlank.indexOf(null);
     if (nextEmptyIndex === -1) {
       return;
     }
     option.used = true;
-    filledByBlank[nextEmptyIndex] = option;
+    q.filledByBlank[nextEmptyIndex] = option;
     draw();
   }
 
-  function handleBlankClick(blankIndex) {
-    if (answered || !filledByBlank[blankIndex]) {
+  function handleBlankClick(q, blankIndex) {
+    if (q.answered || !q.filledByBlank[blankIndex]) {
       return;
     }
-    filledByBlank[blankIndex].used = false;
-    filledByBlank[blankIndex] = null;
+    q.filledByBlank[blankIndex].used = false;
+    q.filledByBlank[blankIndex] = null;
     draw();
   }
 
@@ -126,9 +128,9 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
       tile.type = "button";
       tile.className = "dragfill-tile";
       tile.textContent = option.text;
-      tile.disabled = answered;
+      tile.disabled = q.answered;
       tile.addEventListener("click", function () {
-        handleTileClick(option);
+        handleTileClick(q, option);
       });
       tilesEl.appendChild(tile);
     });
@@ -141,48 +143,48 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
         passageEl.appendChild(document.createTextNode(token.value));
         return;
       }
-      var filled = filledByBlank[token.index];
+      var filled = q.filledByBlank[token.index];
       var blank = document.createElement("span");
       blank.className = "dragfill-blank" + (filled ? " filled" : "");
-      if (answered) {
+      if (q.answered) {
         var isBlankCorrect = filled && filled.text === q.answers[token.index];
         blank.className += isBlankCorrect ? " correct" : " wrong";
       }
       blank.textContent = filled ? filled.text : "___";
-      if (filled && !answered) {
+      if (filled && !q.answered) {
         blank.addEventListener("click", function () {
-          handleBlankClick(token.index);
+          handleBlankClick(q, token.index);
         });
       }
       passageEl.appendChild(blank);
     });
     wrap.appendChild(passageEl);
 
-    if (answered) {
+    if (q.answered) {
       var icon = document.createElement("div");
-      icon.className = "dragfill-feedback-icon " + (lastCorrect ? "dragfill-correct-icon" : "dragfill-wrong-icon");
-      icon.textContent = lastCorrect ? "✓" : "✗";
+      icon.className = "dragfill-feedback-icon " + (q.lastCorrect ? "dragfill-correct-icon" : "dragfill-wrong-icon");
+      icon.textContent = q.lastCorrect ? "✓" : "✗";
       wrap.appendChild(icon);
 
-      if (!lastCorrect) {
+      if (!q.lastCorrect) {
         var hint = document.createElement("div");
         hint.className = "dragfill-hint";
-        hint.textContent = "Đáp án đúng: " + q.answers.join(", ") + " — thử lại nhé!";
+        hint.textContent = "Đáp án đúng: " + q.answers.join(", ") + (freeNav ? "" : " — thử lại nhé!");
         wrap.appendChild(hint);
       }
     }
 
-    if (!answered) {
+    if (!q.answered) {
       var checkBtn = document.createElement("button");
       checkBtn.className = "quiz-continue-btn";
       checkBtn.type = "button";
       checkBtn.textContent = "Kiểm tra";
-      checkBtn.disabled = !allBlanksFilled();
+      checkBtn.disabled = !allBlanksFilled(q);
       checkBtn.addEventListener("click", function () {
         submitAnswer();
       });
       wrap.appendChild(checkBtn);
-    } else if (lastCorrect) {
+    } else if (freeNav || q.lastCorrect) {
       var nextBtn = document.createElement("button");
       nextBtn.className = "quiz-continue-btn";
       nextBtn.type = "button";
@@ -195,7 +197,7 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
     }
 
     wrap.appendChild(buildProgressFooter((progressOffset || 0) + qIndex + 1, progressTotal || questions.length));
-    if (isAdminPreview()) {
+    if (isAdminPreview() || freeNav) {
       wrap.appendChild(buildDevNavButtons(
         function () { goToIndex(qIndex - 1); },
         function () { goToIndex(qIndex + 1); },
@@ -211,50 +213,66 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
     if (i < 0 || i >= questions.length) {
       return;
     }
+    clearTimeout(advanceTimeoutId);
     qIndex = i;
-    resetQuestionState();
     draw();
+  }
+
+  function findNextUnanswered() {
+    var i;
+    for (i = qIndex + 1; i < questions.length; i++) {
+      if (!questions[i].answered) {
+        return i;
+      }
+    }
+    for (i = 0; i < questions.length; i++) {
+      if (!questions[i].answered) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   function submitAnswer() {
-    if (answered || !allBlanksFilled()) {
+    var q = questions[qIndex];
+    if (q.answered || !allBlanksFilled(q)) {
       return;
     }
-    var q = questions[qIndex];
-    answered = true;
-    lastCorrect = filledByBlank.every(function (option, idx) {
+    q.answered = true;
+    q.lastCorrect = q.filledByBlank.every(function (option, idx) {
       return option.text === q.answers[idx];
     });
-    if (!firstAttemptDone) {
-      firstAttemptDone = true;
-      if (lastCorrect) {
-        score++;
-      }
-      answersLog.push({
-        vocab_id: q.id,
-        word_en: q.passage,
-        selected_label: filledByBlank.map(function (o) { return o.text; }).join(", "),
-        is_correct: lastCorrect
-      });
+    if (q.lastCorrect) {
+      score++;
     }
+    answersLog.push({
+      vocab_id: q.id,
+      word_en: q.passage,
+      selected_label: q.filledByBlank.map(function (o) { return o.text; }).join(", "),
+      is_correct: q.lastCorrect
+    });
     draw();
 
-    if (lastCorrect) {
+    if (freeNav) {
+      advanceTimeoutId = setTimeout(goNext, MATH_DRAGFILL_CORRECT_DELAY_MS);
+    } else if (q.lastCorrect) {
       advanceTimeoutId = setTimeout(goNext, MATH_DRAGFILL_CORRECT_DELAY_MS);
     } else {
-      advanceTimeoutId = setTimeout(retry, MATH_DRAGFILL_CORRECT_DELAY_MS);
+      advanceTimeoutId = setTimeout(function () { resetQuestionState(q); draw(); }, MATH_DRAGFILL_CORRECT_DELAY_MS);
     }
-  }
-
-  function retry() {
-    resetQuestionState();
-    draw();
   }
 
   function goNext() {
-    if (qIndex < questions.length - 1) {
+    if (freeNav) {
+      var nextIdx = findNextUnanswered();
+      if (nextIdx === -1) {
+        showResult();
+      } else {
+        qIndex = nextIdx;
+        draw();
+      }
+    } else if (qIndex < questions.length - 1) {
       qIndex++;
-      resetQuestionState();
       draw();
     } else {
       showResult();

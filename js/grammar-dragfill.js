@@ -23,22 +23,22 @@ function buildGrammarDragfillQuestions(items) {
       before: split.before,
       after: split.after,
       questionVi: row.question_vi,
-      options: options
+      options: options,
+      filledOption: null,
+      answered: false,
+      lastCorrect: false
     };
   });
 }
 
 function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal, scoreOffset) {
-  var questions, qIndex, score, filledOption, answered, lastCorrect, firstAttemptDone, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
+  var questions, qIndex, score, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
+  var freeNav = !!onTestComplete;
 
   function resetState() {
     questions = buildGrammarDragfillQuestions(items);
     qIndex = 0;
     score = 0;
-    filledOption = null;
-    answered = false;
-    lastCorrect = false;
-    firstAttemptDone = false;
     answersLog = [];
     startedAt = new Date();
     timerIntervalId = startActivityTimer(startedAt);
@@ -53,12 +53,13 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     if (e.key !== "Enter") {
       return;
     }
-    if (answered) {
-      if (lastCorrect) {
+    var q = questions[qIndex];
+    if (q.answered) {
+      if (freeNav || q.lastCorrect) {
         clearTimeout(advanceTimeoutId);
         goNext();
       }
-    } else if (filledOption) {
+    } else if (q.filledOption) {
       submitAnswer();
     }
   }
@@ -82,9 +83,9 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
       tile.type = "button";
       tile.className = "dragfill-tile";
       tile.textContent = option.text;
-      tile.disabled = answered;
+      tile.disabled = q.answered;
       tile.addEventListener("click", function () {
-        handleTileClick(option);
+        handleTileClick(q, option);
       });
       tilesEl.appendChild(tile);
     });
@@ -96,15 +97,15 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     questionEl.appendChild(document.createTextNode(q.before));
 
     var blank = document.createElement("span");
-    blank.className = "dragfill-blank" + (filledOption ? " filled" : "");
-    if (answered) {
-      blank.className += lastCorrect ? " correct" : " wrong";
+    blank.className = "dragfill-blank" + (q.filledOption ? " filled" : "");
+    if (q.answered) {
+      blank.className += q.lastCorrect ? " correct" : " wrong";
     }
-    if (filledOption) {
-      blank.textContent = filledOption.text;
-      if (!answered) {
+    if (q.filledOption) {
+      blank.textContent = q.filledOption.text;
+      if (!q.answered) {
         blank.addEventListener("click", function () {
-          handleBlankClick();
+          handleBlankClick(q);
         });
       }
     }
@@ -113,16 +114,16 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     questionEl.appendChild(document.createTextNode(q.after));
     wrap.appendChild(questionEl);
 
-    if (answered) {
+    if (q.answered) {
       var icon = document.createElement("div");
-      icon.className = "dragfill-feedback-icon " + (lastCorrect ? "dragfill-correct-icon" : "dragfill-wrong-icon");
-      icon.textContent = lastCorrect ? "✓" : "✗";
+      icon.className = "dragfill-feedback-icon " + (q.lastCorrect ? "dragfill-correct-icon" : "dragfill-wrong-icon");
+      icon.textContent = q.lastCorrect ? "✓" : "✗";
       wrap.appendChild(icon);
 
-      if (!lastCorrect) {
+      if (!q.lastCorrect) {
         var hint = document.createElement("div");
         hint.className = "dragfill-hint";
-        hint.textContent = "Đáp án đúng: " + q.options.filter(function (o) { return o.isCorrect; })[0].text + " — thử lại nhé!";
+        hint.textContent = "Đáp án đúng: " + q.options.filter(function (o) { return o.isCorrect; })[0].text + (freeNav ? "" : " — thử lại nhé!");
         wrap.appendChild(hint);
       }
     }
@@ -134,17 +135,17 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
       wrap.appendChild(viEl);
     }
 
-    if (!answered) {
+    if (!q.answered) {
       var checkBtn = document.createElement("button");
       checkBtn.className = "quiz-continue-btn";
       checkBtn.type = "button";
       checkBtn.textContent = "Kiểm tra";
-      checkBtn.disabled = !filledOption;
+      checkBtn.disabled = !q.filledOption;
       checkBtn.addEventListener("click", function () {
         submitAnswer();
       });
       wrap.appendChild(checkBtn);
-    } else if (lastCorrect) {
+    } else if (freeNav || q.lastCorrect) {
       var nextBtn = document.createElement("button");
       nextBtn.className = "quiz-continue-btn";
       nextBtn.type = "button";
@@ -157,7 +158,7 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     }
 
     wrap.appendChild(buildProgressFooter((progressOffset || 0) + qIndex + 1, progressTotal || questions.length));
-    if (isAdminPreview()) {
+    if (isAdminPreview() || freeNav) {
       wrap.appendChild(buildDevNavButtons(
         function () { goToIndex(qIndex - 1); },
         function () { goToIndex(qIndex + 1); },
@@ -173,80 +174,94 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     if (i < 0 || i >= questions.length) {
       return;
     }
+    clearTimeout(advanceTimeoutId);
     qIndex = i;
-    if (filledOption) {
-      filledOption.used = false;
-      filledOption = null;
-    }
-    answered = false;
-    firstAttemptDone = false;
     draw();
   }
 
-  function handleTileClick(option) {
-    if (answered) {
+  function findNextUnanswered() {
+    var i;
+    for (i = qIndex + 1; i < questions.length; i++) {
+      if (!questions[i].answered) {
+        return i;
+      }
+    }
+    for (i = 0; i < questions.length; i++) {
+      if (!questions[i].answered) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  function handleTileClick(q, option) {
+    if (q.answered) {
       return;
     }
-    if (filledOption) {
-      filledOption.used = false;
+    if (q.filledOption) {
+      q.filledOption.used = false;
     }
     option.used = true;
-    filledOption = option;
+    q.filledOption = option;
     draw();
   }
 
-  function handleBlankClick() {
-    if (answered || !filledOption) {
+  function handleBlankClick(q) {
+    if (q.answered || !q.filledOption) {
       return;
     }
-    filledOption.used = false;
-    filledOption = null;
+    q.filledOption.used = false;
+    q.filledOption = null;
     draw();
   }
 
   function submitAnswer() {
-    if (answered || !filledOption) {
+    var q = questions[qIndex];
+    if (q.answered || !q.filledOption) {
       return;
     }
-    var q = questions[qIndex];
-    answered = true;
-    lastCorrect = filledOption.isCorrect;
-    if (!firstAttemptDone) {
-      firstAttemptDone = true;
-      if (lastCorrect) {
-        score++;
-      }
-      answersLog.push({
-        vocab_id: q.id,
-        word_en: q.before + "___" + q.after,
-        selected_label: filledOption.text,
-        is_correct: lastCorrect
-      });
+    q.answered = true;
+    q.lastCorrect = q.filledOption.isCorrect;
+    if (q.lastCorrect) {
+      score++;
     }
+    answersLog.push({
+      vocab_id: q.id,
+      word_en: q.before + "___" + q.after,
+      selected_label: q.filledOption.text,
+      is_correct: q.lastCorrect
+    });
     draw();
 
-    if (lastCorrect) {
+    if (freeNav) {
+      advanceTimeoutId = setTimeout(goNext, GRAMMAR_DRAGFILL_CORRECT_DELAY_MS);
+    } else if (q.lastCorrect) {
       advanceTimeoutId = setTimeout(goNext, GRAMMAR_DRAGFILL_CORRECT_DELAY_MS);
     } else {
-      advanceTimeoutId = setTimeout(retry, GRAMMAR_DRAGFILL_CORRECT_DELAY_MS);
+      advanceTimeoutId = setTimeout(function () { retry(q); }, GRAMMAR_DRAGFILL_CORRECT_DELAY_MS);
     }
   }
 
-  function retry() {
-    if (filledOption) {
-      filledOption.used = false;
-      filledOption = null;
+  function retry(q) {
+    if (q.filledOption) {
+      q.filledOption.used = false;
+      q.filledOption = null;
     }
-    answered = false;
+    q.answered = false;
     draw();
   }
 
   function goNext() {
-    if (qIndex < questions.length - 1) {
+    if (freeNav) {
+      var nextIdx = findNextUnanswered();
+      if (nextIdx === -1) {
+        showResult();
+      } else {
+        qIndex = nextIdx;
+        draw();
+      }
+    } else if (qIndex < questions.length - 1) {
       qIndex++;
-      filledOption = null;
-      answered = false;
-      firstAttemptDone = false;
       draw();
     } else {
       showResult();

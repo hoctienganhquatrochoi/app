@@ -6,7 +6,7 @@ function buildGrammarMcqQuestions(items) {
       return { text: text, isCorrect: false };
     });
     var options = shuffleArray([{ text: row.correct_answer, isCorrect: true }].concat(wrongOptions));
-    return { id: row.id, question: row.question, options: options };
+    return { id: row.id, question: row.question, options: options, answered: false, selectedIndex: null };
   });
 }
 
@@ -14,12 +14,11 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
   var questions = buildGrammarMcqQuestions(items);
   var qIndex = 0;
   var score = 0;
-  var answered = false;
-  var selectedIndex = null;
   var answersLog = [];
   var startedAt = new Date();
   var timerIntervalId = startActivityTimer(startedAt);
   var tabTracker = startTabSwitchTracker();
+  var freeNav = !!onTestComplete;
 
   function draw() {
     container.innerHTML = "";
@@ -49,7 +48,7 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
 
     wrap.appendChild(body);
     wrap.appendChild(buildProgressFooter((progressOffset || 0) + qIndex + 1, progressTotal || questions.length));
-    if (isAdminPreview()) {
+    if (isAdminPreview() || freeNav) {
       wrap.appendChild(buildDevNavButtons(
         function () { goToIndex(qIndex - 1); },
         function () { goToIndex(qIndex + 1); },
@@ -65,9 +64,22 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
       return;
     }
     qIndex = i;
-    answered = false;
-    selectedIndex = null;
     draw();
+  }
+
+  function findNextUnanswered() {
+    var i;
+    for (i = qIndex + 1; i < questions.length; i++) {
+      if (!questions[i].answered) {
+        return i;
+      }
+    }
+    for (i = 0; i < questions.length; i++) {
+      if (!questions[i].answered) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   function buildOption(q, option, idx) {
@@ -79,24 +91,24 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
     appendTextWithUnderline(label, option.text);
     btn.appendChild(label);
 
-    if (answered) {
+    if (q.answered) {
       btn.disabled = true;
       btn.className += " disabled";
       if (option.isCorrect) {
         btn.className += " correct";
         btn.appendChild(buildResultIcon(true));
-      } else if (idx === selectedIndex) {
+      } else if (idx === q.selectedIndex) {
         btn.className += " wrong";
         btn.appendChild(buildResultIcon(false));
       }
     }
 
     btn.addEventListener("click", function () {
-      if (answered) {
+      if (q.answered) {
         return;
       }
-      answered = true;
-      selectedIndex = idx;
+      q.answered = true;
+      q.selectedIndex = idx;
       if (option.isCorrect) {
         score++;
       }
@@ -109,10 +121,16 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
       draw();
 
       setTimeout(function () {
-        if (qIndex < questions.length - 1) {
+        if (freeNav) {
+          var nextIdx = findNextUnanswered();
+          if (nextIdx === -1) {
+            showResult();
+          } else {
+            qIndex = nextIdx;
+            draw();
+          }
+        } else if (qIndex < questions.length - 1) {
           qIndex++;
-          answered = false;
-          selectedIndex = null;
           draw();
         } else {
           showResult();
@@ -162,8 +180,6 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
       questions = buildGrammarMcqQuestions(items);
       qIndex = 0;
       score = 0;
-      answered = false;
-      selectedIndex = null;
       answersLog = [];
       startedAt = new Date();
       timerIntervalId = startActivityTimer(startedAt);

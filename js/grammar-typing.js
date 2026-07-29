@@ -5,20 +5,23 @@ function normalizeGrammarTypingAnswer(str) {
   return normalizeQuoteChars(str || "").trim().replace(/\s+/g, " ");
 }
 
+function buildGrammarTypingPool(items) {
+  return shuffleArray(items).map(function (item) {
+    return { item: item, answered: false, lastCorrect: false, lastAnswerValue: "" };
+  });
+}
+
 function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal, scoreOffset) {
-  var pool = shuffleArray(items);
+  var pool = buildGrammarTypingPool(items);
   var qIndex = 0;
   var score = 0;
   var answersLog = [];
   var startedAt = new Date();
-  var answered = false;
-  var lastCorrect = false;
-  var lastAnswerValue = "";
-  var firstAttemptDone = false;
   var timerIntervalId = startActivityTimer(startedAt);
   var tabTracker = startTabSwitchTracker();
   var currentWrap = null;
   var advanceTimeoutId = null;
+  var freeNav = !!onTestComplete;
 
   function handleGlobalKeydown(e) {
     if (!currentWrap || !currentWrap.isConnected) {
@@ -28,9 +31,10 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
     if (e.key !== "Enter") {
       return;
     }
-    if (answered) {
+    var entry = pool[qIndex];
+    if (entry.answered) {
       clearTimeout(advanceTimeoutId);
-      if (lastCorrect) {
+      if (freeNav || entry.lastCorrect) {
         goNext();
       } else {
         retry();
@@ -42,15 +46,10 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
   }
   document.addEventListener("keydown", handleGlobalKeydown);
 
-  function showQuestion() {
-    answered = false;
-    firstAttemptDone = false;
-    draw();
-  }
-
   function draw() {
     container.innerHTML = "";
-    var item = pool[qIndex];
+    var entry = pool[qIndex];
+    var item = entry.item;
 
     var wrap = document.createElement("div");
     wrap.className = "ty-wrap";
@@ -68,10 +67,10 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
     input.autocomplete = "off";
     input.spellcheck = false;
     input.placeholder = "Gõ câu trả lời...";
-    input.disabled = answered;
+    input.disabled = entry.answered;
     wrap.appendChild(input);
 
-    if (!answered) {
+    if (!entry.answered) {
       var submitBtn = document.createElement("button");
       submitBtn.className = "quiz-continue-btn";
       submitBtn.type = "button";
@@ -81,16 +80,16 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
       });
       wrap.appendChild(submitBtn);
     } else {
-      input.value = lastAnswerValue;
+      input.value = entry.lastAnswerValue;
 
       var feedback = document.createElement("div");
-      feedback.className = "ft-feedback " + (lastCorrect ? "ft-correct" : "ft-wrong");
-      feedback.textContent = lastCorrect ? "✓ Chính xác!" : ("✗ Đáp án đúng: " + item.answer + " — thử gõ lại nhé!");
+      feedback.className = "ft-feedback " + (entry.lastCorrect ? "ft-correct" : "ft-wrong");
+      feedback.textContent = entry.lastCorrect ? "✓ Chính xác!" : ("✗ Đáp án đúng: " + item.answer + (freeNav ? "" : " — thử gõ lại nhé!"));
       wrap.appendChild(feedback);
     }
 
     wrap.appendChild(buildProgressFooter((progressOffset || 0) + qIndex + 1, progressTotal || pool.length));
-    if (isAdminPreview()) {
+    if (isAdminPreview() || freeNav) {
       wrap.appendChild(buildDevNavButtons(
         function () { goToIndex(qIndex - 1); },
         function () { goToIndex(qIndex + 1); },
@@ -100,7 +99,7 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
     }
     container.appendChild(wrap);
     currentWrap = wrap;
-    if (!answered) {
+    if (!entry.answered) {
       input.focus();
     }
   }
@@ -110,37 +109,51 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
       return;
     }
     qIndex = i;
-    lastAnswerValue = "";
-    showQuestion();
+    draw();
+  }
+
+  function findNextUnanswered() {
+    var i;
+    for (i = qIndex + 1; i < pool.length; i++) {
+      if (!pool[i].answered) {
+        return i;
+      }
+    }
+    for (i = 0; i < pool.length; i++) {
+      if (!pool[i].answered) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   function checkAnswer(value) {
-    if (answered) {
+    var entry = pool[qIndex];
+    if (entry.answered) {
       return;
     }
-    var item = pool[qIndex];
+    var item = entry.item;
     var isCorrect = normalizeGrammarTypingAnswer(value) === normalizeGrammarTypingAnswer(item.answer);
-    lastCorrect = isCorrect;
-    lastAnswerValue = value;
-    answered = true;
+    entry.lastCorrect = isCorrect;
+    entry.lastAnswerValue = value;
+    entry.answered = true;
 
-    if (!firstAttemptDone) {
-      firstAttemptDone = true;
-      if (isCorrect) {
-        score++;
-      }
-      answersLog.push({
-        vocab_id: item.id,
-        word_en: item.answer,
-        selected_label: value,
-        is_correct: isCorrect
-      });
+    if (isCorrect) {
+      score++;
     }
+    answersLog.push({
+      vocab_id: item.id,
+      word_en: item.answer,
+      selected_label: value,
+      is_correct: isCorrect
+    });
 
     draw();
 
     advanceTimeoutId = setTimeout(function () {
-      if (isCorrect) {
+      if (freeNav) {
+        goNext();
+      } else if (isCorrect) {
         goNext();
       } else {
         retry();
@@ -149,15 +162,24 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
   }
 
   function retry() {
-    answered = false;
-    lastAnswerValue = "";
+    var entry = pool[qIndex];
+    entry.answered = false;
+    entry.lastAnswerValue = "";
     draw();
   }
 
   function goNext() {
-    if (qIndex < pool.length - 1) {
+    if (freeNav) {
+      var nextIdx = findNextUnanswered();
+      if (nextIdx === -1) {
+        showResult();
+      } else {
+        qIndex = nextIdx;
+        draw();
+      }
+    } else if (qIndex < pool.length - 1) {
       qIndex++;
-      showQuestion();
+      draw();
     } else {
       showResult();
     }
@@ -200,7 +222,7 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
     retryBtn.type = "button";
     retryBtn.textContent = "Làm lại";
     retryBtn.addEventListener("click", function () {
-      pool = shuffleArray(items);
+      pool = buildGrammarTypingPool(items);
       qIndex = 0;
       score = 0;
       answersLog = [];
@@ -208,12 +230,12 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
       timerIntervalId = startActivityTimer(startedAt);
       tabTracker = startTabSwitchTracker();
       document.addEventListener("keydown", handleGlobalKeydown);
-      showQuestion();
+      draw();
     });
     wrap.appendChild(retryBtn);
 
     container.appendChild(wrap);
   }
 
-  showQuestion();
+  draw();
 }
