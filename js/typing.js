@@ -223,7 +223,21 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
   }
 
   function tryFillLetter(ch) {
+    var emptyIndex = firstEmptyBlankIndex();
+    if (emptyIndex === -1) {
+      return;
+    }
+    var neededChar = currentWord.charAt(emptyIndex);
+    if (neededChar.toLowerCase() !== ch.toLowerCase()) {
+      return;
+    }
     var i;
+    for (i = 0; i < tiles.length; i++) {
+      if (!tiles[i].used && tiles[i].char === neededChar) {
+        fillBlankWithTile(tiles[i]);
+        return;
+      }
+    }
     for (i = 0; i < tiles.length; i++) {
       if (!tiles[i].used && tiles[i].char.toLowerCase() === ch.toLowerCase()) {
         fillBlankWithTile(tiles[i]);
