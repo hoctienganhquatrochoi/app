@@ -71,7 +71,10 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
 
     var wrap = document.createElement("div");
     wrap.className = "dragfill-wrap";
-    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score, breadcrumbText));
+    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score));
+    if (!onTestComplete && setName) {
+      wrap.appendChild(buildSetNameBanner(setName));
+    }
 
     var tilesEl = document.createElement("div");
     tilesEl.className = "dragfill-tiles";

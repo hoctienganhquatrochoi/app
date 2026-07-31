@@ -73,7 +73,7 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
     var wrap = document.createElement("div");
     wrap.className = "ty-wrap";
 
-    wrap.appendChild(buildActivityHeader(startedAt, score, breadcrumbText));
+    wrap.appendChild(buildActivityHeader(startedAt, score));
 
     var audioBtn = document.createElement("button");
     audioBtn.className = "audio-btn";

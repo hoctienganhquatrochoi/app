@@ -67,7 +67,7 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
     var wrap = document.createElement("div");
     wrap.className = "ml-wrap";
 
-    wrap.appendChild(buildActivityHeader(startedAt, score, breadcrumbText));
+    wrap.appendChild(buildActivityHeader(startedAt, score));
 
     var q = questions[qIndex];
 

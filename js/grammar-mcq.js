@@ -26,7 +26,10 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
 
     var wrap = document.createElement("div");
     wrap.className = "quiz-wrap";
-    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score, breadcrumbText));
+    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score));
+    if (!onTestComplete && setName) {
+      wrap.appendChild(buildSetNameBanner(setName));
+    }
 
     var body = document.createElement("div");
     body.className = "quiz-body";

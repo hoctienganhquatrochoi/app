@@ -53,7 +53,10 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
 
     var wrap = document.createElement("div");
     wrap.className = "ty-wrap";
-    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score, breadcrumbText));
+    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score));
+    if (!onTestComplete && setName) {
+      wrap.appendChild(buildSetNameBanner(setName));
+    }
 
     var line = document.createElement("div");
     line.className = "ty-meaning no-visual";
