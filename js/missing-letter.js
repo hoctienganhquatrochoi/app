@@ -110,7 +110,23 @@ function renderMissingLetter(container, breadcrumbText, items, unitId, maxQuesti
     wrap.appendChild(optionsEl);
 
     wrap.appendChild(buildProgressFooter(qIndex + 1, questions.length));
+    if (isAdminPreview()) {
+      wrap.appendChild(buildDevNavButtons(
+        function () { goToIndex(qIndex - 1); },
+        function () { goToIndex(qIndex + 1); },
+        qIndex > 0,
+        qIndex < questions.length - 1
+      ));
+    }
     container.appendChild(wrap);
+  }
+
+  function goToIndex(i) {
+    if (i < 0 || i >= questions.length) {
+      return;
+    }
+    qIndex = i;
+    showQuestion();
   }
 
   function buildLetterOption(q, letter) {
