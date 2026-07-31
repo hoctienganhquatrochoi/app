@@ -67,12 +67,6 @@ function findUnitById(unitId) {
   return null;
 }
 
-function autoOpenFirstSubject() {
-  var subjects = DATA.subjectsByClass[state.selectedClassId] || [];
-  state.openSubjectId = subjects.length ? subjects[0].id : null;
-  state.openUnitId = null;
-}
-
 function renderSidebar() {
   var sidebar = document.getElementById("sidebar");
   sidebar.innerHTML = "";
@@ -796,7 +790,8 @@ function applyUrlHash() {
   state.selectedClassId = cls.id;
 
   if (!unitSlug) {
-    autoOpenFirstSubject();
+    state.openSubjectId = null;
+    state.openUnitId = null;
     return true;
   }
 
@@ -814,7 +809,8 @@ function applyUrlHash() {
   }
 
   if (!foundUnit) {
-    autoOpenFirstSubject();
+    state.openSubjectId = null;
+    state.openUnitId = null;
     return true;
   }
 
@@ -1092,11 +1088,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   await loadCurriculumData();
   renderHomePopup();
 
-  var matched = applyUrlHash();
-  if (!matched) {
-    state.selectedClassId = DATA.classes[0] ? DATA.classes[0].id : null;
-    autoOpenFirstSubject();
-  }
+  applyUrlHash();
 
   if (state.openUnitId) {
     await loadUnitDisabledActivities(state.openUnitId);
