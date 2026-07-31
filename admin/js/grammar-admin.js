@@ -481,10 +481,11 @@ function parseGrammarMcqBulkText(text) {
       if (!current) {
         current = { question: "", correct_answer: "", wrong_answers: [] };
       }
-      if (!current.question) {
-        current.question = stripLeadingNumbering(line);
-        var bracketMatch = current.question.match(/⟦([^⟦⟧]+)⟧|\[([^\[\]]+)\]/);
-        if (bracketMatch && !current.correct_answer) {
+      var cleanedLine = current.question ? line : stripLeadingNumbering(line);
+      current.question = current.question ? (current.question + " " + cleanedLine) : cleanedLine;
+      if (!current.correct_answer) {
+        var bracketMatch = cleanedLine.match(/⟦([^⟦⟧]+)⟧|\[([^\[\]]+)\]/);
+        if (bracketMatch) {
           current.correct_answer = (bracketMatch[1] || bracketMatch[2]).trim();
         }
       }

@@ -75,6 +75,11 @@ async function renderTestActivity(container, breadcrumbText, unit) {
 
     container.innerHTML = "";
 
+    var testBreadcrumb = document.createElement("div");
+    testBreadcrumb.className = "test-breadcrumb";
+    testBreadcrumb.textContent = breadcrumbText;
+    container.appendChild(testBreadcrumb);
+
     var labelBanner = document.createElement("div");
     labelBanner.className = "test-section-label-banner";
     labelBanner.textContent = (section.label || config.label);
