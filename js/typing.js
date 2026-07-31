@@ -136,21 +136,19 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
 
     keyInputEl = null;
     if (keyboardModeEnabled) {
+      var typedSoFar = blanks.filter(function (b) { return b && !b.auto; }).map(function (b) { return b.char; }).join("");
       keyInputEl = document.createElement("input");
       keyInputEl.type = "text";
       keyInputEl.className = "ty-key-input";
       keyInputEl.autocapitalize = "off";
       keyInputEl.autocomplete = "off";
       keyInputEl.spellcheck = false;
+      keyInputEl.value = typedSoFar;
       keyInputEl.addEventListener("input", function () {
-        var ch = keyInputEl.value.slice(-1).toLowerCase();
-        keyInputEl.value = "";
-        if (ch) {
-          tryFillLetter(ch);
-        }
-      });
-      keyInputEl.addEventListener("keydown", function (e) {
-        if (e.key === "Backspace") {
+        var newVal = keyInputEl.value;
+        if (newVal.length > typedSoFar.length) {
+          tryFillLetter(newVal.slice(-1).toLowerCase());
+        } else if (newVal.length < typedSoFar.length) {
           removeLastFilledBlank();
         }
       });
