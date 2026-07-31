@@ -647,6 +647,18 @@ function renderResultsAssignmentList(rows) {
       };
     }(row));
     actionTd.appendChild(viewBtn);
+
+    var delBtn = document.createElement("button");
+    delBtn.className = "admin-btn-danger";
+    delBtn.type = "button";
+    delBtn.textContent = "Xóa";
+    delBtn.addEventListener("click", function (assignmentId) {
+      return function () {
+        deleteResultsAssignment(assignmentId);
+      };
+    }(row.id));
+    actionTd.appendChild(delBtn);
+
     tr.appendChild(actionTd);
 
     tbody.appendChild(tr);
@@ -654,6 +666,18 @@ function renderResultsAssignmentList(rows) {
   table.appendChild(tbody);
 
   wrap.appendChild(table);
+}
+
+async function deleteResultsAssignment(id) {
+  if (!window.confirm("Xóa bài giao này? Không xóa kết quả học sinh đã làm, chỉ xóa khỏi danh sách giao bài.")) {
+    return;
+  }
+  var result = await supabaseClient.from("game_assignments").delete().eq("id", id);
+  if (result.error) {
+    window.alert("Lỗi xóa: " + result.error.message);
+    return;
+  }
+  loadAllAssignmentsForResults();
 }
 
 async function jumpToAssignmentResults(assignmentRow) {
