@@ -236,7 +236,16 @@ function startActivityTimer(startedAt) {
   return currentActivityTimerId;
 }
 
-function buildActivityHeader(startedAt, score) {
+function buildActivityHeader(startedAt, score, breadcrumbText) {
+  var wrap = document.createDocumentFragment();
+
+  if (breadcrumbText) {
+    var breadcrumb = document.createElement("div");
+    breadcrumb.className = "activity-breadcrumb";
+    breadcrumb.textContent = breadcrumbText;
+    wrap.appendChild(breadcrumb);
+  }
+
   var header = document.createElement("div");
   header.className = "quiz-header";
   header.appendChild(buildTimerEl(startedAt));
@@ -245,8 +254,9 @@ function buildActivityHeader(startedAt, score) {
   scoreEl.className = "quiz-score";
   scoreEl.textContent = "✓ " + score;
   header.appendChild(scoreEl);
+  wrap.appendChild(header);
 
-  return header;
+  return wrap;
 }
 
 function buildProgressFooter(current, total) {

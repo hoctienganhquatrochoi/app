@@ -1338,35 +1338,57 @@ async function handleDeleteAllGrammarDragfill() {
   loadCurriculumData().then(loadActivityToggles);
 }
 
-function parseGrammarDragfillBulkBlock(block) {
-  var lines = block.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
-  var questionEn = "";
-  var questionVi = "";
-  var correctAnswer = "";
-  var wrongAnswers = [];
+function parseGrammarDragfillBulkText(text) {
+  var lines = text.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+  var items = [];
+  var current = null;
+
+  function blank() {
+    return { question_en: "", question_vi: "", correct_answer: "", wrong_answers: [] };
+  }
+
+  function flush() {
+    if (current && (current.question_en || current.correct_answer || current.wrong_answers.length)) {
+      items.push(current);
+    }
+    current = null;
+  }
 
   lines.forEach(function (line) {
     var correctMatch = line.match(/^đáp\s*án\s*đúng\s*:\s*(.*)$/i);
     var wrongMatch = line.match(/^đáp\s*án\s*sai\s*:\s*(.*)$/i);
     if (correctMatch) {
-      correctAnswer = correctMatch[1].trim();
+      if (!current) {
+        current = blank();
+      }
+      current.correct_answer = correctMatch[1].trim();
     } else if (wrongMatch) {
-      wrongAnswers = splitDragfillAnswerList(wrongMatch[1]);
-    } else if (!questionEn) {
-      questionEn = stripLeadingNumbering(line);
-    } else if (!questionVi) {
-      questionVi = line;
+      if (!current) {
+        current = blank();
+      }
+      current.wrong_answers = splitDragfillAnswerList(wrongMatch[1]);
+      flush();
+    } else {
+      if (current && (current.correct_answer || current.wrong_answers.length)) {
+        flush();
+      }
+      if (!current) {
+        current = blank();
+      }
+      if (!current.question_en) {
+        current.question_en = stripLeadingNumbering(line);
+      } else if (!current.question_vi) {
+        current.question_vi = line;
+      } else {
+        flush();
+        current = blank();
+        current.question_en = stripLeadingNumbering(line);
+      }
     }
   });
+  flush();
 
-  return { question_en: questionEn, question_vi: questionVi, correct_answer: correctAnswer, wrong_answers: wrongAnswers };
-}
-
-function parseGrammarDragfillBulkText(text) {
-  var blocks = text.split(/\n\s*\n/);
-  return blocks.map(parseGrammarDragfillBulkBlock).filter(function (item) {
-    return item.question_en || item.correct_answer || item.wrong_answers.length;
-  });
+  return items;
 }
 
 async function handleBulkAddGrammarDragfill(e) {

@@ -75,11 +75,6 @@ async function renderTestActivity(container, breadcrumbText, unit) {
 
     container.innerHTML = "";
 
-    var testBreadcrumb = document.createElement("div");
-    testBreadcrumb.className = "test-breadcrumb";
-    testBreadcrumb.textContent = breadcrumbText;
-    container.appendChild(testBreadcrumb);
-
     var labelBanner = document.createElement("div");
     labelBanner.className = "test-section-label-banner";
     labelBanner.textContent = (section.label || config.label);
@@ -112,9 +107,8 @@ async function renderTestActivity(container, breadcrumbText, unit) {
       return;
     }
 
-    var sectionBreadcrumb = breadcrumbText + " › " + (section.label || config.label);
     var offsetForThisSection = runningOffset;
-    config.render(sectionContainer, sectionBreadcrumb, items, section.source_unit_id, section.source_set_name, function (score, total, answersLog, tabSwitchCount) {
+    config.render(sectionContainer, breadcrumbText, items, section.source_unit_id, section.source_set_name, function (score, total, answersLog, tabSwitchCount) {
       runningOffset = offsetForThisSection + total;
       totalTabSwitchCount += (tabSwitchCount || 0);
       finishSectionAndAdvance(section, index, score, total);

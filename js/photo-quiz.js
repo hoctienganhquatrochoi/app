@@ -68,7 +68,7 @@ function renderPhotoQuiz(container, breadcrumbText, imageUrl, questions, unitId,
     container.innerHTML = "";
     var wrap = document.createElement("div");
     wrap.className = "pq-wrap";
-    wrap.appendChild(buildActivityHeader(startedAt, 0));
+    wrap.appendChild(buildActivityHeader(startedAt, 0, breadcrumbText));
 
     if (imageUrl) {
       var img = document.createElement("img");

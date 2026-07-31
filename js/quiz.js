@@ -60,7 +60,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     var wrap = document.createElement("div");
     wrap.className = "quiz-wrap";
 
-    wrap.appendChild(buildActivityHeader(startedAt, score));
+    wrap.appendChild(buildActivityHeader(startedAt, score, breadcrumbText));
 
     var q = questions[qIndex];
     var config = QUIZ_FORMAT_CONFIG[q.format];

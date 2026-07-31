@@ -36,7 +36,7 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
 
     var wrap = document.createElement("div");
     wrap.className = "matching-wrap";
-    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score));
+    wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score, breadcrumbText));
 
     var progress = document.createElement("div");
     progress.className = "quiz-progress-footer";

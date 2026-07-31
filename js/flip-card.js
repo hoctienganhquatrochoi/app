@@ -24,7 +24,7 @@ function renderFlipCard(container, breadcrumbText, items, unitId) {
     var wrap = document.createElement("div");
     wrap.className = "fc-wrap";
 
-    wrap.appendChild(buildActivityHeader(startedAt, score));
+    wrap.appendChild(buildActivityHeader(startedAt, score, breadcrumbText));
 
     var progress = document.createElement("div");
     progress.className = "fc-progress";
