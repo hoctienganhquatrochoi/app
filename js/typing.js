@@ -100,7 +100,9 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
     for (i = 0; i < blanks.length; i++) {
       blanksEl.appendChild(buildBlankSlot(i));
     }
-    wrap.appendChild(blanksEl);
+    if (!keyboardModeEnabled) {
+      wrap.appendChild(blanksEl);
+    }
 
     if (showWrongFeedback) {
       var feedback = document.createElement("div");
@@ -114,7 +116,9 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
     for (i = 0; i < tiles.length; i++) {
       tilesEl.appendChild(buildTile(tiles[i]));
     }
-    wrap.appendChild(tilesEl);
+    if (!keyboardModeEnabled) {
+      wrap.appendChild(tilesEl);
+    }
 
     var toggleLabel = document.createElement("label");
     toggleLabel.className = "ty-keyboard-toggle";

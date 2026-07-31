@@ -1074,7 +1074,9 @@ function selectUnitForComposing(unitId) {
   var isTest = !!unit && unit.content_type === "test";
   document.getElementById("activityTogglesBox").style.display = isTest ? "none" : "";
   document.getElementById("composeSubTabs").style.display = isTest ? "none" : "";
-  document.getElementById("testComposeView").style.display = isTest ? "" : "none";
+  if (isTest) {
+    document.getElementById("testComposeView").style.display = "";
+  }
 
   if (isTest) {
     hideAllComposeSubPanels();
@@ -1109,8 +1111,12 @@ function switchComposeSubTab(target) {
   document.getElementById("photoQuizComposeSubPanel").style.display = target === "photoQuiz" ? "" : "none";
   document.getElementById("mathDragfillComposeSubPanel").style.display = target === "mathDragfill" ? "" : "none";
   document.getElementById("textDragfillComposeSubPanel").style.display = target === "textDragfill" ? "" : "none";
+  document.getElementById("testComposeView").style.display = target === "testSections" ? "" : "none";
 
-  if (target === "sentence") {
+  if (target === "testSections") {
+    updateTestSectionContentHint();
+    loadTestSections();
+  } else if (target === "sentence") {
     loadSentenceTable();
   } else if (target === "grammarMcq") {
     loadGrammarMcqSetList().then(loadGrammarMcqTable);

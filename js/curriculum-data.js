@@ -96,12 +96,20 @@ async function loadCurriculumData() {
   var textDragfillByUnit = buildNamedSetActivities(textDragfillUnitsResult.data || [], "td_", "text-dragfill");
   var testSectionsResult = await supabaseClient.from("game_test_sections").select("*").order("sort_order", { ascending: true });
   var testSectionsByUnit = {};
+  var claimedTestSetKeys = {};
   (testSectionsResult.data || []).forEach(function (row) {
     if (!testSectionsByUnit[row.unit_id]) {
       testSectionsByUnit[row.unit_id] = [];
     }
     testSectionsByUnit[row.unit_id].push(row);
+    claimedTestSetKeys[row.unit_id + "||" + row.section_type + "||" + row.source_set_name] = true;
   });
+
+  function excludeClaimedSets(list, unitId, sectionType) {
+    return (list || []).filter(function (item) {
+      return !claimedTestSetKeys[unitId + "||" + sectionType + "||" + item.setName];
+    });
+  }
   var classes = (classesResult.data || []).map(function (row) {
     return { id: row.id, name: row.name, level: row.level, sort_order: row.sort_order, demo_until: row.demo_until || null };
   });
@@ -149,13 +157,17 @@ async function loadCurriculumData() {
       unit.activities = VOCAB_ACTIVITY_TEMPLATE
         .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
         .concat(photoQuizByUnit[urow.id] || [])
-        .concat(mathDragfillByUnit[urow.id] || [])
-        .concat(textDragfillByUnit[urow.id] || [])
+        .concat(excludeClaimedSets(mathDragfillByUnit[urow.id], urow.id, "math-dragfill"))
+        .concat(excludeClaimedSets(textDragfillByUnit[urow.id], urow.id, "text-dragfill"))
         .concat(wordwallByUnit[urow.id] || [])
-        .concat(grammarMcqByUnit[urow.id] || [])
-        .concat(grammarTypingByUnit[urow.id] || [])
-        .concat(grammarMatchingByUnit[urow.id] || [])
-        .concat(grammarDragfillByUnit[urow.id] || []);
+        .concat(excludeClaimedSets(grammarMcqByUnit[urow.id], urow.id, "grammar-mcq"))
+        .concat(excludeClaimedSets(grammarTypingByUnit[urow.id], urow.id, "grammar-typing"))
+        .concat(excludeClaimedSets(grammarMatchingByUnit[urow.id], urow.id, "grammar-matching"))
+        .concat(excludeClaimedSets(grammarDragfillByUnit[urow.id], urow.id, "grammar-dragfill"));
+      if ((testSectionsByUnit[urow.id] || []).length) {
+        unit.testSections = testSectionsByUnit[urow.id];
+        unit.activities = unit.activities.concat([{ id: "run", name: "Đề ôn tập", type: "test", locked: false }]);
+      }
     }
     subj.units.push(unit);
     var unitChapter = unit.chapter_id ? chapterById[unit.chapter_id] : null;
