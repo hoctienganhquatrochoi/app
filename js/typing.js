@@ -140,7 +140,13 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
 
     keyInputEl = null;
     if (keyboardModeEnabled) {
-      var typedSoFar = blanks.filter(function (b) { return b && !b.auto; }).map(function (b) { return b.char; }).join("");
+      var typedSoFar = "";
+      for (var bi = 0; bi < blanks.length; bi++) {
+        if (!blanks[bi]) {
+          break;
+        }
+        typedSoFar += blanks[bi].char;
+      }
       keyInputEl = document.createElement("input");
       keyInputEl.type = "text";
       keyInputEl.className = "ty-key-input";
