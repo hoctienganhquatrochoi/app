@@ -9,7 +9,12 @@ var QUIZ_FORMAT_CONFIG = {
 var QUIZ_FORMAT_KEYS = Object.keys(QUIZ_FORMAT_CONFIG);
 
 function buildQuizQuestion(item, pool, fixedFormat) {
-  var format = fixedFormat || QUIZ_FORMAT_KEYS[Math.floor(Math.random() * QUIZ_FORMAT_KEYS.length)];
+  var hasVisual = !!(item.imageUrl || item.emoji);
+  var availableFormats = fixedFormat ? [fixedFormat] : QUIZ_FORMAT_KEYS.filter(function (f) {
+    var cfg = QUIZ_FORMAT_CONFIG[f];
+    return hasVisual || (!cfg.showImage && cfg.answerType !== "image");
+  });
+  var format = availableFormats[Math.floor(Math.random() * availableFormats.length)];
   var distractors = pickRandomDistractors(pool, item, 3);
   var options = shuffleArray([item].concat(distractors));
   return { item: item, format: format, options: options };
@@ -110,7 +115,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
 
     var parts = [];
     if (config.showWord) {
-      parts.push(q.item.en);
+      parts.push(capitalizeMeaning ? capitalizeFirst(q.item.en) : q.item.en);
     }
     if (config.showPhonetic && q.item.phonetic) {
       parts.push(q.item.phonetic);
@@ -118,7 +123,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
     var line = parts.join(" ");
     if (config.showMeaning) {
       var meaningText = capitalizeMeaning ? capitalizeFirst(q.item.vi) : (q.item.vi || "");
-      line = line ? line + " - " + meaningText : meaningText;
+      line = line ? line + " | " + meaningText : meaningText;
     }
 
     if (line) {
@@ -143,7 +148,7 @@ function renderQuiz(container, breadcrumbText, items, unitId, maxQuestions, form
       if (config.answerType === "meaning") {
         label.textContent = capitalizeMeaning ? capitalizeFirst(option.vi) : (option.vi || "");
       } else {
-        label.textContent = option.en;
+        label.textContent = capitalizeMeaning ? capitalizeFirst(option.en) : option.en;
       }
       btn.appendChild(label);
     }

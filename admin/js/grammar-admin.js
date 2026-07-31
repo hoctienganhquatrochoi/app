@@ -384,7 +384,7 @@ function buildGrammarMcqEditRow(row) {
   saveBtn.textContent = "Lưu";
   saveBtn.addEventListener("click", async function () {
     var correctAnswer = correctTd.inputEl.value.trim();
-    var wrongAnswers = wrongTd.inputEl.value.split(",").map(function (w) { return w.trim(); }).filter(function (w) { return w; });
+    var wrongAnswers = splitDragfillAnswerList(wrongTd.inputEl.value);
     if (!correctAnswer || !wrongAnswers.length) {
       window.alert("Đáp án đúng và đáp án sai không được để trống");
       return;
@@ -472,7 +472,7 @@ function parseGrammarMcqBulkText(text) {
       if (!current) {
         current = { question: "", correct_answer: "", wrong_answers: [] };
       }
-      current.wrong_answers = wrongMatch[1].split(",").map(function (w) { return w.trim(); }).filter(function (w) { return w; });
+      current.wrong_answers = splitDragfillAnswerList(wrongMatch[1]);
       flush();
     } else {
       if (current && (current.correct_answer || current.wrong_answers.length)) {
@@ -483,6 +483,10 @@ function parseGrammarMcqBulkText(text) {
       }
       if (!current.question) {
         current.question = stripLeadingNumbering(line);
+        var bracketMatch = current.question.match(/⟦([^⟦⟧]+)⟧|\[([^\[\]]+)\]/);
+        if (bracketMatch && !current.correct_answer) {
+          current.correct_answer = (bracketMatch[1] || bracketMatch[2]).trim();
+        }
       }
     }
   });
@@ -1268,7 +1272,7 @@ function buildGrammarDragfillEditRow(row) {
   saveBtn.addEventListener("click", async function () {
     var newEn = enTd.inputEl.value.trim();
     var correctAnswer = correctTd.inputEl.value.trim();
-    var wrongAnswers = wrongTd.inputEl.value.split(",").map(function (w) { return w.trim(); }).filter(function (w) { return w; });
+    var wrongAnswers = splitDragfillAnswerList(wrongTd.inputEl.value);
     if (!newEn || !correctAnswer || !wrongAnswers.length) {
       window.alert("Câu hỏi, đáp án đúng và đáp án sai không được để trống");
       return;
@@ -1346,7 +1350,7 @@ function parseGrammarDragfillBulkBlock(block) {
     if (correctMatch) {
       correctAnswer = correctMatch[1].trim();
     } else if (wrongMatch) {
-      wrongAnswers = wrongMatch[1].split(",").map(function (w) { return w.trim(); }).filter(function (w) { return w; });
+      wrongAnswers = splitDragfillAnswerList(wrongMatch[1]);
     } else if (!questionEn) {
       questionEn = stripLeadingNumbering(line);
     } else if (!questionVi) {

@@ -188,7 +188,7 @@ function buildPhotoQuizEditRow(row) {
   saveBtn.addEventListener("click", async function () {
     var newQuestion = questionTd.inputEl.value.trim();
     var correctAnswer = correctTd.inputEl.value.trim();
-    var wrongAnswers = wrongTd.inputEl.value.split(",").map(function (w) { return w.trim(); }).filter(function (w) { return w; });
+    var wrongAnswers = splitDragfillAnswerList(wrongTd.inputEl.value);
     if (!newQuestion || !correctAnswer) {
       window.alert("Câu hỏi và đáp án đúng không được để trống");
       return;

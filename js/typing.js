@@ -154,6 +154,11 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
           removeLastFilledBlank();
         }
       });
+      keyInputEl.addEventListener("focus", function () {
+        setTimeout(function () {
+          blanksEl.scrollIntoView({ block: "center", behavior: "smooth" });
+        }, 300);
+      });
       wrap.appendChild(keyInputEl);
     }
 

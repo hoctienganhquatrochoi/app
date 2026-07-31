@@ -76,20 +76,44 @@ function capitalizeFirst(str) {
 }
 
 function appendTextWithUnderline(el, text) {
-  var parts = (text || "").split("_");
-  var i;
-  for (i = 0; i < parts.length; i++) {
-    if (!parts[i]) {
-      continue;
+  text = text || "";
+
+  var bracketRegex = /⟦([^⟦⟧]+)⟧|\[([^\[\]]+)\]/g;
+  if (bracketRegex.test(text)) {
+    bracketRegex.lastIndex = 0;
+    var lastIndex = 0;
+    var bMatch;
+    while ((bMatch = bracketRegex.exec(text)) !== null) {
+      if (bMatch.index > lastIndex) {
+        el.appendChild(document.createTextNode(text.slice(lastIndex, bMatch.index)));
+      }
+      var bSpan = document.createElement("span");
+      bSpan.className = "underline-text";
+      bSpan.textContent = bMatch[1] || bMatch[2];
+      el.appendChild(bSpan);
+      lastIndex = bracketRegex.lastIndex;
     }
-    if (i % 2 === 1) {
-      var span = document.createElement("span");
-      span.className = "underline-text";
-      span.textContent = parts[i];
-      el.appendChild(span);
-    } else {
-      el.appendChild(document.createTextNode(parts[i]));
+    if (lastIndex < text.length) {
+      el.appendChild(document.createTextNode(text.slice(lastIndex)));
     }
+    return;
+  }
+
+  var underscoreRegex = /_([^_]+)_/g;
+  var lastIdx = 0;
+  var uMatch;
+  while ((uMatch = underscoreRegex.exec(text)) !== null) {
+    if (uMatch.index > lastIdx) {
+      el.appendChild(document.createTextNode(text.slice(lastIdx, uMatch.index)));
+    }
+    var uSpan = document.createElement("span");
+    uSpan.className = "underline-text";
+    uSpan.textContent = uMatch[1];
+    el.appendChild(uSpan);
+    lastIdx = underscoreRegex.lastIndex;
+  }
+  if (lastIdx < text.length) {
+    el.appendChild(document.createTextNode(text.slice(lastIdx)));
   }
 }
 

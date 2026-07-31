@@ -134,8 +134,8 @@ async function deleteTestSection(id) {
 
 var TEST_SECTION_CONTENT_HELP = {
   "grammar-mcq": {
-    hint: "Mỗi câu 3 dòng, cách nhau 1 dòng trống: câu hỏi (gạch chân 1 đoạn thì đặt dấu _ ở 2 đầu, VD gr_ea_t), dòng \"Đáp án đúng: ...\", dòng \"Đáp án sai: ...\" (cách nhau dấu phẩy). Bài đọc hiểu (có đoạn văn dùng chung): dán đoạn văn ở đầu, xuống dòng ghi riêng 1 dòng ba gạch ngang --- rồi mới đến các câu hỏi — đoạn văn sẽ hiện cố định phía trên khi làm bài.",
-    placeholder: "My name is Trang Nhi. I'm in class 3A and I'm eight years old...\n---\nTrang Nhi is _________ years old.\nĐáp án đúng: eight\nĐáp án sai: nine, ten"
+    hint: "Mỗi câu 3 dòng, cách nhau 1 dòng trống: câu hỏi, dòng \"Đáp án đúng: ...\", dòng \"Đáp án sai: ...\" (cách nhau dấu phẩy hoặc chấm phẩy ; đều được). Cách nhanh: bọc đáp án đúng ngay trong câu hỏi bằng ⟦ ⟧ hoặc [ ] (VD Trang Nhi is ⟦eight⟧ years old.) thì khỏi cần dòng \"Đáp án đúng\" nữa. Vẫn dùng được gạch chân bằng dấu _ hai đầu (VD gr_ea_t) cho câu không cần chọn đáp án từ đó. Bài đọc hiểu (có đoạn văn dùng chung): dán đoạn văn ở đầu, xuống dòng ghi riêng 1 dòng ba gạch ngang --- rồi mới đến các câu hỏi — đoạn văn sẽ hiện cố định phía trên khi làm bài.",
+    placeholder: "My name is Trang Nhi. I'm in class 3A and I'm eight years old...\n---\nTrang Nhi is ⟦eight⟧ years old.\nĐáp án sai: nine, ten"
   },
   "grammar-typing": {
     hint: "Mỗi dòng 1 câu, cách nhau dấu |: Câu hỏi | Đáp án.",
