@@ -22,7 +22,50 @@ function splitMathPassageAroundBlanks(rawPassage) {
   return { tokens: tokens, answers: answers };
 }
 
-function buildMathDragfillQuestions(items) {
+var DIALOGUE_SPEAKER_COLORS = ["#2D6A4F", "#B5495B", "#1D3557", "#8A5A00", "#6A4C93"];
+
+function detectDialogueSpeakerColors(passage) {
+  var names = [];
+  (passage || "").split("\n").forEach(function (line) {
+    var m = line.match(/^([A-Za-zÀ-ỹ0-9 .'-]{1,30}):\s?/);
+    if (m && names.indexOf(m[1]) === -1) {
+      names.push(m[1]);
+    }
+  });
+  if (names.length < 2) {
+    return null;
+  }
+  var map = {};
+  names.forEach(function (name, i) {
+    map[name] = DIALOGUE_SPEAKER_COLORS[i % DIALOGUE_SPEAKER_COLORS.length];
+  });
+  return map;
+}
+
+function appendPassageTextWithSpeakerColors(parent, text, speakerColors) {
+  if (!speakerColors) {
+    parent.appendChild(document.createTextNode(text));
+    return;
+  }
+  var lines = text.split("\n");
+  lines.forEach(function (line, i) {
+    if (i > 0) {
+      parent.appendChild(document.createElement("br"));
+    }
+    var m = line.match(/^([A-Za-zÀ-ỹ0-9 .'-]{1,30}):(\s?)/);
+    if (m && speakerColors[m[1]]) {
+      var nameSpan = document.createElement("span");
+      nameSpan.style.color = speakerColors[m[1]];
+      nameSpan.textContent = m[1] + ":";
+      parent.appendChild(nameSpan);
+      parent.appendChild(document.createTextNode(m[2] + line.slice(m[0].length)));
+    } else {
+      parent.appendChild(document.createTextNode(line));
+    }
+  });
+}
+
+function buildMathDragfillQuestions(items, activityType) {
   return shuffleArray(items).map(function (row) {
     var split = splitMathPassageAroundBlanks(row.passage);
     var wrongAnswers = row.wrong_answers || [];
@@ -32,6 +75,7 @@ function buildMathDragfillQuestions(items) {
     return {
       id: row.id,
       passage: row.passage,
+      speakerColors: activityType === "text-dragfill" ? detectDialogueSpeakerColors(row.passage) : null,
       tokens: split.tokens,
       answers: split.answers,
       options: options,
@@ -50,7 +94,7 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
   var freeNav = !!onTestComplete;
 
   function resetState() {
-    questions = buildMathDragfillQuestions(items);
+    questions = buildMathDragfillQuestions(items, activityType);
     totalBlanks = questions.reduce(function (sum, q) { return sum + q.answers.length; }, 0);
     qIndex = 0;
     score = 0;
@@ -155,7 +199,7 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
     passageEl.className = "dragfill-question mathfill-passage";
     q.tokens.forEach(function (token) {
       if (token.type === "text") {
-        passageEl.appendChild(document.createTextNode(token.value));
+        appendPassageTextWithSpeakerColors(passageEl, token.value, q.speakerColors);
         return;
       }
       var filled = q.filledByBlank[token.index];

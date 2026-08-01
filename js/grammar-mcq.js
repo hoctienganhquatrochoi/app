@@ -1,15 +1,24 @@
 var GRAMMAR_MCQ_ADVANCE_DELAY_MS = 1200;
 
 function splitGrammarMcqQuestionAroundBracket(question) {
+  question = question || "";
   var bracketRegex = /⟦([^⟦⟧]+)⟧|\[([^\[\]]+)\]/;
-  var m = (question || "").match(bracketRegex);
-  if (!m) {
-    return null;
+  var m = question.match(bracketRegex);
+  if (m) {
+    return {
+      before: question.slice(0, m.index),
+      after: question.slice(m.index + m[0].length)
+    };
   }
-  return {
-    before: question.slice(0, m.index),
-    after: question.slice(m.index + m[0].length)
-  };
+  var underscoreRunRegex = /_{3,}/;
+  var u = question.match(underscoreRunRegex);
+  if (u) {
+    return {
+      before: question.slice(0, u.index),
+      after: question.slice(u.index + u[0].length)
+    };
+  }
+  return null;
 }
 
 function buildGrammarMcqQuestions(items) {

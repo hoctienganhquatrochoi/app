@@ -1482,6 +1482,12 @@ html, body {
   cursor: pointer;
 }
 
+.quiz-continue-btn:disabled {
+  background: #B8C4BD;
+  color: #6B7A72;
+  cursor: not-allowed;
+}
+
 .result-meta {
   margin-top: 4px;
 }
