@@ -214,7 +214,8 @@ async function handleDeleteAllMathDragfill() {
 }
 
 function splitDragfillAnswerList(text) {
-  return text.split(/[;,]/).map(function (w) {
+  var sep = text.indexOf(";") !== -1 ? /;/ : /,/;
+  return text.split(sep).map(function (w) {
     return w.trim().replace(/[.。]+$/, "").trim();
   }).filter(function (w) { return w; });
 }
