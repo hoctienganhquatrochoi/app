@@ -334,6 +334,10 @@ function resetTestSectionForm() {
   if (cancelBtn) {
     cancelBtn.style.display = "none";
   }
+  var jumpBtn = document.getElementById("jumpToMcqImagesBtn");
+  if (jumpBtn) {
+    jumpBtn.style.display = "none";
+  }
 }
 
 function reconstructSectionContent(sectionType, rows) {
@@ -393,7 +397,22 @@ async function handleEditTestSection(row) {
   if (cancelBtn) {
     cancelBtn.style.display = "";
   }
+  var jumpBtn = document.getElementById("jumpToMcqImagesBtn");
+  if (jumpBtn) {
+    jumpBtn.style.display = row.section_type === "grammar-mcq" ? "" : "none";
+    jumpBtn.onclick = function () {
+      jumpToGrammarMcqSetForImages(row.source_set_name);
+    };
+  }
   document.getElementById("addTestSectionBox").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function jumpToGrammarMcqSetForImages(setName) {
+  switchComposeSubTab("grammarMcq");
+  await loadGrammarMcqSetList();
+  document.getElementById("grammarMcqSetSelect").value = setName;
+  loadGrammarMcqTable();
+  document.getElementById("grammarMcqTableWrap").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 async function handleAddTestSection() {
