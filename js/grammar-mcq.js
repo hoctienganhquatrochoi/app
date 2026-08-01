@@ -32,6 +32,7 @@ function buildGrammarMcqQuestions(items) {
       question: row.question,
       bracketSplit: splitGrammarMcqQuestionAroundBracket(row.question),
       passage: row.passage,
+      imageUrl: row.image_url,
       options: options,
       answered: false,
       selectedIndex: null
@@ -68,6 +69,13 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
       passageEl.className = "grammar-mcq-passage";
       passageEl.textContent = q.passage;
       body.appendChild(passageEl);
+    }
+
+    if (q.imageUrl) {
+      var img = document.createElement("img");
+      img.className = "grammar-mcq-image";
+      img.src = q.imageUrl;
+      body.appendChild(img);
     }
 
     if (q.question) {

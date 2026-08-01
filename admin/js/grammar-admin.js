@@ -316,7 +316,7 @@ function renderGrammarMcqTable(rows) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  ["Câu hỏi", "Đáp án đúng", "Đáp án sai", ""].forEach(function (h) {
+  ["Câu hỏi", "Đáp án đúng", "Đáp án sai", "Ảnh", ""].forEach(function (h) {
     var th = document.createElement("th");
     th.textContent = h;
     headRow.appendChild(th);
@@ -333,11 +333,37 @@ function renderGrammarMcqTable(rows) {
   wrap.appendChild(table);
 }
 
+async function uploadAndSetGrammarMcqImage(rowId, unitId, file) {
+  var url = await uploadVocabImage(file, unitId, "mcq_" + rowId);
+  if (!url) {
+    window.alert("Lỗi upload ảnh");
+    return;
+  }
+  var result = await supabaseClient.from("game_grammar_mcq").update({ image_url: url }).eq("id", rowId);
+  if (result.error) {
+    window.alert("Lỗi lưu ảnh: " + result.error.message);
+    return;
+  }
+  loadGrammarMcqTable();
+}
+
+function makeGrammarMcqImageTd(row) {
+  var td = document.createElement("td");
+  td.className = "admin-image-cell";
+  var picker = buildImagePicker(row.image_url, function (file) {
+    showImagePreview(picker, file);
+    uploadAndSetGrammarMcqImage(row.id, row.unit_id, file);
+  });
+  td.appendChild(picker.wrap);
+  return td;
+}
+
 function buildGrammarMcqRow(row) {
   var tr = document.createElement("tr");
   tr.appendChild(makeTd(row.question));
   tr.appendChild(makeTd(row.correct_answer));
   tr.appendChild(makeTd((row.wrong_answers || []).join(", ")));
+  tr.appendChild(makeGrammarMcqImageTd(row));
 
   var actionsTd = document.createElement("td");
 
@@ -375,6 +401,7 @@ function buildGrammarMcqEditRow(row) {
   tr.appendChild(questionTd);
   tr.appendChild(correctTd);
   tr.appendChild(wrongTd);
+  tr.appendChild(makeGrammarMcqImageTd(row));
 
   var actionsTd = document.createElement("td");
 
