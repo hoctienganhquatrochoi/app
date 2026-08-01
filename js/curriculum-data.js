@@ -94,15 +94,28 @@ async function loadCurriculumData() {
   var mathDragfillByUnit = buildNamedSetActivities(mathDragfillUnitsResult.data || [], "md_", "math-dragfill");
   var textDragfillUnitsResult = await supabaseClient.from("game_text_dragfill").select("unit_id, set_name").order("sort_order", { ascending: true });
   var textDragfillByUnit = buildNamedSetActivities(textDragfillUnitsResult.data || [], "td_", "text-dragfill");
+  var testsResult = await supabaseClient.from("game_tests").select("*").order("sort_order", { ascending: true });
   var testSectionsResult = await supabaseClient.from("game_test_sections").select("*").order("sort_order", { ascending: true });
-  var testSectionsByUnit = {};
+  var sectionsByTestId = {};
   var claimedTestSetKeys = {};
   (testSectionsResult.data || []).forEach(function (row) {
-    if (!testSectionsByUnit[row.unit_id]) {
-      testSectionsByUnit[row.unit_id] = [];
+    if (!sectionsByTestId[row.test_id]) {
+      sectionsByTestId[row.test_id] = [];
     }
-    testSectionsByUnit[row.unit_id].push(row);
+    sectionsByTestId[row.test_id].push(row);
     claimedTestSetKeys[row.unit_id + "||" + row.section_type + "||" + row.source_set_name] = true;
+  });
+  var testsByUnit = {};
+  (testsResult.data || []).forEach(function (row) {
+    if (!testsByUnit[row.unit_id]) {
+      testsByUnit[row.unit_id] = [];
+    }
+    testsByUnit[row.unit_id].push({
+      id: row.id,
+      name: row.name,
+      sort_order: row.sort_order,
+      sections: sectionsByTestId[row.id] || []
+    });
   });
 
   function excludeClaimedSets(list, unitId, sectionType) {
@@ -150,9 +163,13 @@ async function loadCurriculumData() {
       continue;
     }
     var unit = { id: urow.id, subject_id: urow.subject_id, class_id: subj.class_id, chapter_id: urow.chapter_id || null, name: urow.name, content_type: urow.content_type, is_demo: !!urow.is_demo, sort_order: urow.sort_order, progress: "" };
+    var unitTests = testsByUnit[urow.id] || [];
+    unit.tests = unitTests;
+    var testActivities = unitTests.map(function (t) {
+      return { id: "run_" + t.id, name: t.name, type: "test", testSections: t.sections, locked: false };
+    });
     if (urow.content_type === "test") {
-      unit.testSections = testSectionsByUnit[urow.id] || [];
-      unit.activities = [{ id: "run", name: "Bắt đầu làm bài", type: "test" }];
+      unit.activities = testActivities;
     } else {
       unit.activities = VOCAB_ACTIVITY_TEMPLATE
         .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
@@ -163,11 +180,8 @@ async function loadCurriculumData() {
         .concat(excludeClaimedSets(grammarMcqByUnit[urow.id], urow.id, "grammar-mcq"))
         .concat(excludeClaimedSets(grammarTypingByUnit[urow.id], urow.id, "grammar-typing"))
         .concat(excludeClaimedSets(grammarMatchingByUnit[urow.id], urow.id, "grammar-matching"))
-        .concat(excludeClaimedSets(grammarDragfillByUnit[urow.id], urow.id, "grammar-dragfill"));
-      if ((testSectionsByUnit[urow.id] || []).length) {
-        unit.testSections = testSectionsByUnit[urow.id];
-        unit.activities = unit.activities.concat([{ id: "run", name: "Đề ôn tập", type: "test", locked: false }]);
-      }
+        .concat(excludeClaimedSets(grammarDragfillByUnit[urow.id], urow.id, "grammar-dragfill"))
+        .concat(testActivities);
     }
     subj.units.push(unit);
     var unitChapter = unit.chapter_id ? chapterById[unit.chapter_id] : null;

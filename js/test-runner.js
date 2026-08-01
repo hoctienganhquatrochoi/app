@@ -19,8 +19,8 @@ var TEST_SECTION_CONFIG = {
   }
 };
 
-async function renderTestActivity(container, breadcrumbText, unit) {
-  var sections = unit.testSections || [];
+async function renderTestActivity(container, breadcrumbText, unitId, sections) {
+  sections = sections || [];
   var sectionResults = sections.map(function () { return null; });
   var testStartedAt = new Date();
 
@@ -163,7 +163,7 @@ async function renderTestActivity(container, breadcrumbText, unit) {
     var totalScore = currentTotalScore();
     var totalMax = currentTotalMax();
     var totalTabSwitchCount = currentTotalTabSwitchCount();
-    submitQuizAttempt(unit.id, "test", totalScore, totalMax, testStartedAt, sectionResults, null, totalTabSwitchCount);
+    submitQuizAttempt(unitId, "test", totalScore, totalMax, testStartedAt, sectionResults, null, totalTabSwitchCount);
 
     container.innerHTML = "";
     var wrap = document.createElement("div");

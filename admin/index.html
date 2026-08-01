@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260729o">
-<link rel="stylesheet" href="css/admin.css?v=20260729o">
+<link rel="stylesheet" href="../css/style.css?v=20260729p">
+<link rel="stylesheet" href="css/admin.css?v=20260729p">
 </head>
 <body>
 
@@ -358,6 +358,21 @@
             </nav>
 
             <div id="testComposeView" style="display:none">
+              <p class="admin-hint">Mỗi Unit có thể có nhiều đề riêng (tự đặt tên tùy ý), mỗi đề gồm nhiều mục như Exercise 1, 2... Chọn hoặc tạo 1 đề bên dưới trước, rồi soạn các mục cho đề đó.</p>
+
+              <div class="admin-form" id="testListBox">
+                <h3>Danh sách đề</h3>
+                <div id="testListWrap"></div>
+                <div class="admin-form-row">
+                  <div class="admin-field">
+                    <label>Tên đề mới</label>
+                    <input type="text" id="newTestNameInput" placeholder="VD: Đề giữa kỳ">
+                  </div>
+                </div>
+                <button type="button" class="admin-btn-primary" id="addTestBtn">+ Thêm đề mới</button>
+              </div>
+
+              <div id="testSectionEditorWrap" style="display:none">
               <p class="admin-hint">Mỗi mục trong đề: đặt nhãn, chọn dạng bài, dán nội dung ngay bên dưới — xong 1 lần, không cần qua tab khác. Các mục hiện theo đúng thứ tự đã thêm, có thể sắp xếp lại bên dưới.</p>
 
               <div class="admin-form" id="addTestSectionBox">
@@ -405,6 +420,7 @@ Có 27 con cá, số con tôm gấp 3 lần số con cá. Vậy số con tôm l�
 Đáp án sai: 71"></textarea>
                 <button type="button" class="admin-btn-primary admin-btn-bulk" id="megaImportBtn">Tách và tạo cả đề</button>
                 <div class="admin-status" id="megaImportStatus"></div>
+              </div>
               </div>
             </div>
 
@@ -1023,26 +1039,26 @@ What is Alex's family name?
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260729o"></script>
-<script src="../js/supabase-config.js?v=20260729o"></script>
-<script src="js/admin-auth.js?v=20260729o"></script>
-<script src="../js/curriculum-data.js?v=20260729o"></script>
-<script src="js/content-admin.js?v=20260729o"></script>
-<script src="js/sentences-admin.js?v=20260729o"></script>
-<script src="js/grammar-admin.js?v=20260729o"></script>
-<script src="js/math-admin.js?v=20260729o"></script>
-<script src="js/text-dragfill-admin.js?v=20260729o"></script>
-<script src="js/test-sections-admin.js?v=20260729o"></script>
-<script src="js/photo-quiz-admin.js?v=20260729o"></script>
-<script src="js/speaking-admin.js?v=20260729o"></script>
-<script src="js/wordwall-admin.js?v=20260729o"></script>
-<script src="js/wordwall-templates-admin.js?v=20260729o"></script>
-<script src="js/groups-admin.js?v=20260729o"></script>
-<script src="js/students-admin.js?v=20260729o"></script>
-<script src="js/assignments-admin.js?v=20260729o"></script>
-<script src="js/results-admin.js?v=20260729o"></script>
-<script src="js/activity-toggles-admin.js?v=20260729o"></script>
-<script src="js/curriculum-admin.js?v=20260729o"></script>
-<script src="js/admin-app.js?v=20260729o"></script>
+<script src="../js/data.js?v=20260729p"></script>
+<script src="../js/supabase-config.js?v=20260729p"></script>
+<script src="js/admin-auth.js?v=20260729p"></script>
+<script src="../js/curriculum-data.js?v=20260729p"></script>
+<script src="js/content-admin.js?v=20260729p"></script>
+<script src="js/sentences-admin.js?v=20260729p"></script>
+<script src="js/grammar-admin.js?v=20260729p"></script>
+<script src="js/math-admin.js?v=20260729p"></script>
+<script src="js/text-dragfill-admin.js?v=20260729p"></script>
+<script src="js/test-sections-admin.js?v=20260729p"></script>
+<script src="js/photo-quiz-admin.js?v=20260729p"></script>
+<script src="js/speaking-admin.js?v=20260729p"></script>
+<script src="js/wordwall-admin.js?v=20260729p"></script>
+<script src="js/wordwall-templates-admin.js?v=20260729p"></script>
+<script src="js/groups-admin.js?v=20260729p"></script>
+<script src="js/students-admin.js?v=20260729p"></script>
+<script src="js/assignments-admin.js?v=20260729p"></script>
+<script src="js/results-admin.js?v=20260729p"></script>
+<script src="js/activity-toggles-admin.js?v=20260729p"></script>
+<script src="js/curriculum-admin.js?v=20260729p"></script>
+<script src="js/admin-app.js?v=20260729p"></script>
 </body>
 </html>

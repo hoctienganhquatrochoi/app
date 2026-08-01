@@ -374,7 +374,8 @@ function buildUnitItem(unit) {
 
   var isOpen = state.openUnitId === unit.id;
   var isTest = unit.content_type === "test";
-  var isTestSelected = isTest && state.selectedActivity && state.selectedActivity.unit.id === unit.id;
+  var isSingleTest = isTest && unit.activities.length === 1;
+  var isTestSelected = isSingleTest && state.selectedActivity && state.selectedActivity.unit.id === unit.id;
 
   var header = document.createElement("div");
   header.className = "unit-header" + (isOpen || isTestSelected ? " open" : "");
@@ -397,7 +398,7 @@ function buildUnitItem(unit) {
   header.appendChild(progress);
 
   header.addEventListener("click", function () {
-    if (isTest) {
+    if (isSingleTest) {
       if (!unitHasAccess(unit)) {
         showAccessNeededMessage();
         return;
@@ -420,7 +421,7 @@ function buildUnitItem(unit) {
 
   wrap.appendChild(header);
 
-  if (isOpen && !isTest) {
+  if (isOpen && !isSingleTest) {
     var list = document.createElement("div");
     list.className = "activity-list";
     var disabledIds = unitDisabledActivities[unit.id] || [];
@@ -710,7 +711,7 @@ async function renderMainContent() {
 
   if (activity.type === "test") {
     main.innerHTML = "";
-    renderTestActivity(main, breadcrumbText, unit);
+    renderTestActivity(main, breadcrumbText, unit.id, activity.testSections || []);
     return;
   }
 

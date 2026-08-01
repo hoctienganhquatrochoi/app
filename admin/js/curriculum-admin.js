@@ -1081,7 +1081,7 @@ function selectUnitForComposing(unitId) {
   if (isTest) {
     hideAllComposeSubPanels();
     updateTestSectionContentHint();
-    loadTestSections();
+    loadTestList();
   } else {
     switchComposeSubTab("vocab");
     loadVocabTable();
@@ -1115,7 +1115,7 @@ function switchComposeSubTab(target) {
 
   if (target === "testSections") {
     updateTestSectionContentHint();
-    loadTestSections();
+    loadTestList();
   } else if (target === "sentence") {
     loadSentenceTable();
   } else if (target === "grammarMcq") {
@@ -1307,6 +1307,7 @@ async function deleteUnitAndContent(unitId, counts) {
   }
   if (counts.testSections > 0) {
     await supabaseClient.from("game_test_sections").delete().eq("unit_id", unitId);
+    await supabaseClient.from("game_tests").delete().eq("unit_id", unitId);
   }
   await supabaseClient.from("game_photo_quiz_sets").delete().eq("unit_id", unitId);
   await supabaseClient.from("game_unit_settings").delete().eq("unit_id", unitId);

@@ -19,13 +19,163 @@ var TEST_SECTION_LABELS = {
 };
 
 var currentTestSections = [];
+var currentTestList = [];
+var currentTestId = null;
+
+async function loadTestList() {
+  var unitId = document.getElementById("unitSelect").value;
+  var wrap = document.getElementById("testListWrap");
+  wrap.textContent = "Đang tải...";
+
+  var result = await supabaseClient.from("game_tests").select("*").eq("unit_id", unitId).order("sort_order", { ascending: true });
+  if (result.error) {
+    wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
+    return;
+  }
+
+  currentTestList = result.data || [];
+  if (!currentTestId || !currentTestList.some(function (t) { return t.id === currentTestId; })) {
+    currentTestId = currentTestList.length ? currentTestList[0].id : null;
+  }
+  renderTestList();
+  document.getElementById("testSectionEditorWrap").style.display = currentTestId ? "" : "none";
+  if (currentTestId) {
+    loadTestSections();
+  }
+}
+
+function renderTestList() {
+  var wrap = document.getElementById("testListWrap");
+  wrap.innerHTML = "";
+
+  if (!currentTestList.length) {
+    var empty = document.createElement("div");
+    empty.className = "admin-status";
+    empty.textContent = "Unit này chưa có đề nào, tạo ở bên dưới.";
+    wrap.appendChild(empty);
+    return;
+  }
+
+  currentTestList.forEach(function (test, idx) {
+    var row = document.createElement("div");
+    row.className = "admin-table-toolbar";
+
+    var selectBtn = document.createElement("button");
+    selectBtn.type = "button";
+    selectBtn.className = test.id === currentTestId ? "admin-btn-primary" : "admin-btn-secondary";
+    selectBtn.textContent = test.name;
+    selectBtn.addEventListener("click", function () {
+      currentTestId = test.id;
+      renderTestList();
+      document.getElementById("testSectionEditorWrap").style.display = "";
+      loadTestSections();
+    });
+    row.appendChild(selectBtn);
+
+    var renameBtn = document.createElement("button");
+    renameBtn.type = "button";
+    renameBtn.className = "admin-btn-secondary";
+    renameBtn.textContent = "Đổi tên";
+    renameBtn.addEventListener("click", function () { handleRenameTest(test); });
+    row.appendChild(renameBtn);
+
+    var upBtn = document.createElement("button");
+    upBtn.type = "button";
+    upBtn.className = "admin-btn-secondary";
+    upBtn.textContent = "↑";
+    upBtn.disabled = idx === 0;
+    upBtn.addEventListener("click", function () { moveTest(idx, -1); });
+    row.appendChild(upBtn);
+
+    var downBtn = document.createElement("button");
+    downBtn.type = "button";
+    downBtn.className = "admin-btn-secondary";
+    downBtn.textContent = "↓";
+    downBtn.disabled = idx === currentTestList.length - 1;
+    downBtn.addEventListener("click", function () { moveTest(idx, 1); });
+    row.appendChild(downBtn);
+
+    var delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "admin-btn-danger";
+    delBtn.textContent = "Xóa đề";
+    delBtn.addEventListener("click", function () { deleteTest(test); });
+    row.appendChild(delBtn);
+
+    wrap.appendChild(row);
+  });
+}
+
+async function handleAddTest() {
+  var unitId = document.getElementById("unitSelect").value;
+  var input = document.getElementById("newTestNameInput");
+  var name = input.value.trim();
+  if (!name) {
+    window.alert("Đặt tên cho đề trước đã.");
+    return;
+  }
+  var result = await supabaseClient.from("game_tests").insert({
+    id: genId("test"),
+    unit_id: unitId,
+    name: name,
+    sort_order: currentTestList.length
+  }).select();
+  if (result.error) {
+    window.alert("Lỗi tạo đề: " + result.error.message);
+    return;
+  }
+  input.value = "";
+  currentTestId = result.data[0].id;
+  await loadTestList();
+  loadCurriculumData().then(loadActivityToggles);
+}
+
+async function handleRenameTest(test) {
+  var newName = window.prompt("Đổi tên đề:", test.name);
+  if (!newName || !newName.trim() || newName.trim() === test.name) {
+    return;
+  }
+  var result = await supabaseClient.from("game_tests").update({ name: newName.trim() }).eq("id", test.id);
+  if (result.error) {
+    window.alert("Lỗi lưu: " + result.error.message);
+    return;
+  }
+  loadTestList();
+  loadCurriculumData().then(loadActivityToggles);
+}
+
+async function moveTest(idx, delta) {
+  var otherIdx = idx + delta;
+  if (otherIdx < 0 || otherIdx >= currentTestList.length) {
+    return;
+  }
+  var a = currentTestList[idx];
+  var b = currentTestList[otherIdx];
+  await supabaseClient.from("game_tests").update({ sort_order: b.sort_order }).eq("id", a.id);
+  await supabaseClient.from("game_tests").update({ sort_order: a.sort_order }).eq("id", b.id);
+  loadTestList();
+}
+
+async function deleteTest(test) {
+  if (!window.confirm("Xóa đề \"" + test.name + "\"? Các mục trong đề sẽ bị bỏ khỏi đề (nội dung bài ở tab tương ứng vẫn còn, không bị xóa). Không thể khôi phục.")) {
+    return;
+  }
+  await supabaseClient.from("game_test_sections").delete().eq("test_id", test.id);
+  var result = await supabaseClient.from("game_tests").delete().eq("id", test.id);
+  if (result.error) {
+    window.alert("Lỗi xóa: " + result.error.message);
+    return;
+  }
+  currentTestId = null;
+  loadTestList();
+  loadCurriculumData().then(loadActivityToggles);
+}
 
 async function loadTestSections() {
-  var unitId = document.getElementById("unitSelect").value;
   var wrap = document.getElementById("testSectionsTableWrap");
   wrap.textContent = "Đang tải...";
 
-  var result = await supabaseClient.from("game_test_sections").select("*").eq("unit_id", unitId).order("sort_order", { ascending: true });
+  var result = await supabaseClient.from("game_test_sections").select("*").eq("test_id", currentTestId).order("sort_order", { ascending: true });
   if (result.error) {
     wrap.textContent = "Lỗi tải dữ liệu: " + result.error.message;
     return;
@@ -289,6 +439,7 @@ async function handleAddTestSection() {
   } else {
     var nextSortOrder = currentTestSections.length;
     var result = await supabaseClient.from("game_test_sections").insert({
+      test_id: currentTestId,
       unit_id: unitId,
       sort_order: nextSortOrder,
       section_type: sectionType,
@@ -462,6 +613,7 @@ async function handleMegaImport() {
     }
 
     var sectionInsert = await supabaseClient.from("game_test_sections").insert({
+      test_id: currentTestId,
       unit_id: unitId,
       sort_order: nextSortOrder + successCount,
       section_type: sec.typeKey,
