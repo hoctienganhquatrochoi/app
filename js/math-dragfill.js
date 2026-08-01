@@ -36,6 +36,7 @@ function buildMathDragfillQuestions(items) {
       answers: split.answers,
       options: options,
       filledByBlank: split.answers.map(function () { return null; }),
+      selectedBlankIndex: null,
       answered: false,
       lastCorrect: false
     };
@@ -59,6 +60,7 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
 
   function resetQuestionState(q) {
     q.filledByBlank = q.answers.map(function () { return null; });
+    q.selectedBlankIndex = null;
     q.options.forEach(function (o) { o.used = false; });
     q.answered = false;
     q.lastCorrect = false;
@@ -92,21 +94,29 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
     if (q.answered || option.used) {
       return;
     }
-    var nextEmptyIndex = q.filledByBlank.indexOf(null);
-    if (nextEmptyIndex === -1) {
+    var targetIndex = (q.selectedBlankIndex !== null && q.selectedBlankIndex !== undefined && q.filledByBlank[q.selectedBlankIndex] === null)
+      ? q.selectedBlankIndex
+      : q.filledByBlank.indexOf(null);
+    if (targetIndex === -1) {
       return;
     }
     option.used = true;
-    q.filledByBlank[nextEmptyIndex] = option;
+    q.filledByBlank[targetIndex] = option;
+    q.selectedBlankIndex = null;
     draw();
   }
 
   function handleBlankClick(q, blankIndex) {
-    if (q.answered || !q.filledByBlank[blankIndex]) {
+    if (q.answered) {
       return;
     }
-    q.filledByBlank[blankIndex].used = false;
-    q.filledByBlank[blankIndex] = null;
+    if (q.filledByBlank[blankIndex]) {
+      q.filledByBlank[blankIndex].used = false;
+      q.filledByBlank[blankIndex] = null;
+      q.selectedBlankIndex = null;
+    } else {
+      q.selectedBlankIndex = (q.selectedBlankIndex === blankIndex) ? null : blankIndex;
+    }
     draw();
   }
 
@@ -115,7 +125,7 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
     var q = questions[qIndex];
 
     var wrap = document.createElement("div");
-    wrap.className = "dragfill-wrap";
+    wrap.className = "dragfill-wrap dragfill-wrap-wide";
     wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score));
     if (!onTestComplete && setName) {
       wrap.appendChild(buildSetNameBanner(setName));
@@ -148,13 +158,13 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
       }
       var filled = q.filledByBlank[token.index];
       var blank = document.createElement("span");
-      blank.className = "dragfill-blank" + (filled ? " filled" : "");
+      blank.className = "dragfill-blank" + (filled ? " filled" : "") + (!filled && q.selectedBlankIndex === token.index ? " targeted" : "");
       if (q.answered) {
         var isBlankCorrect = filled && filled.text === q.answers[token.index];
         blank.className += isBlankCorrect ? " correct" : " wrong";
       }
       blank.textContent = filled ? filled.text : "___";
-      if (filled && !q.answered) {
+      if (!q.answered) {
         blank.addEventListener("click", function () {
           handleBlankClick(q, token.index);
         });
