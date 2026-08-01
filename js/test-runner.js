@@ -21,12 +21,8 @@ var TEST_SECTION_CONFIG = {
 
 async function renderTestActivity(container, breadcrumbText, unit) {
   var sections = unit.testSections || [];
-  var sectionIndex = 0;
-  var totalScore = 0;
-  var totalMax = 0;
-  var sectionResults = [];
+  var sectionResults = sections.map(function () { return null; });
   var testStartedAt = new Date();
-  var totalTabSwitchCount = 0;
 
   if (!sections.length) {
     container.innerHTML = "";
@@ -43,15 +39,49 @@ async function renderTestActivity(container, breadcrumbText, unit) {
 
   async function preloadGrandTotal() {
     for (var i = 0; i < sections.length; i++) {
-      var cfg = TEST_SECTION_CONFIG[sections[i].section_type];
+      var sectionType = sections[i].section_type;
+      var cfg = TEST_SECTION_CONFIG[sectionType];
       var count = 0;
       if (cfg) {
         var secItems = await cfg.load(sections[i].source_unit_id, sections[i].source_set_name);
-        count = secItems ? secItems.length : 0;
+        if (sectionType === "math-dragfill" || sectionType === "text-dragfill") {
+          count = (secItems || []).reduce(function (sum, row) {
+            return sum + splitMathPassageAroundBlanks(row.passage).answers.length;
+          }, 0);
+        } else {
+          count = secItems ? secItems.length : 0;
+        }
       }
       sectionTotals.push(count);
       grandTotal += count;
     }
+  }
+
+  function currentTotalScore() {
+    return sectionResults.reduce(function (sum, r) { return sum + (r ? r.score : 0); }, 0);
+  }
+
+  function currentTotalMax() {
+    return sectionResults.reduce(function (sum, r) { return sum + (r ? r.total : 0); }, 0);
+  }
+
+  function currentTotalTabSwitchCount() {
+    return sectionResults.reduce(function (sum, r) { return sum + (r ? r.tabSwitchCount : 0); }, 0);
+  }
+
+  function findNextIncompleteSection(fromIndex) {
+    var i;
+    for (i = fromIndex + 1; i < sections.length; i++) {
+      if (!sectionResults[i]) {
+        return i;
+      }
+    }
+    for (i = 0; i < sections.length; i++) {
+      if (!sectionResults[i]) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   function jumpToSection(index) {
@@ -69,7 +99,7 @@ async function renderTestActivity(container, breadcrumbText, unit) {
   async function runSection(section, index) {
     var config = TEST_SECTION_CONFIG[section.section_type];
     if (!config) {
-      finishSectionAndAdvance(section, index, 0, 0);
+      finishSectionAndAdvance(section, index, 0, 0, 0);
       return;
     }
 
@@ -80,18 +110,16 @@ async function renderTestActivity(container, breadcrumbText, unit) {
     labelBanner.textContent = (section.label || config.label);
     container.appendChild(labelBanner);
 
-    if (isAdminPreview()) {
-      var sectionLabelEl = document.createElement("div");
-      sectionLabelEl.className = "test-section-dev-nav-label";
-      sectionLabelEl.textContent = "Mục " + (index + 1) + " / " + sections.length;
-      container.appendChild(sectionLabelEl);
-      container.appendChild(buildDevNavButtons(
-        function () { jumpToSection(index - 1); },
-        function () { jumpToSection(index + 1); },
-        index > 0,
-        index < sections.length - 1
-      ));
-    }
+    var sectionLabelEl = document.createElement("div");
+    sectionLabelEl.className = "test-section-dev-nav-label";
+    sectionLabelEl.textContent = "Mục " + (index + 1) + " / " + sections.length;
+    container.appendChild(sectionLabelEl);
+    container.appendChild(buildDevNavButtons(
+      function () { jumpToSection(index - 1); },
+      function () { jumpToSection(index + 1); },
+      index > 0,
+      index < sections.length - 1
+    ));
 
     var sectionContainer = document.createElement("div");
     container.appendChild(sectionContainer);
@@ -103,36 +131,38 @@ async function renderTestActivity(container, breadcrumbText, unit) {
 
     var items = await config.load(section.source_unit_id, section.source_set_name);
     if (!items || !items.length) {
-      finishSectionAndAdvance(section, index, 0, 0);
+      finishSectionAndAdvance(section, index, 0, 0, 0);
       return;
     }
 
     var offsetForThisSection = runningOffset;
     config.render(sectionContainer, breadcrumbText, items, section.source_unit_id, section.source_set_name, function (score, total, answersLog, tabSwitchCount) {
       runningOffset = offsetForThisSection + total;
-      totalTabSwitchCount += (tabSwitchCount || 0);
-      finishSectionAndAdvance(section, index, score, total);
-    }, offsetForThisSection, grandTotal, totalScore);
+      finishSectionAndAdvance(section, index, score, total, tabSwitchCount || 0);
+    }, offsetForThisSection, grandTotal, currentTotalScore());
   }
 
-  function finishSectionAndAdvance(section, index, score, total) {
+  function finishSectionAndAdvance(section, index, score, total, tabSwitchCount) {
     var config = TEST_SECTION_CONFIG[section.section_type];
-    sectionResults.push({
+    sectionResults[index] = {
       label: section.label || (config ? config.label : section.section_type),
       score: score,
-      total: total
-    });
-    totalScore += score;
-    totalMax += total;
+      total: total,
+      tabSwitchCount: tabSwitchCount || 0
+    };
 
-    if (index < sections.length - 1) {
-      runSection(sections[index + 1], index + 1);
-    } else {
+    var nextIndex = findNextIncompleteSection(index);
+    if (nextIndex === -1) {
       showTestResult();
+    } else {
+      runSection(sections[nextIndex], nextIndex);
     }
   }
 
   function showTestResult() {
+    var totalScore = currentTotalScore();
+    var totalMax = currentTotalMax();
+    var totalTabSwitchCount = currentTotalTabSwitchCount();
     submitQuizAttempt(unit.id, "test", totalScore, totalMax, testStartedAt, sectionResults, null, totalTabSwitchCount);
 
     container.innerHTML = "";
@@ -184,12 +214,8 @@ async function renderTestActivity(container, breadcrumbText, unit) {
     retryBtn.type = "button";
     retryBtn.textContent = "Làm lại";
     retryBtn.addEventListener("click", function () {
-      sectionIndex = 0;
-      totalScore = 0;
-      totalMax = 0;
       runningOffset = 0;
-      totalTabSwitchCount = 0;
-      sectionResults = [];
+      sectionResults = sections.map(function () { return null; });
       testStartedAt = new Date();
       runSection(sections[0], 0);
     });

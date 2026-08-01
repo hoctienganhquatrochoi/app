@@ -38,18 +38,20 @@ function buildMathDragfillQuestions(items) {
       filledByBlank: split.answers.map(function () { return null; }),
       selectedBlankIndex: null,
       answered: false,
-      lastCorrect: false
+      lastCorrect: false,
+      firstAttemptScored: false
     };
   });
 }
 
 function renderMathDragfill(container, breadcrumbText, items, unitId, setName, activityType, onTestComplete, progressOffset, progressTotal, scoreOffset) {
   activityType = activityType || "math-dragfill";
-  var questions, qIndex, score, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
+  var questions, qIndex, score, totalBlanks, answersLog, startedAt, timerIntervalId, tabTracker, currentWrap, advanceTimeoutId;
   var freeNav = !!onTestComplete;
 
   function resetState() {
     questions = buildMathDragfillQuestions(items);
+    totalBlanks = questions.reduce(function (sum, q) { return sum + q.answers.length; }, 0);
     qIndex = 0;
     score = 0;
     answersLog = [];
@@ -252,18 +254,20 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
       return;
     }
     q.answered = true;
-    q.lastCorrect = q.filledByBlank.every(function (option, idx) {
+    var correctCount = q.filledByBlank.filter(function (option, idx) {
       return option.text === q.answers[idx];
-    });
-    if (q.lastCorrect) {
-      score++;
+    }).length;
+    q.lastCorrect = correctCount === q.answers.length;
+    if (!q.firstAttemptScored) {
+      q.firstAttemptScored = true;
+      score += correctCount;
+      answersLog.push({
+        vocab_id: q.id,
+        word_en: q.passage,
+        selected_label: q.filledByBlank.map(function (o) { return o.text; }).join(", "),
+        is_correct: q.lastCorrect
+      });
     }
-    answersLog.push({
-      vocab_id: q.id,
-      word_en: q.passage,
-      selected_label: q.filledByBlank.map(function (o) { return o.text; }).join(", "),
-      is_correct: q.lastCorrect
-    });
     draw();
 
     if (freeNav) {
@@ -297,10 +301,10 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
     tabTracker.stop();
     document.removeEventListener("keydown", handleGlobalKeydown);
     if (onTestComplete) {
-      onTestComplete(score, questions.length, answersLog, tabTracker.getCount());
+      onTestComplete(score, totalBlanks, answersLog, tabTracker.getCount());
       return;
     }
-    submitQuizAttempt(unitId, activityType, score, questions.length, startedAt, answersLog, setName, tabTracker.getCount());
+    submitQuizAttempt(unitId, activityType, score, totalBlanks, startedAt, answersLog, setName, tabTracker.getCount());
 
     container.innerHTML = "";
     var wrap = document.createElement("div");
@@ -313,11 +317,11 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
 
     var scoreBig = document.createElement("div");
     scoreBig.className = "score-big";
-    scoreBig.textContent = score + " / " + questions.length;
+    scoreBig.textContent = score + " / " + totalBlanks;
     wrap.appendChild(scoreBig);
 
     var p = document.createElement("p");
-    p.textContent = score === questions.length ? "Xuất sắc! Bạn trả lời đúng hết!" : "Cố lên, làm lại để nhớ thêm nhé!";
+    p.textContent = score === totalBlanks ? "Xuất sắc! Bạn trả lời đúng hết!" : "Cố lên, làm lại để nhớ thêm nhé!";
     wrap.appendChild(p);
 
     wrap.appendChild(buildDurationLine(startedAt));

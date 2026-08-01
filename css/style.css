@@ -1335,7 +1335,7 @@ html, body {
 .dragfill-blank {
   display: inline-block;
   min-width: 100px;
-  padding: 2px 16px;
+  padding: 8px 16px;
   margin: 0 8px;
   border: 2px dashed #F0973D;
   border-radius: 8px;
@@ -1408,7 +1408,7 @@ html, body {
 
 .mathfill-passage .dragfill-blank {
   min-width: 60px;
-  padding: 1px 14px;
+  padding: 4px 14px;
   margin: 0 4px;
   font-weight: 700;
 }
