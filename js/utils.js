@@ -99,7 +99,7 @@ function appendTextWithUnderline(el, text) {
     return;
   }
 
-  var underscoreRegex = /_([^_]+)_/g;
+  var underscoreRegex = /_([^_]+)_|<u>([^<]+)<\/u>/g;
   var lastIdx = 0;
   var uMatch;
   while ((uMatch = underscoreRegex.exec(text)) !== null) {
@@ -108,7 +108,7 @@ function appendTextWithUnderline(el, text) {
     }
     var uSpan = document.createElement("span");
     uSpan.className = "underline-text";
-    uSpan.textContent = uMatch[1];
+    uSpan.textContent = uMatch[1] || uMatch[2];
     el.appendChild(uSpan);
     lastIdx = underscoreRegex.lastIndex;
   }
