@@ -1079,6 +1079,7 @@ function selectUnitForComposing(unitId) {
   }
 
   if (isTest) {
+    resetTestSectionForm();
     hideAllComposeSubPanels();
     updateTestSectionContentHint();
     loadTestList();

@@ -213,11 +213,30 @@ async function handleDeleteAllMathDragfill() {
   loadCurriculumData().then(loadActivityToggles);
 }
 
+function cleanupDragfillAnswer(w) {
+  return w.trim().replace(/[.。]+$/, "").trim();
+}
+
 function splitDragfillAnswerList(text) {
-  var sep = text.indexOf(";") !== -1 ? /;/ : /,/;
-  return text.split(sep).map(function (w) {
-    return w.trim().replace(/[.。]+$/, "").trim();
-  }).filter(function (w) { return w; });
+  var hasSemicolon = text.indexOf(";") !== -1;
+  var parts = hasSemicolon ? text.split(";") : text.split(",");
+  var result = [];
+  parts.forEach(function (part) {
+    part = part.trim();
+    if (!part) {
+      return;
+    }
+    if (hasSemicolon && part.indexOf(",") !== -1) {
+      var subParts = part.split(",").map(function (s) { return s.trim(); }).filter(function (s) { return s; });
+      var allShort = subParts.every(function (s) { return s.split(/\s+/).length <= 2; });
+      if (allShort) {
+        subParts.forEach(function (s) { result.push(cleanupDragfillAnswer(s)); });
+        return;
+      }
+    }
+    result.push(cleanupDragfillAnswer(part));
+  });
+  return result.filter(function (w) { return w; });
 }
 
 function extractDragfillBlanks(rawPassage) {

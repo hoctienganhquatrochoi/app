@@ -66,6 +66,7 @@ function renderTestList() {
     selectBtn.textContent = test.name;
     selectBtn.addEventListener("click", function () {
       currentTestId = test.id;
+      resetTestSectionForm();
       renderTestList();
       document.getElementById("testSectionEditorWrap").style.display = "";
       loadTestSections();
