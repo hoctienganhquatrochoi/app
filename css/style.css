@@ -1334,36 +1334,37 @@ html, body {
 
 .dragfill-blank {
   display: inline-block;
-  min-width: 70px;
-  padding: 0 6px;
+  padding: 0 4px;
   margin: 0 2px;
   border: none;
-  border-bottom: 4px dashed #F0973D;
-  border-radius: 0;
   background: transparent;
   color: #1B4332;
   cursor: pointer;
   vertical-align: baseline;
+  letter-spacing: 1px;
 }
 
-.dragfill-blank.filled {
-  border-bottom-style: solid;
+.dragfill-blank.filled,
+.dragfill-blank.targeted {
+  text-decoration: underline;
+  text-decoration-color: #F0973D;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
 }
 
 .dragfill-blank.targeted {
-  border-bottom-style: solid;
-  border-bottom-color: #2D6A4F;
+  text-decoration-color: #2D6A4F;
 }
 
 .dragfill-blank.correct {
-  border-bottom-color: #2D6A4F;
   color: #2D6A4F;
+  text-decoration-color: #2D6A4F;
   cursor: default;
 }
 
 .dragfill-blank.wrong {
-  border-bottom-color: #E63946;
   color: #E63946;
+  text-decoration-color: #E63946;
   cursor: default;
 }
 

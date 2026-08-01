@@ -42,6 +42,19 @@ function detectDialogueSpeakerColors(passage) {
   return map;
 }
 
+function isBlankAtSentenceStart(tokens, blankTokenIdx) {
+  var acc = "";
+  for (var i = blankTokenIdx - 1; i >= 0; i--) {
+    if (tokens[i].type === "blank") {
+      break;
+    }
+    acc = tokens[i].value + acc;
+  }
+  var lastLine = acc.split("\n").pop();
+  var stripped = lastLine.replace(/^[A-Za-zÀ-ỹ0-9 .'-]{1,30}:\s?/, "");
+  return stripped.trim() === "";
+}
+
 function appendPassageTextWithSpeakerColors(parent, text, speakerColors) {
   if (!speakerColors) {
     parent.appendChild(document.createTextNode(text));
@@ -197,7 +210,7 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
 
     var passageEl = document.createElement("div");
     passageEl.className = "dragfill-question mathfill-passage";
-    q.tokens.forEach(function (token) {
+    q.tokens.forEach(function (token, tokenIdx) {
       if (token.type === "text") {
         appendPassageTextWithSpeakerColors(passageEl, token.value, q.speakerColors);
         return;
@@ -209,7 +222,11 @@ function renderMathDragfill(container, breadcrumbText, items, unitId, setName, a
         var isBlankCorrect = filled && filled.text === q.answers[token.index];
         blank.className += isBlankCorrect ? " correct" : " wrong";
       }
-      blank.textContent = filled ? filled.text : "___";
+      if (filled) {
+        blank.textContent = isBlankAtSentenceStart(q.tokens, tokenIdx) ? capitalizeFirst(filled.text) : filled.text;
+      } else {
+        blank.textContent = "______";
+      }
       if (!q.answered) {
         blank.addEventListener("click", function () {
           handleBlankClick(q, token.index);

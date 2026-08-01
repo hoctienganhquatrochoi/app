@@ -78,7 +78,11 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
         var blank = document.createElement("span");
         var selectedOption = q.answered ? q.options[q.selectedIndex] : null;
         blank.className = "dragfill-blank" + (selectedOption ? " filled " + (selectedOption.isCorrect ? "correct" : "wrong") : "");
-        blank.textContent = selectedOption ? selectedOption.text : "___";
+        if (selectedOption) {
+          blank.textContent = q.bracketSplit.before.trim() === "" ? capitalizeFirst(selectedOption.text) : selectedOption.text;
+        } else {
+          blank.textContent = "______";
+        }
         prompt.appendChild(blank);
         prompt.appendChild(document.createTextNode(q.bracketSplit.after));
       } else {

@@ -104,7 +104,12 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     if (q.answered) {
       blank.className += q.lastCorrect ? " correct" : " wrong";
     }
-    blank.textContent = q.filledOption ? q.filledOption.text : "___";
+    if (q.filledOption) {
+      var filledText = q.filledOption.text;
+      blank.textContent = q.before.trim() === "" ? capitalizeFirst(filledText) : filledText;
+    } else {
+      blank.textContent = "______";
+    }
     if (q.filledOption && !q.answered) {
       blank.addEventListener("click", function () {
         handleBlankClick(q);
