@@ -339,6 +339,10 @@ async function uploadAndSetGrammarMcqImage(rowId, unitId, file) {
     window.alert("Lỗi upload ảnh");
     return;
   }
+  await setGrammarMcqImageUrl(rowId, url);
+}
+
+async function setGrammarMcqImageUrl(rowId, url) {
   var result = await supabaseClient.from("game_grammar_mcq").update({ image_url: url }).eq("id", rowId);
   if (result.error) {
     window.alert("Lỗi lưu ảnh: " + result.error.message);
@@ -353,6 +357,9 @@ function makeGrammarMcqImageTd(row) {
   var picker = buildImagePicker(row.image_url, function (file) {
     showImagePreview(picker, file);
     uploadAndSetGrammarMcqImage(row.id, row.unit_id, file);
+  }, function (url) {
+    setImagePickerImage(picker, url);
+    setGrammarMcqImageUrl(row.id, url);
   });
   td.appendChild(picker.wrap);
   return td;

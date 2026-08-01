@@ -79,11 +79,11 @@ function makeAudioTd(url) {
   return td;
 }
 
-function buildImagePicker(imageUrl, onFile) {
+function buildImagePicker(imageUrl, onFile, onUrl) {
   var wrap = document.createElement("div");
   wrap.className = "admin-image-picker";
   wrap.tabIndex = 0;
-  wrap.title = "Bấm vào đây rồi Ctrl+V để dán ảnh";
+  wrap.title = "Bấm vào đây rồi Ctrl+V để dán ảnh (dán ảnh copy được hoặc dán link ảnh đều được)";
 
   var preview = document.createElement("div");
   preview.className = "admin-image-picker-preview";
@@ -121,6 +121,13 @@ function buildImagePicker(imageUrl, onFile) {
         }
         e.preventDefault();
         return;
+      }
+    }
+    if (onUrl) {
+      var text = ((e.clipboardData && e.clipboardData.getData("text")) || "").trim();
+      if (/^https?:\/\/\S+$/.test(text)) {
+        onUrl(text);
+        e.preventDefault();
       }
     }
   });
@@ -184,6 +191,10 @@ async function uploadAndSetVocabImage(vocabId, unitId, file) {
     window.alert("Lỗi upload ảnh");
     return;
   }
+  await setVocabImageUrl(vocabId, url);
+}
+
+async function setVocabImageUrl(vocabId, url) {
   var result = await supabaseClient.from("game_vocab").update({ image_url: url }).eq("id", vocabId);
   if (result.error) {
     window.alert("Lỗi lưu ảnh: " + result.error.message);
@@ -308,6 +319,9 @@ function makeImageTd(row) {
   var picker = buildImagePicker(row.image_url, function (file) {
     showImagePreview(picker, file);
     uploadAndSetVocabImage(row.id, row.unit_id, file);
+  }, function (url) {
+    setImagePickerImage(picker, url);
+    setVocabImageUrl(row.id, url);
   });
 
   td.appendChild(picker.wrap);
