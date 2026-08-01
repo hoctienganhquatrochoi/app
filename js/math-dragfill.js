@@ -22,7 +22,7 @@ function splitMathPassageAroundBlanks(rawPassage) {
   return { tokens: tokens, answers: answers };
 }
 
-var DIALOGUE_SPEAKER_COLORS = ["#2D6A4F", "#B5495B", "#1D3557", "#8A5A00", "#6A4C93"];
+var DIALOGUE_SPEAKER_COLORS = ["#1D6FB8", "#D6336C", "#E8590C", "#7048E8", "#0CA678"];
 
 function detectDialogueSpeakerColors(passage) {
   var names = [];

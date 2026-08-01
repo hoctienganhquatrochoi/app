@@ -104,13 +104,11 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     if (q.answered) {
       blank.className += q.lastCorrect ? " correct" : " wrong";
     }
-    if (q.filledOption) {
-      blank.textContent = q.filledOption.text;
-      if (!q.answered) {
-        blank.addEventListener("click", function () {
-          handleBlankClick(q);
-        });
-      }
+    blank.textContent = q.filledOption ? q.filledOption.text : "___";
+    if (q.filledOption && !q.answered) {
+      blank.addEventListener("click", function () {
+        handleBlankClick(q);
+      });
     }
     questionEl.appendChild(blank);
 
