@@ -1,12 +1,32 @@
 var GRAMMAR_MCQ_ADVANCE_DELAY_MS = 1200;
 
+function splitGrammarMcqQuestionAroundBracket(question) {
+  var bracketRegex = /⟦([^⟦⟧]+)⟧|\[([^\[\]]+)\]/;
+  var m = (question || "").match(bracketRegex);
+  if (!m) {
+    return null;
+  }
+  return {
+    before: question.slice(0, m.index),
+    after: question.slice(m.index + m[0].length)
+  };
+}
+
 function buildGrammarMcqQuestions(items) {
   return shuffleArray(items).map(function (row) {
     var wrongOptions = (row.wrong_answers || []).map(function (text) {
       return { text: text, isCorrect: false };
     });
     var options = shuffleArray([{ text: row.correct_answer, isCorrect: true }].concat(wrongOptions));
-    return { id: row.id, question: row.question, passage: row.passage, options: options, answered: false, selectedIndex: null };
+    return {
+      id: row.id,
+      question: row.question,
+      bracketSplit: splitGrammarMcqQuestionAroundBracket(row.question),
+      passage: row.passage,
+      options: options,
+      answered: false,
+      selectedIndex: null
+    };
   });
 }
 
@@ -44,7 +64,17 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
     if (q.question) {
       var prompt = document.createElement("div");
       prompt.className = "quiz-prompt grammar-mcq-question";
-      appendTextWithUnderline(prompt, q.question);
+      if (q.bracketSplit) {
+        prompt.appendChild(document.createTextNode(q.bracketSplit.before));
+        var blank = document.createElement("span");
+        var selectedOption = q.answered ? q.options[q.selectedIndex] : null;
+        blank.className = "dragfill-blank" + (selectedOption ? " filled " + (selectedOption.isCorrect ? "correct" : "wrong") : "");
+        blank.textContent = selectedOption ? selectedOption.text : "___";
+        prompt.appendChild(blank);
+        prompt.appendChild(document.createTextNode(q.bracketSplit.after));
+      } else {
+        appendTextWithUnderline(prompt, q.question);
+      }
       body.appendChild(prompt);
     }
 
