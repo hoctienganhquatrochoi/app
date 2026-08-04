@@ -5,9 +5,11 @@ function splitGrammarMcqQuestionAroundBracket(question) {
   var bracketRegex = /⟦([^⟦⟧]+)⟧|\[([^\[\]]+)\]/;
   var m = question.match(bracketRegex);
   if (m) {
+    var bracketContent = m[1] !== undefined ? m[1] : m[2];
     return {
       before: question.slice(0, m.index),
-      after: question.slice(m.index + m[0].length)
+      after: question.slice(m.index + m[0].length),
+      blankLength: bracketContent.length
     };
   }
   var underscoreRunRegex = /_{3,}/;
@@ -15,7 +17,8 @@ function splitGrammarMcqQuestionAroundBracket(question) {
   if (u) {
     return {
       before: question.slice(0, u.index),
-      after: question.slice(u.index + u[0].length)
+      after: question.slice(u.index + u[0].length),
+      blankLength: u[0].length
     };
   }
   return null;
@@ -89,7 +92,8 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
         if (selectedOption) {
           blank.textContent = q.bracketSplit.before.trim() === "" ? capitalizeFirst(selectedOption.text) : selectedOption.text;
         } else {
-          blank.textContent = "______";
+          var blankLen = Math.max(2, Math.min(q.bracketSplit.blankLength || 6, 8));
+          blank.textContent = new Array(blankLen + 1).join("_");
         }
         prompt.appendChild(blank);
         prompt.appendChild(document.createTextNode(q.bracketSplit.after));

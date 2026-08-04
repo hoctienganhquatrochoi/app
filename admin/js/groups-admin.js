@@ -131,6 +131,12 @@ function buildGroupRow(group) {
 
   var nameTd = document.createElement("td");
   nameTd.textContent = group.name;
+  if (group.teacher_username) {
+    var teacherInfo = document.createElement("div");
+    teacherInfo.className = "admin-hint";
+    teacherInfo.textContent = "👩‍🏫 GV: " + group.teacher_username + " / " + (group.teacher_password || "");
+    nameTd.appendChild(teacherInfo);
+  }
   tr.appendChild(nameTd);
 
   var actionsTd = document.createElement("td");
@@ -178,6 +184,30 @@ function buildGroupEditRow(group) {
   buildClassAccessChecklist(accessWrap, group.default_allowed_class_ids || []);
   nameTd.appendChild(accessWrap);
 
+  var teacherLabel = document.createElement("label");
+  teacherLabel.className = "admin-label";
+  teacherLabel.textContent = "Tài khoản giáo viên (để trống nếu nhóm này không cần)";
+  nameTd.appendChild(teacherLabel);
+
+  var teacherRow = document.createElement("div");
+  teacherRow.className = "admin-form-row";
+
+  var teacherUsernameInput = document.createElement("input");
+  teacherUsernameInput.type = "text";
+  teacherUsernameInput.className = "admin-inline-input";
+  teacherUsernameInput.placeholder = "Tài khoản GV";
+  teacherUsernameInput.value = group.teacher_username || "";
+  teacherRow.appendChild(teacherUsernameInput);
+
+  var teacherPasswordInput = document.createElement("input");
+  teacherPasswordInput.type = "text";
+  teacherPasswordInput.className = "admin-inline-input";
+  teacherPasswordInput.placeholder = "Mật khẩu GV";
+  teacherPasswordInput.value = group.teacher_password || "";
+  teacherRow.appendChild(teacherPasswordInput);
+
+  nameTd.appendChild(teacherRow);
+
   tr.appendChild(nameTd);
 
   var actionsTd = document.createElement("td");
@@ -193,16 +223,18 @@ function buildGroupEditRow(group) {
       return;
     }
     var newDefaults = collectClassAccessChecklist(accessWrap);
+    var newTeacherUsername = teacherUsernameInput.value.trim() || null;
+    var newTeacherPassword = teacherPasswordInput.value.trim() || null;
 
     saveBtn.disabled = true;
     saveBtn.textContent = "Đang lưu...";
 
     var result = await supabaseClient
       .from("game_teaching_groups")
-      .update({ name: newName, default_allowed_class_ids: newDefaults })
+      .update({ name: newName, default_allowed_class_ids: newDefaults, teacher_username: newTeacherUsername, teacher_password: newTeacherPassword })
       .eq("id", group.id);
     if (result.error) {
-      window.alert("Lỗi lưu: " + result.error.message);
+      window.alert(result.error.code === "23505" ? "Tài khoản giáo viên này đã dùng cho nhóm khác, đổi tên khác." : "Lỗi lưu: " + result.error.message);
       saveBtn.disabled = false;
       saveBtn.textContent = "Lưu";
       return;
@@ -235,6 +267,10 @@ async function handleAddTeachingGroup() {
   var name = input.value.trim();
   var statusEl = document.getElementById("teachingGroupStatus");
   var defaultAllowedClassIds = collectClassAccessChecklist(document.getElementById("newTeachingGroupClassAccessWrap"));
+  var teacherUsernameInput = document.getElementById("newTeachingGroupTeacherUsername");
+  var teacherPasswordInput = document.getElementById("newTeachingGroupTeacherPassword");
+  var teacherUsername = teacherUsernameInput.value.trim() || null;
+  var teacherPassword = teacherPasswordInput.value.trim() || null;
 
   if (!name) {
     window.alert("Nhập tên nhóm học sinh");
@@ -242,14 +278,16 @@ async function handleAddTeachingGroup() {
   }
 
   statusEl.textContent = "Đang tạo...";
-  var result = await supabaseClient.from("game_teaching_groups").insert({ name: name, default_allowed_class_ids: defaultAllowedClassIds });
+  var result = await supabaseClient.from("game_teaching_groups").insert({ name: name, default_allowed_class_ids: defaultAllowedClassIds, teacher_username: teacherUsername, teacher_password: teacherPassword });
 
   if (result.error) {
-    statusEl.textContent = "Lỗi tạo: " + result.error.message;
+    statusEl.textContent = result.error.code === "23505" ? "Lỗi tạo: tài khoản giáo viên này đã dùng cho nhóm khác." : "Lỗi tạo: " + result.error.message;
     return;
   }
 
   input.value = "";
+  teacherUsernameInput.value = "";
+  teacherPasswordInput.value = "";
   statusEl.textContent = "Đã tạo nhóm \"" + name + "\".";
   await refreshTeachingGroups();
 }

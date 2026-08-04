@@ -318,6 +318,9 @@ function computeDiligenceRanking(rows) {
   var byStudent = {};
   var order = [];
   rows.forEach(function (row) {
+    if (row.activityType === "flashcard" || row.activityType === "flip-card") {
+      return;
+    }
     if (typeof row.durationSeconds === "number" && row.durationSeconds < MIN_WORDWALL_SECONDS_FOR_CREDIT) {
       return;
     }
@@ -417,7 +420,8 @@ function renderGroupHistory(attempts, opens, showRanking) {
       score: row.score,
       total: row.total,
       dateIso: row.submitted_at,
-      tabSwitchCount: row.tab_switch_count
+      tabSwitchCount: row.tab_switch_count,
+      activityType: row.activity_type
     };
   }).concat(opens.map(function (row) {
     var durationLabel = row.duration_seconds != null ? " (" + formatSecondsVN(row.duration_seconds) + ")" : " (đã mở)";

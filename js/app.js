@@ -80,7 +80,9 @@ function renderSidebar() {
   classList.className = "class-list";
   var i;
   for (i = 0; i < DATA.classes.length; i++) {
-    classList.appendChild(buildClassItem(DATA.classes[i]));
+    if (classIsVisibleForStudent(DATA.classes[i])) {
+      classList.appendChild(buildClassItem(DATA.classes[i]));
+    }
   }
   sidebar.appendChild(classList);
 }
@@ -438,11 +440,15 @@ function classHasActiveDemo(cls) {
   return !!(cls && cls.demo_until && new Date(cls.demo_until) > new Date());
 }
 
+function studentHasRealAccess() {
+  return !!(currentStudent && ((currentStudent.allowed_class_ids || []).length || (currentStudent.assignedUnitIds || []).length));
+}
+
 function unitHasAccess(unit) {
   if (unit.is_demo) {
     return true;
   }
-  if (classHasActiveDemo(findClassById(unit.class_id))) {
+  if (classHasActiveDemo(findClassById(unit.class_id)) && !studentHasRealAccess()) {
     return true;
   }
   if (!currentStudent) {
@@ -452,6 +458,26 @@ function unitHasAccess(unit) {
     return true;
   }
   return (currentStudent.assignedUnitIds || []).indexOf(unit.id) !== -1;
+}
+
+function classIsVisibleForStudent(cls) {
+  if (!studentHasRealAccess()) {
+    return true;
+  }
+  if ((currentStudent.allowed_class_ids || []).indexOf(cls.id) !== -1) {
+    return true;
+  }
+  var subjects = DATA.subjectsByClass[cls.id] || [];
+  var i, u;
+  for (i = 0; i < subjects.length; i++) {
+    for (u = 0; u < subjects[i].units.length; u++) {
+      var unit = subjects[i].units[u];
+      if (unit.is_demo || (currentStudent.assignedUnitIds || []).indexOf(unit.id) !== -1) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 function showAccessNeededMessage() {
@@ -1062,7 +1088,7 @@ async function renderHomePopup() {
     return;
   }
 
-  var demoClass = DATA.classes.filter(classHasActiveDemo)[0];
+  var demoClass = !studentHasRealAccess() ? DATA.classes.filter(classHasActiveDemo)[0] : null;
   if (demoClass) {
     showDemoClassPopup(demoClass);
     return;

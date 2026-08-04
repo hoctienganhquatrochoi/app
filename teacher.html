@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kết quả học sinh – English for Kids</title>
+<link rel="stylesheet" href="css/style.css?v=20260804a">
+<link rel="stylesheet" href="admin/css/admin.css?v=20260804a">
+</head>
+<body>
+
+<header class="banner">
+  <div class="banner-left">
+    <div class="logo-circle">EK</div>
+    <div class="brand-text">
+      <div class="brand-name">English for Kids – Kết quả học sinh</div>
+      <div class="brand-slogan" id="teacherGroupNameLabel">Đăng nhập để xem kết quả nhóm của bạn</div>
+    </div>
+  </div>
+  <div class="banner-right">
+    <button class="refresh-btn" id="teacherLogoutBtn" type="button" style="display:none">Đăng xuất</button>
+  </div>
+</header>
+
+<div class="login-modal-overlay" id="teacherLoginOverlay" style="display:flex">
+  <div class="login-modal">
+    <h3>Đăng nhập giáo viên</h3>
+    <div class="admin-field">
+      <label>Tài khoản</label>
+      <input type="text" id="teacherLoginUsername">
+    </div>
+    <div class="admin-field">
+      <label>Mật khẩu</label>
+      <input type="password" id="teacherLoginPassword">
+    </div>
+    <div class="login-modal-status" id="teacherLoginStatus"></div>
+    <div class="login-modal-actions">
+      <button class="login-modal-btn login-modal-btn-submit" id="teacherLoginSubmitBtn" type="button">Đăng nhập</button>
+    </div>
+  </div>
+</div>
+
+<main class="main-content" id="teacherMain" style="display:none; max-width: 900px; margin: 0 auto; padding: 16px;">
+  <div class="admin-form">
+    <h3>Khoảng thời gian xem</h3>
+    <div class="admin-form-row">
+      <div class="admin-field">
+        <label>Từ ngày</label>
+        <input type="date" id="teacherFromDate">
+      </div>
+      <div class="admin-field">
+        <label>Đến ngày</label>
+        <input type="date" id="teacherToDate">
+      </div>
+      <div class="admin-field admin-field-btn">
+        <button type="button" class="admin-btn-secondary" id="teacherRange7Btn">7 ngày</button>
+      </div>
+      <div class="admin-field admin-field-btn">
+        <button type="button" class="admin-btn-secondary" id="teacherRange30Btn">30 ngày</button>
+      </div>
+      <div class="admin-field admin-field-btn">
+        <button type="button" class="admin-btn-primary" id="teacherLoadBtn">Xem kết quả</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="teacherRankingWrap"></div>
+  <div id="teacherHistoryWrap"></div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/data.js?v=20260804a"></script>
+<script src="js/supabase-config.js?v=20260804a"></script>
+<script src="js/curriculum-data.js?v=20260804a"></script>
+<script src="js/teacher-view.js?v=20260804a"></script>
+</body>
+</html>
