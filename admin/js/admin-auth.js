@@ -1,11 +1,8 @@
-var ADMIN_AUTH_KEY = "efkAdminAuthed";
+var ADMIN_EMAIL = "phonglan6883@gmail.com";
 
-function isAdminAuthed() {
-  return window.localStorage.getItem(ADMIN_AUTH_KEY) === "yes";
-}
-
-function setAdminAuthed() {
-  window.localStorage.setItem(ADMIN_AUTH_KEY, "yes");
+async function hasAdminSession() {
+  var result = await supabaseClient.auth.getSession();
+  return !!(result.data && result.data.session);
 }
 
 function showAdminApp() {
@@ -16,14 +13,6 @@ function showAdminApp() {
 function showAdminLogin() {
   document.getElementById("adminLoginOverlay").style.display = "flex";
   document.getElementById("adminBody").style.display = "none";
-}
-
-async function checkAdminPassword(password) {
-  var result = await supabaseClient.from("game_admin_settings").select("password").eq("id", 1).maybeSingle();
-  if (result.error || !result.data) {
-    return false;
-  }
-  return result.data.password === password;
 }
 
 async function handleAdminLoginSubmit() {
@@ -37,14 +26,13 @@ async function handleAdminLoginSubmit() {
   }
 
   statusEl.textContent = "Đang kiểm tra...";
-  var ok = await checkAdminPassword(password);
+  var result = await supabaseClient.auth.signInWithPassword({ email: ADMIN_EMAIL, password: password });
 
-  if (!ok) {
+  if (result.error) {
     statusEl.textContent = "Sai mật khẩu";
     return;
   }
 
-  setAdminAuthed();
   statusEl.textContent = "";
   pwInput.value = "";
   showAdminApp();
@@ -78,17 +66,14 @@ async function handleChangeAdminPasswordSubmit() {
   }
 
   statusEl.textContent = "Đang kiểm tra...";
-  var ok = await checkAdminPassword(current);
-  if (!ok) {
+  var checkResult = await supabaseClient.auth.signInWithPassword({ email: ADMIN_EMAIL, password: current });
+  if (checkResult.error) {
     statusEl.textContent = "Sai mật khẩu hiện tại";
     return;
   }
 
   statusEl.textContent = "Đang lưu...";
-  var result = await supabaseClient
-    .from("game_admin_settings")
-    .update({ password: next, updated_at: new Date().toISOString() })
-    .eq("id", 1);
+  var result = await supabaseClient.auth.updateUser({ password: next });
 
   if (result.error) {
     statusEl.textContent = "Lỗi lưu: " + result.error.message;
@@ -99,8 +84,9 @@ async function handleChangeAdminPasswordSubmit() {
   window.alert("Đã đổi mật khẩu thành công!");
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  if (isAdminAuthed()) {
+document.addEventListener("DOMContentLoaded", async function () {
+  var authed = await hasAdminSession();
+  if (authed) {
     showAdminApp();
   } else {
     showAdminLogin();
