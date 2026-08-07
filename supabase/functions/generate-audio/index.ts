@@ -2,12 +2,12 @@
 // Nhận { text, lang, path } -> gọi Google translate_tts -> lưu vào Cloudflare R2 (bucket "vocab-audio")
 // -> trả về public URL. Dùng R2 vì R2 không tính phí băng thông tải ra (egress), tránh lặp lại
 // việc Supabase khóa project vì vượt hạn mức egress.
+// Tự ký request bằng AWS Signature v4 (Web Crypto có sẵn trong Deno) thay vì dùng @aws-sdk/client-s3,
+// vì gói đó bị lỗi khi chạy trong môi trường Edge Function của Supabase.
 //
 // Deploy: Supabase Dashboard > Edge Functions > generate-audio > dán code này > Deploy
 // Cần khai báo các secret sau trong Supabase Dashboard > Edge Functions > Secrets:
 //   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL_BASE
-
-import { S3Client, PutObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.637.0?bundle";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -15,15 +15,69 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function getR2Client() {
-  const accountId = Deno.env.get("R2_ACCOUNT_ID");
-  const accessKeyId = Deno.env.get("R2_ACCESS_KEY_ID");
-  const secretAccessKey = Deno.env.get("R2_SECRET_ACCESS_KEY");
-  return new S3Client({
-    region: "auto",
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId: accessKeyId as string, secretAccessKey: secretAccessKey as string },
+function toHex(buf: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256Hex(data: Uint8Array): Promise<string> {
+  return toHex(await crypto.subtle.digest("SHA-256", data));
+}
+
+async function hmac(key: ArrayBuffer | Uint8Array, msg: string): Promise<ArrayBuffer> {
+  const cryptoKey = await crypto.subtle.importKey("raw", key as BufferSource, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return crypto.subtle.sign("HMAC", cryptoKey, new TextEncoder().encode(msg));
+}
+
+async function putObjectToR2(opts: {
+  accountId: string; accessKeyId: string; secretAccessKey: string;
+  bucket: string; key: string; body: Uint8Array; contentType: string; cacheControl: string;
+}): Promise<void> {
+  const { accountId, accessKeyId, secretAccessKey, bucket, key, body, contentType, cacheControl } = opts;
+  const region = "auto";
+  const service = "s3";
+  const host = `${accountId}.r2.cloudflarestorage.com`;
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+
+  const encodedKey = key.split("/").map(encodeURIComponent).join("/");
+  const canonicalUri = `/${bucket}/${encodedKey}`;
+  const payloadHash = await sha256Hex(body);
+
+  const canonicalHeaders =
+    `cache-control:${cacheControl}\ncontent-type:${contentType}\nhost:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
+  const signedHeaders = "cache-control;content-type;host;x-amz-content-sha256;x-amz-date";
+
+  const canonicalRequest = ["PUT", canonicalUri, "", canonicalHeaders, signedHeaders, payloadHash].join("\n");
+  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
+  const canonicalRequestHash = await sha256Hex(new TextEncoder().encode(canonicalRequest));
+  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, canonicalRequestHash].join("\n");
+
+  const kDate = await hmac(new TextEncoder().encode("AWS4" + secretAccessKey), dateStamp);
+  const kRegion = await hmac(kDate, region);
+  const kService = await hmac(kRegion, service);
+  const kSigning = await hmac(kService, "aws4_request");
+  const signature = toHex(await hmac(kSigning, stringToSign));
+
+  const authorizationHeader =
+    `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+
+  const resp = await fetch(`https://${host}${canonicalUri}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": contentType,
+      "Cache-Control": cacheControl,
+      "x-amz-content-sha256": payloadHash,
+      "x-amz-date": amzDate,
+      "Authorization": authorizationHeader,
+    },
+    body,
   });
+
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => "");
+    throw new Error(`R2 upload failed: ${resp.status} ${text}`);
+  }
 }
 
 Deno.serve(async (req) => {
@@ -66,19 +120,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    const bucketName = Deno.env.get("R2_BUCKET_NAME");
-    const publicUrlBase = Deno.env.get("R2_PUBLIC_URL_BASE");
-    const r2 = getR2Client();
+    await putObjectToR2({
+      accountId: Deno.env.get("R2_ACCOUNT_ID") as string,
+      accessKeyId: Deno.env.get("R2_ACCESS_KEY_ID") as string,
+      secretAccessKey: Deno.env.get("R2_SECRET_ACCESS_KEY") as string,
+      bucket: Deno.env.get("R2_BUCKET_NAME") as string,
+      key: path,
+      body: new Uint8Array(audioBuffer),
+      contentType: "audio/mpeg",
+      cacheControl: "public, max-age=31536000, immutable",
+    });
 
-    await r2.send(new PutObjectCommand({
-      Bucket: bucketName,
-      Key: path,
-      Body: new Uint8Array(audioBuffer),
-      ContentType: "audio/mpeg",
-      CacheControl: "public, max-age=31536000, immutable",
-    }));
-
-    const publicUrl = `${publicUrlBase}/${path}`;
+    const publicUrl = `${Deno.env.get("R2_PUBLIC_URL_BASE")}/${path}`;
 
     return new Response(JSON.stringify({ url: publicUrl }), {
       status: 200,

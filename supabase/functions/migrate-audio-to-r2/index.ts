@@ -1,16 +1,16 @@
 // Supabase Edge Function: migrate-audio-to-r2 (chay 1 lan, an toan chay lai nhieu lan)
 // Chuyen cac file am thanh dang luu trong Supabase Storage (bucket "vocab-audio") sang
 // Cloudflare R2, roi cap nhat lai audio_en_url/audio_vi_url/audio_question_url trong database.
+// Tu ky request bang AWS Signature v4 (Web Crypto co san trong Deno) thay vi dung
+// @aws-sdk/client-s3, vi goi do bi loi khi chay trong moi truong Edge Function cua Supabase.
 //
 // Cach dung: sau khi da deploy va khai bao du cac secret R2_* (giong file generate-audio),
-// mo thang URL cua ham nay tren trinh duyet (hoac bam nut "Invoke" trong Dashboard) nhieu lan
-// cho toi khi ket qua tra ve migrated: 0 - nghia la da chuyen xong het.
-// Moi lan chay chi xu ly toi da 40 file de tranh bi timeout.
+// mo thang URL cua ham nay tren trinh duyet nhieu lan cho toi khi ket qua tra ve migrated: 0.
+// Moi lan chay chi xu ly toi da 15 file de tranh bi timeout.
 //
 // Deploy: Supabase Dashboard > Edge Functions > New function > ten "migrate-audio-to-r2" > dan code nay > Deploy
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { S3Client, PutObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.637.0?bundle";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -18,17 +18,71 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
-const BATCH_SIZE = 40;
+const BATCH_SIZE = 15;
 
-function getR2Client() {
-  const accountId = Deno.env.get("R2_ACCOUNT_ID");
-  const accessKeyId = Deno.env.get("R2_ACCESS_KEY_ID");
-  const secretAccessKey = Deno.env.get("R2_SECRET_ACCESS_KEY");
-  return new S3Client({
-    region: "auto",
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId: accessKeyId as string, secretAccessKey: secretAccessKey as string },
+function toHex(buf: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256Hex(data: Uint8Array): Promise<string> {
+  return toHex(await crypto.subtle.digest("SHA-256", data));
+}
+
+async function hmac(key: ArrayBuffer | Uint8Array, msg: string): Promise<ArrayBuffer> {
+  const cryptoKey = await crypto.subtle.importKey("raw", key as BufferSource, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return crypto.subtle.sign("HMAC", cryptoKey, new TextEncoder().encode(msg));
+}
+
+async function putObjectToR2(opts: {
+  accountId: string; accessKeyId: string; secretAccessKey: string;
+  bucket: string; key: string; body: Uint8Array; contentType: string; cacheControl: string;
+}): Promise<void> {
+  const { accountId, accessKeyId, secretAccessKey, bucket, key, body, contentType, cacheControl } = opts;
+  const region = "auto";
+  const service = "s3";
+  const host = `${accountId}.r2.cloudflarestorage.com`;
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+
+  const encodedKey = key.split("/").map(encodeURIComponent).join("/");
+  const canonicalUri = `/${bucket}/${encodedKey}`;
+  const payloadHash = await sha256Hex(body);
+
+  const canonicalHeaders =
+    `cache-control:${cacheControl}\ncontent-type:${contentType}\nhost:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
+  const signedHeaders = "cache-control;content-type;host;x-amz-content-sha256;x-amz-date";
+
+  const canonicalRequest = ["PUT", canonicalUri, "", canonicalHeaders, signedHeaders, payloadHash].join("\n");
+  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
+  const canonicalRequestHash = await sha256Hex(new TextEncoder().encode(canonicalRequest));
+  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, canonicalRequestHash].join("\n");
+
+  const kDate = await hmac(new TextEncoder().encode("AWS4" + secretAccessKey), dateStamp);
+  const kRegion = await hmac(kDate, region);
+  const kService = await hmac(kRegion, service);
+  const kSigning = await hmac(kService, "aws4_request");
+  const signature = toHex(await hmac(kSigning, stringToSign));
+
+  const authorizationHeader =
+    `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+
+  const resp = await fetch(`https://${host}${canonicalUri}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": contentType,
+      "Cache-Control": cacheControl,
+      "x-amz-content-sha256": payloadHash,
+      "x-amz-date": amzDate,
+      "Authorization": authorizationHeader,
+    },
+    body,
   });
+
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => "");
+    throw new Error(`R2 upload failed: ${resp.status} ${text}`);
+  }
 }
 
 function isSupabaseStorageUrl(url: string | null, supabaseUrl: string) {
@@ -48,9 +102,14 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
-    const bucketName = Deno.env.get("R2_BUCKET_NAME");
+
+    const r2Creds = {
+      accountId: Deno.env.get("R2_ACCOUNT_ID") as string,
+      accessKeyId: Deno.env.get("R2_ACCESS_KEY_ID") as string,
+      secretAccessKey: Deno.env.get("R2_SECRET_ACCESS_KEY") as string,
+      bucket: Deno.env.get("R2_BUCKET_NAME") as string,
+    };
     const publicUrlBase = Deno.env.get("R2_PUBLIC_URL_BASE");
-    const r2 = getR2Client();
 
     var migrated = 0;
     var failed: string[] = [];
@@ -89,13 +148,13 @@ Deno.serve(async (req) => {
             }
             const buf = await fileResp.arrayBuffer();
 
-            await r2.send(new PutObjectCommand({
-              Bucket: bucketName,
-              Key: path,
-              Body: new Uint8Array(buf),
-              ContentType: "audio/mpeg",
-              CacheControl: "public, max-age=31536000, immutable",
-            }));
+            await putObjectToR2({
+              ...r2Creds,
+              key: path,
+              body: new Uint8Array(buf),
+              contentType: "audio/mpeg",
+              cacheControl: "public, max-age=31536000, immutable",
+            });
 
             const newUrl = `${publicUrlBase}/${path}`;
             const { error: updateError } = await supabase
