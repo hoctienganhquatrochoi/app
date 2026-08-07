@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
 
     const uploadResult = await supabase.storage
       .from("vocab-audio")
-      .upload(path, audioBuffer, { contentType: "audio/mpeg", upsert: true });
+      .upload(path, audioBuffer, { contentType: "audio/mpeg", upsert: true, cacheControl: "31536000" });
 
     if (uploadResult.error) {
       return new Response(JSON.stringify({ error: "Lỗi upload: " + uploadResult.error.message }), {
