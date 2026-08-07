@@ -123,11 +123,14 @@ function buildOwnDailyBreakdown(rows, studentId) {
   return box;
 }
 
+var rankingRangeMode = "today";
+
 function openRankingModal() {
   if (!currentStudent || !currentStudent.group_id) {
     return;
   }
 
+  rankingRangeMode = "today";
   var overlay = document.getElementById("rankingModalOverlay");
   var body = document.getElementById("rankingModalBody");
   body.textContent = "Đang tải...";
@@ -140,14 +143,42 @@ function closeRankingModal() {
   document.getElementById("rankingModalOverlay").style.display = "none";
 }
 
+function buildRankingRangeToggle() {
+  var wrap = document.createElement("div");
+  wrap.className = "ranking-range-toggle";
+
+  [["today", "Hôm nay"], ["week", "7 ngày"]].forEach(function (pair) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = pair[1];
+    btn.className = "ranking-range-btn" + (rankingRangeMode === pair[0] ? " active" : "");
+    btn.addEventListener("click", function () {
+      if (rankingRangeMode === pair[0]) {
+        return;
+      }
+      rankingRangeMode = pair[0];
+      var body = document.getElementById("rankingModalBody");
+      body.textContent = "Đang tải...";
+      loadGroupRanking();
+    });
+    wrap.appendChild(btn);
+  });
+
+  return wrap;
+}
+
 async function loadGroupRanking() {
   var body = document.getElementById("rankingModalBody");
   var groupId = currentStudent.group_id;
 
-  var sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-  sevenDaysAgo.setHours(0, 0, 0, 0);
-  var fromIso = sevenDaysAgo.toISOString();
+  var fromDate = new Date();
+  if (rankingRangeMode === "today") {
+    fromDate.setHours(0, 0, 0, 0);
+  } else {
+    fromDate.setDate(fromDate.getDate() - 6);
+    fromDate.setHours(0, 0, 0, 0);
+  }
+  var fromIso = fromDate.toISOString();
 
   var attemptsResult = await fetchAllRows(function () {
     return supabaseClient
@@ -194,16 +225,19 @@ async function loadGroupRanking() {
   }));
 
   body.innerHTML = "";
+  body.appendChild(buildRankingRangeToggle());
 
   var hint = document.createElement("p");
   hint.className = "fc-hint";
   hint.style.marginBottom = "12px";
-  hint.textContent = "Xếp theo số lượt học nhiều nhất trong 7 ngày gần đây (tính lùi từ hôm nay). Số lượt sẽ giảm khi ngày học cũ hơn 7 hôm trôi ra khỏi mốc tính, kể cả khi hôm nay vẫn học đều.";
+  hint.textContent = rankingRangeMode === "today"
+    ? "Xếp theo số lượt học nhiều nhất trong hôm nay. Bảng sẽ tự làm mới mỗi khi mở lại."
+    : "Xếp theo số lượt học nhiều nhất trong 7 ngày gần đây (tính lùi từ hôm nay). Số lượt sẽ giảm khi ngày học cũ hơn 7 hôm trôi ra khỏi mốc tính, kể cả khi hôm nay vẫn học đều.";
   body.appendChild(hint);
 
   if (!rows.length) {
     var empty = document.createElement("p");
-    empty.textContent = "Nhóm mình chưa có lượt học nào trong 7 ngày qua.";
+    empty.textContent = rankingRangeMode === "today" ? "Nhóm mình chưa có lượt học nào hôm nay." : "Nhóm mình chưa có lượt học nào trong 7 ngày qua.";
     body.appendChild(empty);
     return;
   }

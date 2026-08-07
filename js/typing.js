@@ -342,7 +342,8 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
           tiles[i].used = false;
         }
         for (i = 0; i < blanks.length; i++) {
-          blanks[i] = null;
+          var ch = currentWord.charAt(i);
+          blanks[i] = isAutoTypingChar(ch) ? { id: "auto", char: ch, used: true, auto: true } : null;
         }
         showWrongFeedback = false;
         draw();

@@ -432,10 +432,10 @@ async function handleAddClass() {
   }
 
   setCurriculumStatus("Đang tạo lớp...");
-  var siblingMaxSort = DATA.classes.reduce(function (max, c) {
-    return c.level === level ? Math.max(max, c.sort_order) : max;
+  var globalMaxSort = DATA.classes.reduce(function (max, c) {
+    return Math.max(max, c.sort_order);
   }, -1);
-  var result = await supabaseClient.from("game_classes").insert({ id: genId("c"), name: name, level: level, sort_order: siblingMaxSort + 1 });
+  var result = await supabaseClient.from("game_classes").insert({ id: genId("c"), name: name, level: level, sort_order: globalMaxSort + 1 });
   if (result.error) {
     setCurriculumStatus("Lỗi tạo lớp: " + result.error.message);
     return;
