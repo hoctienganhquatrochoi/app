@@ -144,12 +144,18 @@ function renderGrammarTyping(container, breadcrumbText, items, unitId, setName, 
     if (isCorrect) {
       score++;
     }
-    answersLog.push({
-      vocab_id: item.id,
-      word_en: item.answer,
-      selected_label: value,
-      is_correct: isCorrect
-    });
+    var existingEntry = answersLog.filter(function (a) { return a.vocab_id === item.id; })[0];
+    if (existingEntry) {
+      existingEntry.selected_label = value;
+      existingEntry.is_correct = isCorrect;
+    } else {
+      answersLog.push({
+        vocab_id: item.id,
+        word_en: item.answer,
+        selected_label: value,
+        is_correct: isCorrect
+      });
+    }
 
     draw();
 

@@ -231,12 +231,18 @@ function renderGrammarDragfill(container, breadcrumbText, items, unitId, setName
     if (q.lastCorrect) {
       score++;
     }
-    answersLog.push({
-      vocab_id: q.id,
-      word_en: q.before + "___" + q.after,
-      selected_label: q.filledOption.text,
-      is_correct: q.lastCorrect
-    });
+    var existingEntry = answersLog.filter(function (a) { return a.vocab_id === q.id; })[0];
+    if (existingEntry) {
+      existingEntry.selected_label = q.filledOption.text;
+      existingEntry.is_correct = q.lastCorrect;
+    } else {
+      answersLog.push({
+        vocab_id: q.id,
+        word_en: q.before + "___" + q.after,
+        selected_label: q.filledOption.text,
+        is_correct: q.lastCorrect
+      });
+    }
     draw();
 
     if (freeNav) {
