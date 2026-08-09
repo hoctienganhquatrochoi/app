@@ -970,8 +970,14 @@ function handleStopBackfillViAudio() {
   setBackfillViAudioStatus("Đang dừng...");
 }
 
+var bulkAddInProgress = false;
+
 async function handleBulkAdd(e) {
   e.preventDefault();
+
+  if (bulkAddInProgress) {
+    return;
+  }
 
   var unitId = document.getElementById("unitSelect").value;
   var text = document.getElementById("bulkTextarea").value;
@@ -993,15 +999,35 @@ async function handleBulkAdd(e) {
     }
   }
 
-  var existingCountResult = await supabaseClient.from("game_vocab").select("id", { count: "exact", head: true }).eq("unit_id", unitId);
-  var nextSortOrder = existingCountResult.count || 0;
+  var submitBtn = document.querySelector("#bulkAddForm button[type=submit]");
+  bulkAddInProgress = true;
+  if (submitBtn) {
+    submitBtn.disabled = true;
+  }
+
+  try {
+
+  var existingWordsResult = await supabaseClient.from("game_vocab").select("id, word_en").eq("unit_id", unitId);
+  var existingWordSet = {};
+  (existingWordsResult.data || []).forEach(function (row) {
+    existingWordSet[stripParenthetical(row.word_en).trim().toLowerCase()] = true;
+  });
+  var nextSortOrder = (existingWordsResult.data || []).length;
   var audioLookup = await buildVocabAudioLookup();
   var audioViLookup = await buildVocabAudioViLookup();
 
   var successCount = 0;
   var reusedCount = 0;
+  var duplicateSkipped = [];
   for (i = 0; i < validItems.length; i++) {
     var item = validItems[i];
+    var dedupeKey = stripParenthetical(item.word_en).trim().toLowerCase();
+    if (existingWordSet[dedupeKey]) {
+      duplicateSkipped.push(item.word_en);
+      continue;
+    }
+    existingWordSet[dedupeKey] = true;
+
     setBulkStatus("Đang xử lý " + (i + 1) + "/" + validItems.length + ": " + item.word_en + "...");
 
     var spokenWordEn = stripParenthetical(item.word_en);
@@ -1070,6 +1096,9 @@ async function handleBulkAdd(e) {
   if (reusedCount > 0) {
     summary += " Dùng lại âm thanh có sẵn cho " + reusedCount + " từ (đỡ tốn dung lượng).";
   }
+  if (duplicateSkipped.length) {
+    summary += " Bỏ qua " + duplicateSkipped.length + " từ đã có sẵn trong bài: " + duplicateSkipped.join(", ") + ".";
+  }
   if (invalidLines.length) {
     summary += " Bỏ qua dòng trống: dòng " + invalidLines.join(", ") + ".";
   }
@@ -1077,4 +1106,53 @@ async function handleBulkAdd(e) {
 
   document.getElementById("bulkTextarea").value = "";
   loadVocabTable();
+
+  } finally {
+    bulkAddInProgress = false;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+    }
+  }
+}
+
+async function handleExportVocabList() {
+  var unitId = document.getElementById("unitSelect").value;
+  var statusEl = document.getElementById("exportVocabStatus");
+  var textarea = document.getElementById("exportVocabTextarea");
+
+  if (!unitId) {
+    statusEl.textContent = "Chưa chọn Unit.";
+    return;
+  }
+
+  statusEl.textContent = "Đang lấy danh sách...";
+  var result = await supabaseClient.from("game_vocab").select("word_en, phonetic, meaning_vi").eq("unit_id", unitId).order("sort_order", { ascending: true });
+
+  if (result.error) {
+    statusEl.textContent = "Lỗi tải danh sách: " + result.error.message;
+    return;
+  }
+  if (!result.data.length) {
+    statusEl.textContent = "Unit này chưa có từ vựng nào.";
+    return;
+  }
+
+  var lines = [unitBreadcrumbLabel(unitId), ""];
+  result.data.forEach(function (row) {
+    var phoneticPart = row.phonetic ? " /" + row.phonetic + "/" : "";
+    lines.push(row.word_en + phoneticPart + " " + row.meaning_vi);
+  });
+  var text = lines.join("\n");
+
+  textarea.style.display = "block";
+  textarea.value = text;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    statusEl.textContent = "Đã copy " + result.data.length + " từ vào bộ nhớ tạm, dán thẳng vào Zalo là được!";
+  } catch (err) {
+    statusEl.textContent = "Không tự copy được (trình duyệt chặn) — bạn bấm vào ô chữ bên dưới, chọn hết rồi copy thủ công nhé.";
+    textarea.focus();
+    textarea.select();
+  }
 }

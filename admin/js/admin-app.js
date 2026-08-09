@@ -84,6 +84,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     setVocabTogglesEnabled(false);
   });
   document.getElementById("bulkAddForm").addEventListener("submit", handleBulkAdd);
+  document.getElementById("exportVocabListBtn").addEventListener("click", handleExportVocabList);
   document.getElementById("uploadSiteBannerBtn").addEventListener("click", handleUploadSiteBanner);
   document.getElementById("saveSiteBannerLinkBtn").addEventListener("click", handleSaveSiteBannerLink);
   document.getElementById("removeSiteBannerBtn").addEventListener("click", handleRemoveSiteBanner);
