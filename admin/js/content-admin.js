@@ -1137,9 +1137,23 @@ async function handleExportVocabList() {
     return;
   }
 
-  var lines = [unitBreadcrumbLabel(unitId), ""];
+  var unit = findUnitById(unitId);
+  var subject = unit ? findSubjectById(unit.subject_id) : null;
+  var cls = subject ? findClassById(subject.class_id) : null;
+  var breadcrumbParts = [];
+  if (cls) {
+    breadcrumbParts.push(cls.name);
+  }
+  if (subject && subject.name) {
+    breadcrumbParts.push(subject.name);
+  }
+  if (unit) {
+    breadcrumbParts.push(unitDisplayName(unit));
+  }
+
+  var lines = [breadcrumbParts.join(" › "), ""];
   result.data.forEach(function (row) {
-    var phoneticPart = row.phonetic ? " /" + row.phonetic + "/" : "";
+    var phoneticPart = row.phonetic ? " " + row.phonetic : "";
     lines.push(row.word_en + phoneticPart + " " + row.meaning_vi);
   });
   var text = lines.join("\n");
