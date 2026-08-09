@@ -1151,7 +1151,8 @@ async function handleExportVocabList() {
     breadcrumbParts.push(unitDisplayName(unit));
   }
 
-  var lines = [breadcrumbParts.join(" › "), ""];
+  var titleLine = breadcrumbParts.join(" › ") + " (" + result.data.length + " từ)";
+  var lines = [titleLine, ""];
   result.data.forEach(function (row) {
     var phoneticPart = row.phonetic ? " " + row.phonetic : "";
     lines.push(row.word_en + phoneticPart + " " + row.meaning_vi);
