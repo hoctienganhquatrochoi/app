@@ -1070,6 +1070,16 @@ function selectUnitForComposing(unitId) {
   select.value = unitId;
   updateComposeBreadcrumb();
 
+  var exportStatus = document.getElementById("exportVocabStatus");
+  var exportTextarea = document.getElementById("exportVocabTextarea");
+  if (exportStatus) {
+    exportStatus.textContent = "";
+  }
+  if (exportTextarea) {
+    exportTextarea.style.display = "none";
+    exportTextarea.value = "";
+  }
+
   var unit = findUnitById(unitId);
   var isTest = !!unit && unit.content_type === "test";
   document.getElementById("activityTogglesBox").style.display = isTest ? "none" : "";
