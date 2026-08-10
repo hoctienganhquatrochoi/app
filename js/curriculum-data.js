@@ -73,12 +73,16 @@ async function loadCurriculumData() {
   var unitsResult = await supabaseClient.from("game_units").select("*").order("sort_order", { ascending: true });
   var wordwallResult = await supabaseClient.from("game_wordwall_activities").select("*").order("sort_order", { ascending: true });
   var wordwallByUnit = buildWordwallActivities(wordwallResult.data || []);
-  var sentenceUnitsResult = await supabaseClient.from("game_sentences").select("unit_id");
+  var sentenceUnitsResult = await fetchAllRows(function () {
+    return supabaseClient.from("game_sentences").select("unit_id");
+  });
   var unitsWithSentences = {};
   (sentenceUnitsResult.data || []).forEach(function (row) {
     unitsWithSentences[row.unit_id] = true;
   });
-  var vocabUnitsResult = await supabaseClient.from("game_vocab").select("unit_id");
+  var vocabUnitsResult = await fetchAllRows(function () {
+    return supabaseClient.from("game_vocab").select("unit_id");
+  });
   var unitsWithVocab = {};
   (vocabUnitsResult.data || []).forEach(function (row) {
     unitsWithVocab[row.unit_id] = true;
