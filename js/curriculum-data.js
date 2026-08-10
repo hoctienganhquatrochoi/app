@@ -78,6 +78,11 @@ async function loadCurriculumData() {
   (sentenceUnitsResult.data || []).forEach(function (row) {
     unitsWithSentences[row.unit_id] = true;
   });
+  var vocabUnitsResult = await supabaseClient.from("game_vocab").select("unit_id");
+  var unitsWithVocab = {};
+  (vocabUnitsResult.data || []).forEach(function (row) {
+    unitsWithVocab[row.unit_id] = true;
+  });
   var grammarMcqUnitsResult = await supabaseClient.from("game_grammar_mcq").select("unit_id, set_name").order("sort_order", { ascending: true });
   var grammarMcqByUnit = buildNamedSetActivities(grammarMcqUnitsResult.data || [], "gm_", "grammar-mcq");
   var grammarTypingUnitsResult = await supabaseClient.from("game_grammar_typing").select("unit_id, set_name").order("sort_order", { ascending: true });
@@ -167,7 +172,7 @@ async function loadCurriculumData() {
       return { id: "run_" + t.id, name: t.name, type: "test", testSections: t.sections, locked: false };
     });
     if (urow.content_type === "test") {
-      unit.activities = testActivities;
+      unit.activities = (unitsWithVocab[urow.id] ? VOCAB_ACTIVITY_TEMPLATE : []).concat(testActivities);
     } else {
       unit.activities = VOCAB_ACTIVITY_TEMPLATE
         .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])

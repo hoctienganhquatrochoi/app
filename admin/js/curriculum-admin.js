@@ -1055,15 +1055,6 @@ function updateComposeBreadcrumb() {
   document.getElementById("composeBreadcrumb").textContent = "Đang soạn: " + parts.join(" › ");
 }
 
-function hideAllComposeSubPanels() {
-  ["vocab", "sentence", "speaking", "wordwall", "grammarMcq", "grammarTyping", "grammarMatching", "grammarDragfill", "photoQuiz", "mathDragfill", "textDragfill"].forEach(function (t) {
-    var el = document.getElementById(t + "ComposeSubPanel");
-    if (el) {
-      el.style.display = "none";
-    }
-  });
-}
-
 function selectUnitForComposing(unitId) {
   saveAdminNavState({ unitId: unitId });
   var select = document.getElementById("unitSelect");
@@ -1083,16 +1074,25 @@ function selectUnitForComposing(unitId) {
   var unit = findUnitById(unitId);
   var isTest = !!unit && unit.content_type === "test";
   document.getElementById("activityTogglesBox").style.display = isTest ? "none" : "";
-  document.getElementById("composeSubTabs").style.display = isTest ? "none" : "";
-  if (isTest) {
-    document.getElementById("testComposeView").style.display = "";
-  }
+
+  var sentenceTabBtn = document.querySelector('#composeSubTabs [data-composesubtab="sentence"]');
+  var speakingTabBtn = document.querySelector('#composeSubTabs [data-composesubtab="speaking"]');
+  var wordwallTabBtn = document.querySelector('#composeSubTabs [data-composesubtab="wordwall"]');
+  var grammarMcqTabBtn = document.querySelector('#composeSubTabs [data-composesubtab="grammarMcq"]');
+  var grammarTypingTabBtn = document.querySelector('#composeSubTabs [data-composesubtab="grammarTyping"]');
+  var grammarMatchingTabBtn = document.querySelector('#composeSubTabs [data-composesubtab="grammarMatching"]');
+  var grammarDragfillTabBtn = document.querySelector('#composeSubTabs [data-composesubtab="grammarDragfill"]');
+  [sentenceTabBtn, speakingTabBtn, wordwallTabBtn, grammarMcqTabBtn, grammarTypingTabBtn, grammarMatchingTabBtn, grammarDragfillTabBtn].forEach(function (btn) {
+    if (btn) {
+      btn.style.display = isTest ? "none" : "";
+    }
+  });
+  document.getElementById("testSectionsSubTabBtn").style.display = isTest ? "" : "none";
 
   if (isTest) {
     resetTestSectionForm();
-    hideAllComposeSubPanels();
-    updateTestSectionContentHint();
-    loadTestList();
+    switchComposeSubTab("testSections");
+    loadVocabTable();
   } else {
     switchComposeSubTab("vocab");
     loadVocabTable();
