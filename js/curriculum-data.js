@@ -178,7 +178,7 @@ async function loadCurriculumData() {
     if (urow.content_type === "test") {
       unit.activities = (unitsWithVocab[urow.id] ? VOCAB_ACTIVITY_TEMPLATE : []).concat(testActivities);
     } else {
-      unit.activities = VOCAB_ACTIVITY_TEMPLATE
+      unit.activities = (unitsWithVocab[urow.id] ? VOCAB_ACTIVITY_TEMPLATE : [])
         .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
         .concat(photoQuizByUnit[urow.id] || [])
         .concat(excludeClaimedSets(mathDragfillByUnit[urow.id], urow.id, "math-dragfill"))
