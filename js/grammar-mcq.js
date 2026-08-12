@@ -36,6 +36,7 @@ function buildGrammarMcqQuestions(items) {
       bracketSplit: splitGrammarMcqQuestionAroundBracket(row.question),
       passage: row.passage,
       imageUrl: row.image_url,
+      explanation: row.explanation,
       options: options,
       answered: false,
       selectedIndex: null
@@ -111,6 +112,20 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
     });
     body.appendChild(optionsEl);
 
+    if (q.answered && q.explanation) {
+      var explanationBox = document.createElement("div");
+      explanationBox.className = "grammar-mcq-explanation";
+      explanationBox.textContent = "💡 " + q.explanation;
+      body.appendChild(explanationBox);
+
+      var continueBtn = document.createElement("button");
+      continueBtn.className = "quiz-continue-btn";
+      continueBtn.type = "button";
+      continueBtn.textContent = "Tiếp tục →";
+      continueBtn.addEventListener("click", advance);
+      body.appendChild(continueBtn);
+    }
+
     wrap.appendChild(body);
     wrap.appendChild(buildProgressFooter((progressOffset || 0) + qIndex + 1, progressTotal || questions.length));
     if (isAdminPreview() || freeNav) {
@@ -145,6 +160,23 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
       }
     }
     return -1;
+  }
+
+  function advance() {
+    if (freeNav) {
+      var nextIdx = findNextUnanswered();
+      if (nextIdx === -1) {
+        showResult();
+      } else {
+        qIndex = nextIdx;
+        draw();
+      }
+    } else if (qIndex < questions.length - 1) {
+      qIndex++;
+      draw();
+    } else {
+      showResult();
+    }
   }
 
   function buildOption(q, option, idx) {
@@ -185,22 +217,9 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
       });
       draw();
 
-      setTimeout(function () {
-        if (freeNav) {
-          var nextIdx = findNextUnanswered();
-          if (nextIdx === -1) {
-            showResult();
-          } else {
-            qIndex = nextIdx;
-            draw();
-          }
-        } else if (qIndex < questions.length - 1) {
-          qIndex++;
-          draw();
-        } else {
-          showResult();
-        }
-      }, GRAMMAR_MCQ_ADVANCE_DELAY_MS);
+      if (!q.explanation) {
+        setTimeout(advance, GRAMMAR_MCQ_ADVANCE_DELAY_MS);
+      }
     });
 
     return btn;

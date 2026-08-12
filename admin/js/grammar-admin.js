@@ -316,7 +316,7 @@ function renderGrammarMcqTable(rows) {
 
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");
-  ["Câu hỏi", "Đáp án đúng", "Đáp án sai", "Ảnh", ""].forEach(function (h) {
+  ["Câu hỏi", "Đáp án đúng", "Đáp án sai", "Giải thích", "Ảnh", ""].forEach(function (h) {
     var th = document.createElement("th");
     th.textContent = h;
     headRow.appendChild(th);
@@ -370,6 +370,7 @@ function buildGrammarMcqRow(row) {
   tr.appendChild(makeTd(row.question));
   tr.appendChild(makeTd(row.correct_answer));
   tr.appendChild(makeTd((row.wrong_answers || []).join(", ")));
+  tr.appendChild(makeTd(row.explanation || ""));
   tr.appendChild(makeGrammarMcqImageTd(row));
 
   var actionsTd = document.createElement("td");
@@ -404,10 +405,12 @@ function buildGrammarMcqEditRow(row) {
   var questionTd = makeInputTd(row.question);
   var correctTd = makeInputTd(row.correct_answer);
   var wrongTd = makeInputTd((row.wrong_answers || []).join(", "));
+  var explanationTd = makeInputTd(row.explanation || "");
 
   tr.appendChild(questionTd);
   tr.appendChild(correctTd);
   tr.appendChild(wrongTd);
+  tr.appendChild(explanationTd);
   tr.appendChild(makeGrammarMcqImageTd(row));
 
   var actionsTd = document.createElement("td");
@@ -426,7 +429,8 @@ function buildGrammarMcqEditRow(row) {
     var result = await supabaseClient.from("game_grammar_mcq").update({
       question: questionTd.inputEl.value.trim(),
       correct_answer: correctAnswer,
-      wrong_answers: wrongAnswers
+      wrong_answers: wrongAnswers,
+      explanation: explanationTd.inputEl.value.trim() || null
     }).eq("id", row.id);
 
     if (result.error) {
@@ -497,23 +501,28 @@ function parseGrammarMcqBulkText(text) {
   lines.forEach(function (line) {
     var correctMatch = line.match(/^đáp\s*án\s*đúng\s*:\s*(.*)$/i);
     var wrongMatch = line.match(/^đáp\s*án\s*sai\s*:\s*(.*)$/i);
+    var explanationMatch = line.match(/^gi[aả]i\s*th[iíì]ch\s*:\s*(.*)$/i);
     if (correctMatch) {
       if (!current) {
-        current = { question: "", correct_answer: "", wrong_answers: [] };
+        current = { question: "", correct_answer: "", wrong_answers: [], explanation: "" };
       }
       current.correct_answer = correctMatch[1].trim();
     } else if (wrongMatch) {
       if (!current) {
-        current = { question: "", correct_answer: "", wrong_answers: [] };
+        current = { question: "", correct_answer: "", wrong_answers: [], explanation: "" };
       }
       current.wrong_answers = splitDragfillAnswerList(wrongMatch[1]);
-      flush();
+    } else if (explanationMatch) {
+      if (!current) {
+        current = { question: "", correct_answer: "", wrong_answers: [], explanation: "" };
+      }
+      current.explanation = explanationMatch[1].trim();
     } else {
       if (current && (current.correct_answer || current.wrong_answers.length)) {
         flush();
       }
       if (!current) {
-        current = { question: "", correct_answer: "", wrong_answers: [] };
+        current = { question: "", correct_answer: "", wrong_answers: [], explanation: "" };
       }
       var cleanedLine = current.question ? line : stripLeadingNumbering(line);
       current.question = current.question ? (current.question + " " + cleanedLine) : cleanedLine;
@@ -571,6 +580,7 @@ async function handleBulkAddGrammarMcq(e) {
       question: item.question,
       correct_answer: item.correct_answer,
       wrong_answers: item.wrong_answers,
+      explanation: item.explanation || null,
       passage: passage || null
     });
 

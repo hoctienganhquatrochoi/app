@@ -1082,6 +1082,19 @@ html, body {
   white-space: pre-wrap;
 }
 
+.grammar-mcq-explanation {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #1B4332;
+  background: #E8F5E9;
+  border: 2px solid #74C69D;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-top: 18px;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
 .vocab-visual-frame {
   overflow: hidden;
   border-radius: 16px;
