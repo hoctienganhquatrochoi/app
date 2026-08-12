@@ -468,22 +468,9 @@ function unitHasAccess(unit) {
   return (currentStudent.assignedUnitIds || []).indexOf(unit.id) !== -1;
 }
 
-function classHasVisibleDemoUnit(cls) {
-  var subjects = DATA.subjectsByClass[cls.id] || [];
-  var i, u;
-  for (i = 0; i < subjects.length; i++) {
-    for (u = 0; u < subjects[i].units.length; u++) {
-      if (subjects[i].units[u].is_demo) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 function classIsVisibleForStudent(cls) {
   if (!studentHasRealAccess()) {
-    return classHasActiveDemo(cls) || classHasVisibleDemoUnit(cls);
+    return classHasActiveDemo(cls);
   }
   if ((currentStudent.allowed_class_ids || []).indexOf(cls.id) !== -1) {
     return true;
