@@ -460,9 +460,22 @@ function unitHasAccess(unit) {
   return (currentStudent.assignedUnitIds || []).indexOf(unit.id) !== -1;
 }
 
+function classHasVisibleDemoUnit(cls) {
+  var subjects = DATA.subjectsByClass[cls.id] || [];
+  var i, u;
+  for (i = 0; i < subjects.length; i++) {
+    for (u = 0; u < subjects[i].units.length; u++) {
+      if (subjects[i].units[u].is_demo) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 function classIsVisibleForStudent(cls) {
   if (!studentHasRealAccess()) {
-    return true;
+    return classHasActiveDemo(cls) || classHasVisibleDemoUnit(cls);
   }
   if ((currentStudent.allowed_class_ids || []).indexOf(cls.id) !== -1) {
     return true;
@@ -1088,16 +1101,19 @@ async function renderHomePopup() {
     return;
   }
 
-  var demoClass = !studentHasRealAccess() ? DATA.classes.filter(classHasActiveDemo)[0] : null;
-  if (demoClass) {
-    showDemoClassPopup(demoClass);
-    return;
-  }
-
   var result = await supabaseClient.from("game_admin_settings")
-    .select("banner_image_url, banner_link_url, popup_title, popup_subtitle, popup_button_text, popup_mode")
+    .select("banner_image_url, banner_link_url, popup_title, popup_subtitle, popup_button_text, popup_mode, demo_popup_enabled, demo_popup_class_id")
     .eq("id", 1).maybeSingle();
   var data = result.data;
+
+  if (data && data.demo_popup_enabled && !studentHasRealAccess()) {
+    var demoClass = findClassById(data.demo_popup_class_id);
+    if (demoClass && classHasActiveDemo(demoClass)) {
+      showDemoClassPopup(demoClass);
+      return;
+    }
+  }
+
   if (!data) {
     return;
   }

@@ -89,6 +89,49 @@ async function handleToggleClassDemo(cls) {
   await refreshCurriculumEverywhere();
 }
 
+async function loadDemoPopupSettings() {
+  var picker = document.getElementById("demoPopupClassPicker");
+  picker.innerHTML = "";
+  DATA.classes.forEach(function (cls) {
+    var opt = document.createElement("option");
+    opt.value = cls.id;
+    opt.textContent = cls.name + (classHasActiveDemo(cls) ? " (đang mở demo)" : " (chưa mở demo)");
+    picker.appendChild(opt);
+  });
+
+  var result = await supabaseClient.from("game_admin_settings")
+    .select("demo_popup_enabled, demo_popup_class_id")
+    .eq("id", 1).maybeSingle();
+  var data = result.data || {};
+  document.getElementById("demoPopupEnabledCheckbox").checked = !!data.demo_popup_enabled;
+  if (data.demo_popup_class_id) {
+    picker.value = data.demo_popup_class_id;
+  }
+}
+
+async function handleSaveDemoPopup() {
+  var statusEl = document.getElementById("demoPopupStatus");
+  var enabled = document.getElementById("demoPopupEnabledCheckbox").checked;
+  var classId = document.getElementById("demoPopupClassPicker").value;
+  var cls = findClassById(classId);
+
+  if (enabled && !classHasActiveDemo(cls)) {
+    if (!window.confirm("Lớp \"" + (cls ? cls.name : "") + "\" hiện chưa mở demo (hoặc demo đã hết hạn), popup sẽ không hiện cho tới khi lớp này được mở demo. Vẫn lưu?")) {
+      return;
+    }
+  }
+
+  var result = await supabaseClient.from("game_admin_settings").update({
+    demo_popup_enabled: enabled,
+    demo_popup_class_id: classId || null
+  }).eq("id", 1);
+  if (result.error) {
+    statusEl.textContent = "Lỗi lưu: " + result.error.message;
+    return;
+  }
+  statusEl.textContent = "Đã lưu — popup " + (enabled ? "đang BẬT cho lớp \"" + (cls ? cls.name : "") + "\"." : "đang TẮT.");
+}
+
 function classLevelLabel(level) {
   var i;
   for (i = 0; i < CLASS_LEVEL_OPTIONS.length; i++) {

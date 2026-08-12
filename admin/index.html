@@ -184,6 +184,24 @@
       <div class="admin-status" id="siteBannerStatus"></div>
     </div>
 
+    <div class="admin-form" id="demoPopupBox">
+      <h3>Popup mời dùng thử demo</h3>
+      <p class="admin-hint">Khi bật, khách vào trang lần đầu (chưa đăng nhập) sẽ thấy popup mời dùng thử đúng 1 Lớp chị chọn bên dưới — không còn tự động hiện theo bất kỳ lớp nào đang mở demo nữa. Tắt đi khi không muốn mời gì cả (các lớp vẫn mở demo bình thường, chỉ là không có popup nhắc).</p>
+      <div class="admin-form-row">
+        <div class="admin-field admin-field-small">
+          <label><input type="checkbox" id="demoPopupEnabledCheckbox"> Bật popup</label>
+        </div>
+        <div class="admin-field">
+          <label>Lớp muốn mời dùng thử</label>
+          <select id="demoPopupClassPicker"></select>
+        </div>
+        <div class="admin-field admin-field-btn">
+          <button type="button" class="admin-btn-primary" id="saveDemoPopupBtn">Lưu</button>
+        </div>
+      </div>
+      <div class="admin-status" id="demoPopupStatus"></div>
+    </div>
+
     <div class="admin-form" id="backfillViAudioBox">
       <h3>Tạo âm thanh tiếng Việt còn thiếu</h3>
       <p class="admin-hint">Chạy cho toàn bộ Từ vựng + Mẫu câu chưa có giọng đọc tiếng Việt. Chạy theo từng đợt nhỏ, dừng giữa chừng vẫn an toàn — bấm lại là chạy tiếp, không làm lại từ đầu.</p>
@@ -1078,7 +1096,7 @@ What is Alex's family name?
 <script src="js/assignments-admin.js?v=20260729u"></script>
 <script src="js/results-admin.js?v=20260729zk"></script>
 <script src="js/activity-toggles-admin.js?v=20260729u"></script>
-<script src="js/curriculum-admin.js?v=20260808b"></script>
-<script src="js/admin-app.js?v=20260808a"></script>
+<script src="js/curriculum-admin.js?v=20260812a"></script>
+<script src="js/admin-app.js?v=20260812a"></script>
 </body>
 </html>

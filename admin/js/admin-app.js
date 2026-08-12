@@ -89,6 +89,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("saveSiteBannerLinkBtn").addEventListener("click", handleSaveSiteBannerLink);
   document.getElementById("removeSiteBannerBtn").addEventListener("click", handleRemoveSiteBanner);
   loadSiteBannerSettings();
+  document.getElementById("saveDemoPopupBtn").addEventListener("click", handleSaveDemoPopup);
+  loadDemoPopupSettings();
   document.getElementById("backfillViAudioBtn").addEventListener("click", handleBackfillViAudio);
   document.getElementById("stopBackfillViAudioBtn").addEventListener("click", handleStopBackfillViAudio);
   document.getElementById("bulkAddSentenceForm").addEventListener("submit", handleBulkAddSentences);
