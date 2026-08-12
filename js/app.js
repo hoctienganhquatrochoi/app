@@ -122,6 +122,9 @@ function buildClassItem(cls) {
 
   if (isOpen) {
     var subjects = DATA.subjectsByClass[cls.id] || [];
+    if (!studentHasRealAccess()) {
+      subjects = subjects.filter(function (s) { return s.units.some(unitHasAccess); });
+    }
     var subjectsWrap = document.createElement("div");
     subjectsWrap.className = "class-subjects";
     var i;
@@ -139,11 +142,12 @@ function buildClassItem(cls) {
 }
 
 function buildUnitListForUnits(units) {
+  var visibleUnits = studentHasRealAccess() ? units : units.filter(unitHasAccess);
   var unitList = document.createElement("div");
   unitList.className = "unit-list";
   var i;
-  for (i = 0; i < units.length; i++) {
-    var unit = units[i];
+  for (i = 0; i < visibleUnits.length; i++) {
+    var unit = visibleUnits[i];
     if (unit.name) {
       unitList.appendChild(buildUnitItem(unit));
     } else {
@@ -228,11 +232,15 @@ function buildSubjectItem(subject) {
 
   if (isOpen) {
     if (subject.chapters && subject.chapters.length > 0) {
+      var chapters = subject.chapters;
+      if (!studentHasRealAccess()) {
+        chapters = chapters.filter(function (c) { return c.units.some(unitHasAccess); });
+      }
       var chaptersWrap = document.createElement("div");
       chaptersWrap.className = "subject-chapters";
       var c;
-      for (c = 0; c < subject.chapters.length; c++) {
-        chaptersWrap.appendChild(buildChapterItem(subject.chapters[c]));
+      for (c = 0; c < chapters.length; c++) {
+        chaptersWrap.appendChild(buildChapterItem(chapters[c]));
       }
       wrap.appendChild(chaptersWrap);
 
