@@ -15,7 +15,7 @@ function buildQuizQuestion(item, pool, fixedFormat) {
     return hasVisual || (!cfg.showImage && cfg.answerType !== "image");
   });
   var format = availableFormats[Math.floor(Math.random() * availableFormats.length)];
-  var distractors = pickRandomDistractors(pool, item, 3);
+  var distractors = pickRandomDistractors(pool, item, 3, QUIZ_FORMAT_CONFIG[format].answerType);
   var options = shuffleArray([item].concat(distractors));
   return { item: item, format: format, options: options };
 }

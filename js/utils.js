@@ -164,13 +164,22 @@ function buildResultIcon(isCorrect) {
   return icon;
 }
 
-function pickRandomDistractors(pool, correctItem, count) {
+function pickRandomDistractors(pool, correctItem, count, answerField) {
+  var field = answerField === "meaning" ? "vi" : "en";
+  var usedTexts = {};
+  usedTexts[(correctItem[field] || "").trim().toLowerCase()] = true;
   var candidates = [];
-  var i;
+  var i, text;
   for (i = 0; i < pool.length; i++) {
-    if (pool[i].id !== correctItem.id) {
-      candidates.push(pool[i]);
+    if (pool[i].id === correctItem.id) {
+      continue;
     }
+    text = (pool[i][field] || "").trim().toLowerCase();
+    if (usedTexts[text]) {
+      continue;
+    }
+    usedTexts[text] = true;
+    candidates.push(pool[i]);
   }
   candidates = shuffleArray(candidates);
   return candidates.slice(0, count);
