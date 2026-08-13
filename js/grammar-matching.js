@@ -191,7 +191,7 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
       var x2 = rr.left - stageRect.left;
       var y2 = rr.top + rr.height / 2 - stageRect.top;
 
-      var color = "#B8860B";
+      var color = "#4A90D2";
       if (submitted) {
         color = leftId === rightId ? "#2D6A4F" : "#E63946";
       }
