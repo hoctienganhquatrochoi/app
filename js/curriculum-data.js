@@ -15,15 +15,18 @@ var VOCAB_ACTIVITY_TEMPLATE = [
 
 var IMAGE_DEPENDENT_ACTIVITY_IDS = ["a2a", "a2b", "a2d"];
 
-function vocabActivitiesForUnit(unitId, unitsWithVocab, unitsWithImages) {
+function vocabActivitiesForUnit(unitId, unitsWithVocab, unitsWithImages, unitsWithSpeaking) {
   if (!unitsWithVocab[unitId]) {
     return [];
   }
-  if (unitsWithImages[unitId]) {
-    return VOCAB_ACTIVITY_TEMPLATE;
-  }
   return VOCAB_ACTIVITY_TEMPLATE.filter(function (a) {
-    return IMAGE_DEPENDENT_ACTIVITY_IDS.indexOf(a.id) === -1;
+    if (IMAGE_DEPENDENT_ACTIVITY_IDS.indexOf(a.id) !== -1 && !unitsWithImages[unitId]) {
+      return false;
+    }
+    if (a.id === "a13" && !unitsWithSpeaking[unitId]) {
+      return false;
+    }
+    return true;
   });
 }
 
@@ -107,6 +110,13 @@ async function loadCurriculumData() {
   var unitsWithImages = {};
   (vocabImagesResult.data || []).forEach(function (row) {
     unitsWithImages[row.unit_id] = true;
+  });
+  var speakingUnitsResult = await fetchAllRows(function () {
+    return supabaseClient.from("game_speaking_questions").select("unit_id");
+  });
+  var unitsWithSpeaking = {};
+  (speakingUnitsResult.data || []).forEach(function (row) {
+    unitsWithSpeaking[row.unit_id] = true;
   });
   var grammarMcqUnitsResult = await supabaseClient.from("game_grammar_mcq").select("unit_id, set_name").order("sort_order", { ascending: true });
   var grammarMcqByUnit = buildNamedSetActivities(grammarMcqUnitsResult.data || [], "gm_", "grammar-mcq");
@@ -197,9 +207,9 @@ async function loadCurriculumData() {
       return { id: "run_" + t.id, name: t.name, type: "test", testSections: t.sections, locked: false };
     });
     if (urow.content_type === "test") {
-      unit.activities = vocabActivitiesForUnit(urow.id, unitsWithVocab, unitsWithImages).concat(testActivities);
+      unit.activities = vocabActivitiesForUnit(urow.id, unitsWithVocab, unitsWithImages, unitsWithSpeaking).concat(testActivities);
     } else {
-      unit.activities = vocabActivitiesForUnit(urow.id, unitsWithVocab, unitsWithImages)
+      unit.activities = vocabActivitiesForUnit(urow.id, unitsWithVocab, unitsWithImages, unitsWithSpeaking)
         .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
         .concat(photoQuizByUnit[urow.id] || [])
         .concat(excludeClaimedSets(mathDragfillByUnit[urow.id], urow.id, "math-dragfill"))
