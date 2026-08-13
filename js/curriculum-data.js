@@ -13,6 +13,20 @@ var VOCAB_ACTIVITY_TEMPLATE = [
   { id: "a13", name: "Kiểm tra nói", type: "speaking", locked: false }
 ];
 
+var IMAGE_DEPENDENT_ACTIVITY_IDS = ["a2a", "a2b", "a2d"];
+
+function vocabActivitiesForUnit(unitId, unitsWithVocab, unitsWithImages) {
+  if (!unitsWithVocab[unitId]) {
+    return [];
+  }
+  if (unitsWithImages[unitId]) {
+    return VOCAB_ACTIVITY_TEMPLATE;
+  }
+  return VOCAB_ACTIVITY_TEMPLATE.filter(function (a) {
+    return IMAGE_DEPENDENT_ACTIVITY_IDS.indexOf(a.id) === -1;
+  });
+}
+
 var SENTENCE_ACTIVITY_TEMPLATE = [
   { id: "s1", name: "Thẻ đọc (câu)", type: "flashcard", locked: false },
   { id: "s14", name: "Thẻ lật (câu)", type: "flip-card", locked: false },
@@ -86,6 +100,13 @@ async function loadCurriculumData() {
   var unitsWithVocab = {};
   (vocabUnitsResult.data || []).forEach(function (row) {
     unitsWithVocab[row.unit_id] = true;
+  });
+  var vocabImagesResult = await fetchAllRows(function () {
+    return supabaseClient.from("game_vocab").select("unit_id").or("image_url.not.is.null,emoji.not.is.null");
+  });
+  var unitsWithImages = {};
+  (vocabImagesResult.data || []).forEach(function (row) {
+    unitsWithImages[row.unit_id] = true;
   });
   var grammarMcqUnitsResult = await supabaseClient.from("game_grammar_mcq").select("unit_id, set_name").order("sort_order", { ascending: true });
   var grammarMcqByUnit = buildNamedSetActivities(grammarMcqUnitsResult.data || [], "gm_", "grammar-mcq");
@@ -176,9 +197,9 @@ async function loadCurriculumData() {
       return { id: "run_" + t.id, name: t.name, type: "test", testSections: t.sections, locked: false };
     });
     if (urow.content_type === "test") {
-      unit.activities = (unitsWithVocab[urow.id] ? VOCAB_ACTIVITY_TEMPLATE : []).concat(testActivities);
+      unit.activities = vocabActivitiesForUnit(urow.id, unitsWithVocab, unitsWithImages).concat(testActivities);
     } else {
-      unit.activities = (unitsWithVocab[urow.id] ? VOCAB_ACTIVITY_TEMPLATE : [])
+      unit.activities = vocabActivitiesForUnit(urow.id, unitsWithVocab, unitsWithImages)
         .concat(unitsWithSentences[urow.id] ? SENTENCE_ACTIVITY_TEMPLATE : [])
         .concat(photoQuizByUnit[urow.id] || [])
         .concat(excludeClaimedSets(mathDragfillByUnit[urow.id], urow.id, "math-dragfill"))
