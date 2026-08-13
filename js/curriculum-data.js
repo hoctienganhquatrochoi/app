@@ -84,56 +84,80 @@ function buildWordwallActivities(rows) {
 }
 
 async function loadCurriculumData() {
-  var classesResult = await supabaseClient.from("game_classes").select("*").order("sort_order", { ascending: true });
-  var subjectsResult = await supabaseClient.from("game_subjects").select("*").order("sort_order", { ascending: true });
-  var chaptersResult = await supabaseClient.from("game_chapters").select("*").order("sort_order", { ascending: true });
-  var unitsResult = await supabaseClient.from("game_units").select("*").order("sort_order", { ascending: true });
-  var wordwallResult = await supabaseClient.from("game_wordwall_activities").select("*").order("sort_order", { ascending: true });
+  // All of these reads are independent of one another, so fire them concurrently
+  // instead of one-by-one - with 18 separate queries, awaiting them in sequence
+  // added up to several seconds of pure round-trip latency as the content grew.
+  var allResults = await Promise.all([
+    supabaseClient.from("game_classes").select("*").order("sort_order", { ascending: true }),
+    supabaseClient.from("game_subjects").select("*").order("sort_order", { ascending: true }),
+    supabaseClient.from("game_chapters").select("*").order("sort_order", { ascending: true }),
+    supabaseClient.from("game_units").select("*").order("sort_order", { ascending: true }),
+    supabaseClient.from("game_wordwall_activities").select("*").order("sort_order", { ascending: true }),
+    fetchAllRows(function () {
+      return supabaseClient.from("game_sentences").select("unit_id");
+    }),
+    fetchAllRows(function () {
+      return supabaseClient.from("game_vocab").select("unit_id");
+    }),
+    fetchAllRows(function () {
+      return supabaseClient.from("game_vocab").select("unit_id").or("image_url.not.is.null,emoji.not.is.null");
+    }),
+    fetchAllRows(function () {
+      return supabaseClient.from("game_speaking_questions").select("unit_id");
+    }),
+    supabaseClient.from("game_grammar_mcq").select("unit_id, set_name").order("sort_order", { ascending: true }),
+    supabaseClient.from("game_grammar_typing").select("unit_id, set_name").order("sort_order", { ascending: true }),
+    supabaseClient.from("game_grammar_matching").select("unit_id, set_name").order("sort_order", { ascending: true }),
+    supabaseClient.from("game_grammar_dragfill").select("unit_id, set_name").order("sort_order", { ascending: true }),
+    supabaseClient.from("game_photo_quiz_questions").select("unit_id, set_name").order("sort_order", { ascending: true }),
+    supabaseClient.from("game_math_dragfill").select("unit_id, set_name").order("sort_order", { ascending: true }),
+    supabaseClient.from("game_text_dragfill").select("unit_id, set_name").order("sort_order", { ascending: true }),
+    supabaseClient.from("game_tests").select("*").order("sort_order", { ascending: true }),
+    supabaseClient.from("game_test_sections").select("*").order("sort_order", { ascending: true })
+  ]);
+  var classesResult = allResults[0];
+  var subjectsResult = allResults[1];
+  var chaptersResult = allResults[2];
+  var unitsResult = allResults[3];
+  var wordwallResult = allResults[4];
+  var sentenceUnitsResult = allResults[5];
+  var vocabUnitsResult = allResults[6];
+  var vocabImagesResult = allResults[7];
+  var speakingUnitsResult = allResults[8];
+  var grammarMcqUnitsResult = allResults[9];
+  var grammarTypingUnitsResult = allResults[10];
+  var grammarMatchingUnitsResult = allResults[11];
+  var grammarDragfillUnitsResult = allResults[12];
+  var photoQuizUnitsResult = allResults[13];
+  var mathDragfillUnitsResult = allResults[14];
+  var textDragfillUnitsResult = allResults[15];
+  var testsResult = allResults[16];
+  var testSectionsResult = allResults[17];
+
   var wordwallByUnit = buildWordwallActivities(wordwallResult.data || []);
-  var sentenceUnitsResult = await fetchAllRows(function () {
-    return supabaseClient.from("game_sentences").select("unit_id");
-  });
   var unitsWithSentences = {};
   (sentenceUnitsResult.data || []).forEach(function (row) {
     unitsWithSentences[row.unit_id] = true;
-  });
-  var vocabUnitsResult = await fetchAllRows(function () {
-    return supabaseClient.from("game_vocab").select("unit_id");
   });
   var unitsWithVocab = {};
   (vocabUnitsResult.data || []).forEach(function (row) {
     unitsWithVocab[row.unit_id] = true;
   });
-  var vocabImagesResult = await fetchAllRows(function () {
-    return supabaseClient.from("game_vocab").select("unit_id").or("image_url.not.is.null,emoji.not.is.null");
-  });
   var unitsWithImages = {};
   (vocabImagesResult.data || []).forEach(function (row) {
     unitsWithImages[row.unit_id] = true;
-  });
-  var speakingUnitsResult = await fetchAllRows(function () {
-    return supabaseClient.from("game_speaking_questions").select("unit_id");
   });
   var unitsWithSpeaking = {};
   (speakingUnitsResult.data || []).forEach(function (row) {
     unitsWithSpeaking[row.unit_id] = true;
   });
-  var grammarMcqUnitsResult = await supabaseClient.from("game_grammar_mcq").select("unit_id, set_name").order("sort_order", { ascending: true });
   var grammarMcqByUnit = buildNamedSetActivities(grammarMcqUnitsResult.data || [], "gm_", "grammar-mcq");
-  var grammarTypingUnitsResult = await supabaseClient.from("game_grammar_typing").select("unit_id, set_name").order("sort_order", { ascending: true });
   var grammarTypingByUnit = buildNamedSetActivities(grammarTypingUnitsResult.data || [], "gt_", "grammar-typing");
-  var grammarMatchingUnitsResult = await supabaseClient.from("game_grammar_matching").select("unit_id, set_name").order("sort_order", { ascending: true });
   var grammarMatchingByUnit = buildNamedSetActivities(grammarMatchingUnitsResult.data || [], "gx_", "grammar-matching");
-  var grammarDragfillUnitsResult = await supabaseClient.from("game_grammar_dragfill").select("unit_id, set_name").order("sort_order", { ascending: true });
   var grammarDragfillByUnit = buildNamedSetActivities(grammarDragfillUnitsResult.data || [], "gd_", "grammar-dragfill");
-  var photoQuizUnitsResult = await supabaseClient.from("game_photo_quiz_questions").select("unit_id, set_name").order("sort_order", { ascending: true });
   var photoQuizByUnit = buildNamedSetActivities(photoQuizUnitsResult.data || [], "pq_", "photo-quiz");
-  var mathDragfillUnitsResult = await supabaseClient.from("game_math_dragfill").select("unit_id, set_name").order("sort_order", { ascending: true });
   var mathDragfillByUnit = buildNamedSetActivities(mathDragfillUnitsResult.data || [], "md_", "math-dragfill");
-  var textDragfillUnitsResult = await supabaseClient.from("game_text_dragfill").select("unit_id, set_name").order("sort_order", { ascending: true });
   var textDragfillByUnit = buildNamedSetActivities(textDragfillUnitsResult.data || [], "td_", "text-dragfill");
-  var testsResult = await supabaseClient.from("game_tests").select("*").order("sort_order", { ascending: true });
-  var testSectionsResult = await supabaseClient.from("game_test_sections").select("*").order("sort_order", { ascending: true });
   var sectionsByTestId = {};
   var claimedTestSetKeys = {};
   (testSectionsResult.data || []).forEach(function (row) {
