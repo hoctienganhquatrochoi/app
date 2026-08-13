@@ -1082,6 +1082,26 @@ html, body {
   white-space: pre-wrap;
 }
 
+.grammar-mcq-passage-filled {
+  color: #1B4332;
+  font-weight: 800;
+  background: #D8F3DC;
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+
+.grammar-mcq-passage-blank {
+  color: #999;
+  font-weight: 700;
+}
+
+.grammar-mcq-passage-blank.current {
+  color: #E76F51;
+  background: #FFE8D6;
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+
 .grammar-mcq-explanation {
   font-size: 18px;
   line-height: 1.6;
@@ -1271,7 +1291,22 @@ html, body {
   text-align: center;
 }
 
+.matching-stage {
+  position: relative;
+}
+
+.matching-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
 .matching-columns {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
@@ -1285,7 +1320,8 @@ html, body {
 }
 
 .matching-item {
-  padding: 14px 16px;
+  position: relative;
+  padding: 14px 40px 14px 16px;
   border-radius: 14px;
   border: 2px solid #E5E0D5;
   background: #FFFFFF;
@@ -1297,7 +1333,7 @@ html, body {
   transition: background 0.15s, border-color 0.15s;
 }
 
-.matching-item.selected {
+.matching-item.active {
   border-color: #B8860B;
   background: #FFD54F;
   color: #1B4332;
@@ -1305,19 +1341,19 @@ html, body {
   transform: scale(1.03);
 }
 
-.matching-item.solved {
-  cursor: default;
-  opacity: 0.9;
+.matching-item.linked {
+  border-color: #B8860B;
+  background: #FFF6DC;
 }
 
-.matching-item.solved.matching-color-0 { border-color: #4A90D2; background: #DCEBFA; }
-.matching-item.solved.matching-color-1 { border-color: #D6588B; background: #FBE1EA; }
-.matching-item.solved.matching-color-2 { border-color: #D4941C; background: #FCEDC9; }
-.matching-item.solved.matching-color-3 { border-color: #2D6A4F; background: #DCEAE2; }
-.matching-item.solved.matching-color-4 { border-color: #8A5FBF; background: #ECE1F7; }
-.matching-item.solved.matching-color-5 { border-color: #D2691E; background: #FBE3CE; }
+.matching-item.correct {
+  cursor: default;
+  border-color: #2D6A4F;
+  background: #DCEAE2;
+}
 
-.matching-item.wrong-flash {
+.matching-item.wrong {
+  cursor: default;
   border-color: #E63946;
   background: #FBE0E0;
 }

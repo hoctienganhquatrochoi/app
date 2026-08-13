@@ -25,7 +25,9 @@ function splitGrammarMcqQuestionAroundBracket(question) {
 }
 
 function buildGrammarMcqQuestions(items) {
-  return shuffleArray(items).map(function (row) {
+  var hasPassage = items.some(function (row) { return row.passage; });
+  var ordered = hasPassage ? items.slice() : shuffleArray(items);
+  return ordered.map(function (row) {
     var wrongOptions = (row.wrong_answers || []).map(function (text) {
       return { text: text, isCorrect: false };
     });
@@ -42,6 +44,55 @@ function buildGrammarMcqQuestions(items) {
       selectedIndex: null
     };
   });
+}
+
+function buildPassageFillMap(q, questions) {
+  var map = {};
+  questions.forEach(function (other) {
+    if (other.passage !== q.passage || !other.answered) {
+      return;
+    }
+    var m = (other.question || "").match(/\((\d+)\)/);
+    if (!m) {
+      return;
+    }
+    var correctOption = null;
+    for (var i = 0; i < other.options.length; i++) {
+      if (other.options[i].isCorrect) {
+        correctOption = other.options[i].text;
+        break;
+      }
+    }
+    if (correctOption) {
+      map[m[1]] = correctOption;
+    }
+  });
+  return map;
+}
+
+function renderPassageWithFills(passageEl, passageText, fillMap, currentBlankNum) {
+  var regex = /\((\d+)\)_+/g;
+  var lastIndex = 0;
+  var m;
+  while ((m = regex.exec(passageText))) {
+    if (m.index > lastIndex) {
+      passageEl.appendChild(document.createTextNode(passageText.slice(lastIndex, m.index)));
+    }
+    var num = m[1];
+    if (fillMap[num]) {
+      var filled = document.createElement("span");
+      filled.className = "grammar-mcq-passage-filled";
+      filled.textContent = fillMap[num];
+      passageEl.appendChild(filled);
+    } else {
+      var blankSpan = document.createElement("span");
+      blankSpan.className = "grammar-mcq-passage-blank" + (num === currentBlankNum ? " current" : "");
+      blankSpan.textContent = "(" + num + ")_______";
+      passageEl.appendChild(blankSpan);
+    }
+    lastIndex = regex.lastIndex;
+  }
+  passageEl.appendChild(document.createTextNode(passageText.slice(lastIndex)));
 }
 
 function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal, scoreOffset) {
@@ -71,7 +122,9 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
     if (q.passage) {
       var passageEl = document.createElement("div");
       passageEl.className = "grammar-mcq-passage";
-      passageEl.textContent = q.passage;
+      var curBlankMatch = (q.question || "").match(/\((\d+)\)/);
+      var curBlankNum = curBlankMatch ? curBlankMatch[1] : null;
+      renderPassageWithFills(passageEl, q.passage, buildPassageFillMap(q, questions), curBlankNum);
       body.appendChild(passageEl);
     }
 

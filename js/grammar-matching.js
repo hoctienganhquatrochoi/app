@@ -1,20 +1,18 @@
-var GRAMMAR_MATCHING_WRONG_FLASH_MS = 500;
-var GRAMMAR_MATCHING_ADVANCE_DELAY_MS = 1000;
-var MATCHING_COLOR_COUNT = 6;
+var GRAMMAR_MATCHING_ADVANCE_DELAY_MS = 1200;
 
 function renderGrammarMatching(container, breadcrumbText, items, unitId, setName, onTestComplete, progressOffset, progressTotal, scoreOffset) {
-  var pairs, leftOrder, rightOrder, selectedId, selectedSide, score, solvedCount, answersLog, startedAt, timerIntervalId, tabTracker;
+  var pairs, leftOrder, rightOrder, activeLeftId, assignments, submitted, score, answersLog, startedAt, timerIntervalId, tabTracker;
 
   function resetState() {
     pairs = shuffleArray(items).map(function (row) {
-      return { id: row.id, left: row.left_text, right: row.right_text, solved: false, hadWrongAttempt: false, solvedOrder: -1 };
+      return { id: row.id, left: row.left_text, right: row.right_text };
     });
     leftOrder = shuffleArray(pairs);
     rightOrder = shuffleArray(pairs);
-    selectedId = null;
-    selectedSide = null;
+    activeLeftId = null;
+    assignments = {};
+    submitted = false;
     score = 0;
-    solvedCount = 0;
     answersLog = [];
     startedAt = new Date();
     timerIntervalId = startActivityTimer(startedAt);
@@ -31,6 +29,17 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
     return null;
   }
 
+  function findLeftOwnerOfRight(rightId) {
+    var keys = Object.keys(assignments);
+    var i;
+    for (i = 0; i < keys.length; i++) {
+      if (assignments[keys[i]] === rightId) {
+        return keys[i];
+      }
+    }
+    return null;
+  }
+
   function draw() {
     container.innerHTML = "";
 
@@ -41,10 +50,18 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
       wrap.appendChild(buildSetNameBanner(setName));
     }
 
+    var doneCount = Object.keys(assignments).length;
     var progress = document.createElement("div");
     progress.className = "quiz-progress-footer";
-    progress.textContent = "Đã nối " + solvedCount + " / " + pairs.length;
+    progress.textContent = "Đã nối " + doneCount + " / " + pairs.length;
     wrap.appendChild(progress);
+
+    var stage = document.createElement("div");
+    stage.className = "matching-stage";
+
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "matching-lines");
+    stage.appendChild(svg);
 
     var columns = document.createElement("div");
     columns.className = "matching-columns";
@@ -63,8 +80,21 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
     });
     columns.appendChild(rightCol);
 
-    wrap.appendChild(columns);
+    stage.appendChild(columns);
+    wrap.appendChild(stage);
+
+    if (!submitted) {
+      var submitBtn = document.createElement("button");
+      submitBtn.type = "button";
+      submitBtn.className = "quiz-continue-btn";
+      submitBtn.textContent = "Nộp bài";
+      submitBtn.disabled = doneCount < pairs.length;
+      submitBtn.addEventListener("click", handleSubmit);
+      wrap.appendChild(submitBtn);
+    }
+
     container.appendChild(wrap);
+    drawLines();
   }
 
   function buildCard(pair, text, side) {
@@ -73,16 +103,34 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
     card.className = "matching-item";
     card.setAttribute("data-pair-id", pair.id);
     card.setAttribute("data-side", side);
-    if (pair.solved) {
-      card.className += " solved matching-color-" + (pair.solvedOrder % MATCHING_COLOR_COUNT);
-      card.disabled = true;
-    } else if (pair.id === selectedId && side === selectedSide) {
-      card.className += " selected";
+    card.disabled = submitted;
+
+    var isActive = side === "left" && pair.id === activeLeftId;
+    var isLinked = side === "left" ? assignments[pair.id] !== undefined : findLeftOwnerOfRight(pair.id) !== null;
+
+    if (submitted) {
+      var isCorrect;
+      if (side === "left") {
+        isCorrect = assignments[pair.id] === pair.id;
+      } else {
+        var owner = findLeftOwnerOfRight(pair.id);
+        isCorrect = owner === pair.id;
+      }
+      card.className += isCorrect ? " correct" : " wrong";
+    } else if (isActive) {
+      card.className += " active";
+    } else if (isLinked) {
+      card.className += " linked";
     }
 
     var label = document.createElement("span");
     label.textContent = text;
     card.appendChild(label);
+
+    if (submitted) {
+      var correctForIcon = side === "left" ? assignments[pair.id] === pair.id : findLeftOwnerOfRight(pair.id) === pair.id;
+      card.appendChild(buildResultIcon(correctForIcon));
+    }
 
     card.addEventListener("click", function () {
       handleCardClick(pair, side);
@@ -92,67 +140,104 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
   }
 
   function handleCardClick(pair, side) {
-    if (pair.solved) {
+    if (submitted) {
       return;
     }
-    if (selectedId === null) {
-      selectedId = pair.id;
-      selectedSide = side;
+    if (side === "left") {
+      activeLeftId = activeLeftId === pair.id ? null : pair.id;
       draw();
       return;
     }
-    if (selectedSide === side) {
-      selectedId = (selectedId === pair.id) ? null : pair.id;
-      draw();
-      return;
-    }
-
-    var otherId = selectedId;
-    if (otherId === pair.id) {
-      var solvedPair = findPair(pair.id);
-      solvedPair.solved = true;
-      solvedPair.solvedOrder = solvedCount;
-      solvedCount++;
-      if (!solvedPair.hadWrongAttempt) {
-        score++;
+    if (activeLeftId === null) {
+      var owner = findLeftOwnerOfRight(pair.id);
+      if (owner) {
+        delete assignments[owner];
       }
-      answersLog.push({
-        vocab_id: solvedPair.id,
-        word_en: solvedPair.left + " — " + solvedPair.right,
-        selected_label: solvedPair.right,
-        is_correct: !solvedPair.hadWrongAttempt
-      });
-      selectedId = null;
-      selectedSide = null;
       draw();
-      if (solvedCount === pairs.length) {
-        setTimeout(showResult, GRAMMAR_MATCHING_ADVANCE_DELAY_MS);
-      }
-    } else {
-      findPair(otherId).hadWrongAttempt = true;
-      findPair(pair.id).hadWrongAttempt = true;
-      flashWrong(otherId, pair.id);
+      return;
     }
-  }
-
-  function flashWrong(idA, idB) {
-    var cards = container.querySelectorAll(".matching-item");
-    cards.forEach(function (card) {
-      var id = card.getAttribute("data-pair-id");
-      if (id === idA || id === idB) {
-        card.classList.add("wrong-flash");
+    Object.keys(assignments).forEach(function (leftId) {
+      if (assignments[leftId] === pair.id) {
+        delete assignments[leftId];
       }
     });
-    setTimeout(function () {
-      selectedId = null;
-      selectedSide = null;
-      draw();
-    }, GRAMMAR_MATCHING_WRONG_FLASH_MS);
+    assignments[activeLeftId] = pair.id;
+    activeLeftId = null;
+    draw();
+  }
+
+  function drawLines() {
+    var stage = container.querySelector(".matching-stage");
+    var svg = container.querySelector(".matching-lines");
+    if (!stage || !svg) {
+      return;
+    }
+    var stageRect = stage.getBoundingClientRect();
+    svg.setAttribute("width", stageRect.width);
+    svg.setAttribute("height", stageRect.height);
+    svg.innerHTML = "";
+
+    Object.keys(assignments).forEach(function (leftId) {
+      var rightId = assignments[leftId];
+      var leftEl = stage.querySelector('.matching-item[data-side="left"][data-pair-id="' + leftId + '"]');
+      var rightEl = stage.querySelector('.matching-item[data-side="right"][data-pair-id="' + rightId + '"]');
+      if (!leftEl || !rightEl) {
+        return;
+      }
+      var lr = leftEl.getBoundingClientRect();
+      var rr = rightEl.getBoundingClientRect();
+      var x1 = lr.right - stageRect.left;
+      var y1 = lr.top + lr.height / 2 - stageRect.top;
+      var x2 = rr.left - stageRect.left;
+      var y2 = rr.top + rr.height / 2 - stageRect.top;
+
+      var color = "#B8860B";
+      if (submitted) {
+        color = leftId === rightId ? "#2D6A4F" : "#E63946";
+      }
+
+      var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", x1);
+      line.setAttribute("y1", y1);
+      line.setAttribute("x2", x2);
+      line.setAttribute("y2", y2);
+      line.setAttribute("stroke", color);
+      line.setAttribute("stroke-width", "3");
+      line.setAttribute("stroke-linecap", "round");
+      svg.appendChild(line);
+    });
+  }
+
+  function handleSubmit() {
+    submitted = true;
+    score = 0;
+    answersLog = [];
+    pairs.forEach(function (p) {
+      var chosenRightId = assignments[p.id];
+      var isCorrect = chosenRightId === p.id;
+      if (isCorrect) {
+        score++;
+      }
+      var chosenPair = findPair(chosenRightId);
+      answersLog.push({
+        vocab_id: p.id,
+        word_en: p.left + " — " + p.right,
+        selected_label: chosenPair ? chosenPair.right : "",
+        is_correct: isCorrect
+      });
+    });
+    draw();
+    setTimeout(showResult, GRAMMAR_MATCHING_ADVANCE_DELAY_MS);
+  }
+
+  function onResize() {
+    drawLines();
   }
 
   function showResult() {
     clearInterval(timerIntervalId);
     tabTracker.stop();
+    window.removeEventListener("resize", onResize);
     if (onTestComplete) {
       onTestComplete(score, pairs.length, answersLog, tabTracker.getCount());
       return;
@@ -174,7 +259,7 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
     wrap.appendChild(scoreBig);
 
     var p = document.createElement("p");
-    p.textContent = score === pairs.length ? "Xuất sắc! Bạn nối đúng hết ngay lần đầu!" : "Cố lên, làm lại để nhớ thêm nhé!";
+    p.textContent = score === pairs.length ? "Xuất sắc! Bạn nối đúng hết!" : "Cố lên, làm lại để nhớ thêm nhé!";
     wrap.appendChild(p);
 
     wrap.appendChild(buildDurationLine(startedAt));
@@ -187,6 +272,7 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
     retryBtn.textContent = "Làm lại";
     retryBtn.addEventListener("click", function () {
       resetState();
+      window.addEventListener("resize", onResize);
       draw();
     });
     wrap.appendChild(retryBtn);
@@ -195,5 +281,6 @@ function renderGrammarMatching(container, breadcrumbText, items, unitId, setName
   }
 
   resetState();
+  window.addEventListener("resize", onResize);
   draw();
 }
