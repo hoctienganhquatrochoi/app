@@ -1123,6 +1123,12 @@ async function renderHomePopup() {
 document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("sidebar").innerHTML = '<div class="placeholder">Đang tải...</div>';
 
+  // Show the sidebar instantly from the last-known data (if any) while the real,
+  // up-to-date fetch runs in the background - avoids a blank/frozen menu on repeat visits.
+  if (loadCurriculumDataFromCache()) {
+    renderSidebar();
+  }
+
   await loadCurriculumData();
   renderHomePopup();
 

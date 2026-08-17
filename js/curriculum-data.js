@@ -254,4 +254,36 @@ async function loadCurriculumData() {
 
   DATA.classes = classes;
   DATA.subjectsByClass = subjectsByClass;
+  saveCurriculumDataToCache();
+}
+
+var CURRICULUM_CACHE_KEY = "curriculumDataCacheV1";
+
+// Loads the last-known curriculum tree from localStorage so the sidebar can render
+// instantly on repeat visits, instead of blocking on the full network fetch every time.
+// The real loadCurriculumData() always still runs afterwards and overwrites this.
+function loadCurriculumDataFromCache() {
+  try {
+    var raw = localStorage.getItem(CURRICULUM_CACHE_KEY);
+    if (!raw) {
+      return false;
+    }
+    var cached = JSON.parse(raw);
+    if (!cached || !cached.classes || !cached.subjectsByClass) {
+      return false;
+    }
+    DATA.classes = cached.classes;
+    DATA.subjectsByClass = cached.subjectsByClass;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function saveCurriculumDataToCache() {
+  try {
+    localStorage.setItem(CURRICULUM_CACHE_KEY, JSON.stringify({ classes: DATA.classes, subjectsByClass: DATA.subjectsByClass }));
+  } catch (e) {
+    // localStorage full/unavailable (e.g. private browsing) - caching is a nice-to-have, skip silently
+  }
 }
