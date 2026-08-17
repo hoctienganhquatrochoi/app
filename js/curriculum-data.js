@@ -63,6 +63,29 @@ function buildNamedSetActivities(rows, idPrefix, type) {
   return byUnit;
 }
 
+// Grammar activities (mcq/typing/matching/dragfill) used to be split into one
+// small lesson per named set (e.g. "Giới từ chỉ vị trí"). Students were racing
+// through many tiny lessons to climb the leaderboard, so each unit now gets a
+// single combined lesson per type covering every set's questions together.
+function buildMergedGrammarActivity(rows, idPrefix, type, displayName) {
+  var byUnit = {};
+  var seen = {};
+  rows.forEach(function (row) {
+    if (seen[row.unit_id]) {
+      return;
+    }
+    seen[row.unit_id] = true;
+    byUnit[row.unit_id] = [{
+      id: idPrefix + "all",
+      name: displayName,
+      type: type,
+      setName: null,
+      locked: false
+    }];
+  });
+  return byUnit;
+}
+
 function buildWordwallActivities(rows) {
   var byUnit = {};
   rows.forEach(function (row) {
@@ -151,10 +174,10 @@ async function loadCurriculumData() {
   (speakingUnitsResult.data || []).forEach(function (row) {
     unitsWithSpeaking[row.unit_id] = true;
   });
-  var grammarMcqByUnit = buildNamedSetActivities(grammarMcqUnitsResult.data || [], "gm_", "grammar-mcq");
-  var grammarTypingByUnit = buildNamedSetActivities(grammarTypingUnitsResult.data || [], "gt_", "grammar-typing");
-  var grammarMatchingByUnit = buildNamedSetActivities(grammarMatchingUnitsResult.data || [], "gx_", "grammar-matching");
-  var grammarDragfillByUnit = buildNamedSetActivities(grammarDragfillUnitsResult.data || [], "gd_", "grammar-dragfill");
+  var grammarMcqByUnit = buildMergedGrammarActivity(grammarMcqUnitsResult.data || [], "gm_", "grammar-mcq", "Trắc nghiệm ngữ pháp");
+  var grammarTypingByUnit = buildMergedGrammarActivity(grammarTypingUnitsResult.data || [], "gt_", "grammar-typing", "Viết câu trả lời");
+  var grammarMatchingByUnit = buildMergedGrammarActivity(grammarMatchingUnitsResult.data || [], "gx_", "grammar-matching", "Nối câu");
+  var grammarDragfillByUnit = buildMergedGrammarActivity(grammarDragfillUnitsResult.data || [], "gd_", "grammar-dragfill", "Điền từ vào chỗ trống");
   var photoQuizByUnit = buildNamedSetActivities(photoQuizUnitsResult.data || [], "pq_", "photo-quiz");
   var mathDragfillByUnit = buildNamedSetActivities(mathDragfillUnitsResult.data || [], "md_", "math-dragfill");
   var textDragfillByUnit = buildNamedSetActivities(textDragfillUnitsResult.data || [], "td_", "text-dragfill");
@@ -239,10 +262,10 @@ async function loadCurriculumData() {
         .concat(excludeClaimedSets(mathDragfillByUnit[urow.id], urow.id, "math-dragfill"))
         .concat(excludeClaimedSets(textDragfillByUnit[urow.id], urow.id, "text-dragfill"))
         .concat(wordwallByUnit[urow.id] || [])
-        .concat(excludeClaimedSets(grammarMcqByUnit[urow.id], urow.id, "grammar-mcq"))
-        .concat(excludeClaimedSets(grammarTypingByUnit[urow.id], urow.id, "grammar-typing"))
-        .concat(excludeClaimedSets(grammarMatchingByUnit[urow.id], urow.id, "grammar-matching"))
-        .concat(excludeClaimedSets(grammarDragfillByUnit[urow.id], urow.id, "grammar-dragfill"))
+        .concat(grammarMcqByUnit[urow.id] || [])
+        .concat(grammarTypingByUnit[urow.id] || [])
+        .concat(grammarMatchingByUnit[urow.id] || [])
+        .concat(grammarDragfillByUnit[urow.id] || [])
         .concat(testActivities);
     }
     subj.units.push(unit);
@@ -257,7 +280,7 @@ async function loadCurriculumData() {
   saveCurriculumDataToCache();
 }
 
-var CURRICULUM_CACHE_KEY = "curriculumDataCacheV1";
+var CURRICULUM_CACHE_KEY = "curriculumDataCacheV2";
 
 // Loads the last-known curriculum tree from localStorage so the sidebar can render
 // instantly on repeat visits, instead of blocking on the full network fetch every time.
