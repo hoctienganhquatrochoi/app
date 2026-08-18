@@ -34,6 +34,7 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
   var showWrongFeedback = false;
   var firstAttemptDone = false;
   var firstAttemptCorrect = false;
+  var isAdvancing = false;
   var activityType = mode === "hint" ? "typing-hint" : "typing-blank";
   var keyInputEl = null;
   var keyboardModeEnabled = false;
@@ -57,6 +58,7 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
     firstAttemptDone = false;
     firstAttemptCorrect = false;
     showWrongFeedback = false;
+    isAdvancing = false;
   }
 
   function showQuestion() {
@@ -303,6 +305,9 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
   }
 
   function checkAnswer() {
+    if (isAdvancing) {
+      return;
+    }
     var item = pool[qIndex];
     var attempt = blanks.map(function (b) {
       return b.char;
@@ -324,6 +329,7 @@ function renderTyping(container, breadcrumbText, items, unitId, maxQuestions, mo
     }
 
     if (isCorrect) {
+      isAdvancing = true;
       flashBlanks("correct");
       setTimeout(function () {
         if (qIndex < pool.length - 1) {
