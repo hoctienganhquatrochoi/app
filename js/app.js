@@ -1143,6 +1143,13 @@ document.addEventListener("DOMContentLoaded", async function () {
   renderMainContent();
   updateUrlHash();
 
+  // On mobile the sidebar is collapsed behind the "Menu" button by default, which makes
+  // a first-time visit look empty/frozen until they tap it - open it automatically once
+  // on initial load (not on every render) so the class list is visible right away.
+  if (!state.openUnitId && window.innerWidth <= 720) {
+    document.getElementById("sidebar").classList.add("mobile-open");
+  }
+
   document.getElementById("sidebarToggleBtn").addEventListener("click", function () {
     document.getElementById("sidebar").classList.toggle("mobile-open");
   });
