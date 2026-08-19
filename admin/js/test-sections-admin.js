@@ -433,14 +433,15 @@ async function handleAddTestSection() {
 
   document.getElementById("testSectionStatus").textContent = "Đang xử lý...";
 
+  var insertRes;
   if (editingTestSectionId) {
-    var oldTable = TEST_SECTION_TABLES[editingTestSectionOldType];
-    await supabaseClient.from(oldTable).delete().eq("unit_id", unitId).eq("set_name", editingTestSectionOldSetName);
+    insertRes = await replaceSectionContent(sectionType, unitId, label, content, editingTestSectionOldType, editingTestSectionOldSetName);
+  } else {
+    insertRes = await insertParsedSectionContent(sectionType, unitId, label, content);
   }
-
-  var insertRes = await insertParsedSectionContent(sectionType, unitId, label, content);
   if (insertRes.error) {
     window.alert("Lỗi: " + insertRes.error);
+    document.getElementById("testSectionStatus").textContent = "";
     return;
   }
 
@@ -556,42 +557,47 @@ function splitPassageFromGrammarMcqContent(content) {
   };
 }
 
-async function insertParsedSectionContent(typeKey, unitId, setName, content) {
-  var table = TEST_SECTION_TABLES[typeKey];
-  var existingCountResult = await supabaseClient.from(table).select("id", { count: "exact", head: true }).eq("unit_id", unitId).eq("set_name", setName);
-  var nextSortOrder = existingCountResult.count || 0;
-
+function parseSectionRows(typeKey, unitId, setName, content, sortOrderStart) {
   var rows = [];
   if (typeKey === "grammar-mcq") {
     var mcqSplit = splitPassageFromGrammarMcqContent(content);
     var mcqItems = parseGrammarMcqBulkText(mcqSplit.content).filter(function (it) { return it.correct_answer && it.wrong_answers.length; });
     rows = mcqItems.map(function (it, idx) {
-      return { unit_id: unitId, set_name: setName, sort_order: nextSortOrder + idx, question: it.question, correct_answer: it.correct_answer, wrong_answers: it.wrong_answers, passage: mcqSplit.passage || null };
+      return { unit_id: unitId, set_name: setName, sort_order: sortOrderStart + idx, question: it.question, correct_answer: it.correct_answer, wrong_answers: it.wrong_answers, passage: mcqSplit.passage || null };
     });
   } else if (typeKey === "grammar-typing") {
     var typingLines = content.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
     var typingItems = typingLines.map(parseGrammarTypingBulkLine).filter(function (it) { return it.prompt && it.answer; });
     rows = typingItems.map(function (it, idx) {
-      return { unit_id: unitId, set_name: setName, sort_order: nextSortOrder + idx, prompt: it.prompt, answer: it.answer };
+      return { unit_id: unitId, set_name: setName, sort_order: sortOrderStart + idx, prompt: it.prompt, answer: it.answer };
     });
   } else if (typeKey === "grammar-matching") {
     var matchLines = content.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
     var matchItems = matchLines.map(parseGrammarMatchingBulkLine).filter(function (it) { return it.left_text && it.right_text; });
     rows = matchItems.map(function (it, idx) {
-      return { unit_id: unitId, set_name: setName, sort_order: nextSortOrder + idx, left_text: it.left_text, right_text: it.right_text };
+      return { unit_id: unitId, set_name: setName, sort_order: sortOrderStart + idx, left_text: it.left_text, right_text: it.right_text };
     });
   } else if (typeKey === "grammar-dragfill") {
     var dragfillItems = parseGrammarDragfillBulkText(content).filter(function (it) { return it.question_en && it.correct_answer && it.wrong_answers.length; });
     rows = dragfillItems.map(function (it, idx) {
-      return { unit_id: unitId, set_name: setName, sort_order: nextSortOrder + idx, question_en: it.question_en, question_vi: it.question_vi, correct_answer: it.correct_answer, wrong_answers: it.wrong_answers };
+      return { unit_id: unitId, set_name: setName, sort_order: sortOrderStart + idx, question_en: it.question_en, question_vi: it.question_vi, correct_answer: it.correct_answer, wrong_answers: it.wrong_answers };
     });
   } else if (typeKey === "math-dragfill" || typeKey === "text-dragfill") {
     var joinWithNewline = typeKey === "text-dragfill";
     var dfItems = parseMathDragfillBulkText(content, joinWithNewline).filter(function (it) { return it.passage && it.correct_answers.length; });
     rows = dfItems.map(function (it, idx) {
-      return { unit_id: unitId, set_name: setName, sort_order: nextSortOrder + idx, passage: it.passage, correct_answers: it.correct_answers, wrong_answers: it.wrong_answers };
+      return { unit_id: unitId, set_name: setName, sort_order: sortOrderStart + idx, passage: it.passage, correct_answers: it.correct_answers, wrong_answers: it.wrong_answers };
     });
   }
+  return rows;
+}
+
+async function insertParsedSectionContent(typeKey, unitId, setName, content) {
+  var table = TEST_SECTION_TABLES[typeKey];
+  var existingCountResult = await supabaseClient.from(table).select("id", { count: "exact", head: true }).eq("unit_id", unitId).eq("set_name", setName);
+  var nextSortOrder = existingCountResult.count || 0;
+
+  var rows = parseSectionRows(typeKey, unitId, setName, content, nextSortOrder);
 
   if (!rows.length) {
     return { count: 0, error: "không đọc được nội dung hợp lệ" };
@@ -600,6 +606,26 @@ async function insertParsedSectionContent(typeKey, unitId, setName, content) {
   var insertResult = await supabaseClient.from(table).insert(rows);
   if (insertResult.error) {
     return { count: 0, error: insertResult.error.message };
+  }
+  return { count: rows.length, error: null };
+}
+
+/* Dùng khi THAY nội dung cũ của 1 mục bằng nội dung mới (sửa 1 mục, hoặc dán nhanh trùng nhãn với mục đã có):
+   luôn đọc/kiểm tra nội dung mới hợp lệ TRƯỚC khi xóa nội dung cũ, để không bao giờ mất trắng dữ liệu
+   nếu nội dung dán vào bị sai định dạng. */
+async function replaceSectionContent(typeKey, unitId, setName, content, oldTypeKey, oldSetName) {
+  var rows = parseSectionRows(typeKey, unitId, setName, content, 0);
+  if (!rows.length) {
+    return { count: 0, error: "không đọc được nội dung hợp lệ — nội dung cũ vẫn được giữ nguyên, chưa bị xóa." };
+  }
+
+  var oldTable = TEST_SECTION_TABLES[oldTypeKey];
+  await supabaseClient.from(oldTable).delete().eq("unit_id", unitId).eq("set_name", oldSetName);
+
+  var table = TEST_SECTION_TABLES[typeKey];
+  var insertResult = await supabaseClient.from(table).insert(rows);
+  if (insertResult.error) {
+    return { count: 0, error: "nội dung cũ đã bị xóa nhưng lưu nội dung mới thất bại (" + insertResult.error.message + ") — hãy dán lại và lưu lại." };
   }
   return { count: rows.length, error: null };
 }
@@ -626,9 +652,30 @@ async function handleMegaImport() {
     }
     document.getElementById("megaImportStatus").textContent = "Đang xử lý mục " + (i + 1) + "/" + sections.length + "...";
 
-    var insertRes = await insertParsedSectionContent(sec.typeKey, unitId, sec.label, sec.content);
+    var existingSection = currentTestSections.filter(function (s) { return s.label === sec.label; })[0];
+
+    var insertRes;
+    if (existingSection) {
+      insertRes = await replaceSectionContent(sec.typeKey, unitId, sec.label, sec.content, existingSection.section_type, existingSection.source_set_name);
+    } else {
+      insertRes = await insertParsedSectionContent(sec.typeKey, unitId, sec.label, sec.content);
+    }
     if (insertRes.error) {
       messages.push("Mục \"" + sec.label + "\": " + insertRes.error + ".");
+      continue;
+    }
+
+    if (existingSection) {
+      var sectionUpdate = await supabaseClient.from("game_test_sections").update({
+        section_type: sec.typeKey,
+        source_unit_id: unitId,
+        source_set_name: sec.label
+      }).eq("id", existingSection.id);
+      if (sectionUpdate.error) {
+        messages.push("Mục \"" + sec.label + "\": lưu thứ tự lỗi - " + sectionUpdate.error.message + ".");
+        continue;
+      }
+      successCount++;
       continue;
     }
 
