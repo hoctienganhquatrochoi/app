@@ -174,13 +174,6 @@ async function loadCurriculumData() {
   (speakingUnitsResult.data || []).forEach(function (row) {
     unitsWithSpeaking[row.unit_id] = true;
   });
-  var grammarMcqByUnit = buildMergedGrammarActivity(grammarMcqUnitsResult.data || [], "gm_", "grammar-mcq", "Trắc nghiệm ngữ pháp");
-  var grammarTypingByUnit = buildMergedGrammarActivity(grammarTypingUnitsResult.data || [], "gt_", "grammar-typing", "Viết câu trả lời");
-  var grammarMatchingByUnit = buildMergedGrammarActivity(grammarMatchingUnitsResult.data || [], "gx_", "grammar-matching", "Nối câu");
-  var grammarDragfillByUnit = buildMergedGrammarActivity(grammarDragfillUnitsResult.data || [], "gd_", "grammar-dragfill", "Điền từ vào chỗ trống");
-  var photoQuizByUnit = buildNamedSetActivities(photoQuizUnitsResult.data || [], "pq_", "photo-quiz");
-  var mathDragfillByUnit = buildNamedSetActivities(mathDragfillUnitsResult.data || [], "md_", "math-dragfill");
-  var textDragfillByUnit = buildNamedSetActivities(textDragfillUnitsResult.data || [], "td_", "text-dragfill");
   var sectionsByTestId = {};
   var claimedTestSetKeys = {};
   (testSectionsResult.data || []).forEach(function (row) {
@@ -190,6 +183,20 @@ async function loadCurriculumData() {
     sectionsByTestId[row.test_id].push(row);
     claimedTestSetKeys[row.unit_id + "||" + row.section_type + "||" + row.source_set_name] = true;
   });
+
+  function omitClaimedRows(rows, sectionType) {
+    return (rows || []).filter(function (row) {
+      return !claimedTestSetKeys[row.unit_id + "||" + sectionType + "||" + row.set_name];
+    });
+  }
+
+  var grammarMcqByUnit = buildMergedGrammarActivity(omitClaimedRows(grammarMcqUnitsResult.data, "grammar-mcq"), "gm_", "grammar-mcq", "Trắc nghiệm ngữ pháp");
+  var grammarTypingByUnit = buildMergedGrammarActivity(omitClaimedRows(grammarTypingUnitsResult.data, "grammar-typing"), "gt_", "grammar-typing", "Viết câu trả lời");
+  var grammarMatchingByUnit = buildMergedGrammarActivity(omitClaimedRows(grammarMatchingUnitsResult.data, "grammar-matching"), "gx_", "grammar-matching", "Nối câu");
+  var grammarDragfillByUnit = buildMergedGrammarActivity(omitClaimedRows(grammarDragfillUnitsResult.data, "grammar-dragfill"), "gd_", "grammar-dragfill", "Điền từ vào chỗ trống");
+  var photoQuizByUnit = buildNamedSetActivities(photoQuizUnitsResult.data || [], "pq_", "photo-quiz");
+  var mathDragfillByUnit = buildNamedSetActivities(mathDragfillUnitsResult.data || [], "md_", "math-dragfill");
+  var textDragfillByUnit = buildNamedSetActivities(textDragfillUnitsResult.data || [], "td_", "text-dragfill");
   var testsByUnit = {};
   (testsResult.data || []).forEach(function (row) {
     if (!testsByUnit[row.unit_id]) {
