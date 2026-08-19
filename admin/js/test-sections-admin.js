@@ -563,7 +563,7 @@ function parseSectionRows(typeKey, unitId, setName, content, sortOrderStart) {
     var mcqSplit = splitPassageFromGrammarMcqContent(content);
     var mcqItems = parseGrammarMcqBulkText(mcqSplit.content).filter(function (it) { return it.correct_answer && it.wrong_answers.length; });
     rows = mcqItems.map(function (it, idx) {
-      return { unit_id: unitId, set_name: setName, sort_order: sortOrderStart + idx, question: it.question, correct_answer: it.correct_answer, wrong_answers: it.wrong_answers, passage: mcqSplit.passage || null };
+      return { unit_id: unitId, set_name: setName, sort_order: sortOrderStart + idx, question: it.question, correct_answer: it.correct_answer, wrong_answers: it.wrong_answers, passage: mcqSplit.passage || null, explanation: it.explanation || null };
     });
   } else if (typeKey === "grammar-typing") {
     var typingLines = content.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l; });
