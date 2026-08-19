@@ -914,6 +914,45 @@ function renderUnitList() {
   }));
 }
 
+function extractTrailingNumber(name) {
+  var m = (name || "").match(/(\d+)(?!.*\d)/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+async function sortUnitsByNameNumber() {
+  var subjectId = document.getElementById("manageUnitSubjectPicker").value;
+  var subject = findSubjectById(subjectId);
+  if (!subject || !subject.units.length) {
+    window.alert("Chưa chọn Môn có bài học để sắp xếp.");
+    return;
+  }
+  var units = subject.units;
+  var withNum = units.filter(function (u) { return extractTrailingNumber(u.name) !== null; });
+  if (withNum.length < 2) {
+    window.alert("Không tìm thấy đủ tên có số để sắp xếp (VD: Picture 1, Picture 2...).");
+    return;
+  }
+  if (!window.confirm("Sắp xếp lại " + units.length + " bài trong Môn này theo số trong tên?")) {
+    return;
+  }
+  var sorted = units.slice().sort(function (a, b) {
+    var na = extractTrailingNumber(a.name);
+    var nb = extractTrailingNumber(b.name);
+    if (na === null && nb === null) { return 0; }
+    if (na === null) { return 1; }
+    if (nb === null) { return -1; }
+    return na - nb;
+  });
+  setCurriculumStatus("Đang sắp xếp...");
+  for (var i = 0; i < sorted.length; i++) {
+    if (sorted[i].sort_order !== i) {
+      await supabaseClient.from("game_units").update({ sort_order: i }).eq("id", sorted[i].id);
+    }
+  }
+  await refreshCurriculumEverywhere();
+  setCurriculumStatus("Đã sắp xếp lại theo số trong tên.");
+}
+
 async function moveUnit(unitId, direction) {
   var subject = findSubjectById(document.getElementById("manageUnitSubjectPicker").value);
   if (!subject) {
