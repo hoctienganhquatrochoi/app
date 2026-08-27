@@ -102,6 +102,18 @@ async function refreshTeachingGroups() {
   loadStudents();
 }
 
+function buildTeacherHeaderRow(teacherUsername, count) {
+  var tr = document.createElement("tr");
+  var td = document.createElement("td");
+  td.className = "class-level-group-header";
+  td.colSpan = 3;
+  td.textContent = teacherUsername
+    ? "👩‍‍🏫 GV: " + teacherUsername + " (" + count + " lớp)"
+    : "Chưa gán tài khoản giáo viên (" + count + " lớp)";
+  tr.appendChild(td);
+  return tr;
+}
+
 function renderTeachingGroupList() {
   var wrap = document.getElementById("teachingGroupListWrap");
   wrap.innerHTML = "";
@@ -114,11 +126,35 @@ function renderTeachingGroupList() {
     return;
   }
 
+  // Groups sharing one teacher login are clustered together (teacherless
+  // groups last), so a teacher with many classes reads as one block instead
+  // of being scattered in creation order.
+  var sorted = TEACHING_GROUPS.slice().sort(function (a, b) {
+    var teacherA = a.teacher_username || "";
+    var teacherB = b.teacher_username || "";
+    if (!teacherA && teacherB) return 1;
+    if (teacherA && !teacherB) return -1;
+    if (teacherA !== teacherB) return teacherA.localeCompare(teacherB);
+    return (a.name || "").localeCompare(b.name || "");
+  });
+
+  var countByTeacher = {};
+  sorted.forEach(function (group) {
+    var key = group.teacher_username || "";
+    countByTeacher[key] = (countByTeacher[key] || 0) + 1;
+  });
+
   var table = document.createElement("table");
   table.className = "admin-table";
   var tbody = document.createElement("tbody");
 
-  TEACHING_GROUPS.forEach(function (group) {
+  var lastTeacherKey = undefined;
+  sorted.forEach(function (group) {
+    var teacherKey = group.teacher_username || "";
+    if (teacherKey !== lastTeacherKey) {
+      tbody.appendChild(buildTeacherHeaderRow(group.teacher_username, countByTeacher[teacherKey]));
+      lastTeacherKey = teacherKey;
+    }
     tbody.appendChild(editingGroupId === group.id ? buildGroupEditRow(group) : buildGroupRow(group));
   });
 
