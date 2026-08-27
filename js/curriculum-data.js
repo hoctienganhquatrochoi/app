@@ -190,7 +190,7 @@ async function loadCurriculumData() {
     });
   }
 
-  var grammarMcqByUnit = buildMergedGrammarActivity(omitClaimedRows(grammarMcqUnitsResult.data, "grammar-mcq"), "gm_", "grammar-mcq", "Trắc nghiệm ngữ pháp");
+  var grammarMcqByUnit = buildMergedGrammarActivity(omitClaimedRows(grammarMcqUnitsResult.data, "grammar-mcq"), "gm_", "grammar-mcq", "Ngữ pháp");
   var grammarTypingByUnit = buildMergedGrammarActivity(omitClaimedRows(grammarTypingUnitsResult.data, "grammar-typing"), "gt_", "grammar-typing", "Viết câu trả lời");
   var grammarMatchingByUnit = buildMergedGrammarActivity(omitClaimedRows(grammarMatchingUnitsResult.data, "grammar-matching"), "gx_", "grammar-matching", "Nối câu");
   var grammarDragfillByUnit = buildMergedGrammarActivity(omitClaimedRows(grammarDragfillUnitsResult.data, "grammar-dragfill"), "gd_", "grammar-dragfill", "Điền từ vào chỗ trống");

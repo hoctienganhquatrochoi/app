@@ -21,7 +21,8 @@ var ASSIGNMENT_ACTIVITY_LABELS = {
 var MIN_WORDWALL_SECONDS_FOR_CREDIT = 15;
 var MAX_WORDWALL_TAB_SWITCHES_FOR_CREDIT = 3;
 var TEACHER_SESSION_KEY = "efkTeacherSession";
-var teacherGroup = null;
+var teacherGroups = [];
+var activeTeacherGroupId = null;
 
 function makeTd(text) {
   var td = document.createElement("td");
@@ -295,13 +296,13 @@ async function loadTeacherResults() {
   var attemptsQuery = supabaseClient
     .from("game_quiz_attempts")
     .select("*, game_students!inner(full_name, group_id)")
-    .eq("game_students.group_id", teacherGroup.id)
+    .eq("game_students.group_id", activeTeacherGroupId)
     .order("submitted_at", { ascending: false })
     .limit(500);
   var opensQuery = supabaseClient
     .from("game_wordwall_opens")
     .select("*, game_students!inner(full_name, group_id)")
-    .eq("game_students.group_id", teacherGroup.id)
+    .eq("game_students.group_id", activeTeacherGroupId)
     .order("opened_at", { ascending: false })
     .limit(500);
 
@@ -329,11 +330,28 @@ async function loadTeacherResults() {
   renderTeacherResults(attemptsResult.data || [], opensResult.data || []);
 }
 
+function populateTeacherGroupSelect() {
+  var fieldWrap = document.getElementById("teacherGroupSelectField");
+  var select = document.getElementById("teacherGroupSelect");
+  select.innerHTML = "";
+  teacherGroups.forEach(function (g) {
+    var opt = document.createElement("option");
+    opt.value = g.id;
+    opt.textContent = g.name;
+    select.appendChild(opt);
+  });
+  fieldWrap.style.display = teacherGroups.length > 1 ? "flex" : "none";
+  select.value = activeTeacherGroupId;
+}
+
 function showTeacherMain() {
   document.getElementById("teacherLoginOverlay").style.display = "none";
   document.getElementById("teacherMain").style.display = "block";
   document.getElementById("teacherLogoutBtn").style.display = "inline-block";
-  document.getElementById("teacherGroupNameLabel").textContent = "Nhóm: " + teacherGroup.name;
+  document.getElementById("teacherGroupNameLabel").textContent = teacherGroups.length > 1
+    ? "Quản lý " + teacherGroups.length + " lớp"
+    : "Nhóm: " + (teacherGroups[0] ? teacherGroups[0].name : "");
+  populateTeacherGroupSelect();
   setTeacherDateRange(7);
   loadTeacherResults();
 }
@@ -354,21 +372,23 @@ async function handleTeacherLogin() {
     .select("id, name")
     .eq("teacher_username", username)
     .eq("teacher_password", password)
-    .maybeSingle();
+    .order("name", { ascending: true });
 
-  if (result.error || !result.data) {
+  if (result.error || !result.data || !result.data.length) {
     statusEl.textContent = "Sai tài khoản hoặc mật khẩu.";
     return;
   }
 
-  teacherGroup = result.data;
-  sessionStorage.setItem(TEACHER_SESSION_KEY, JSON.stringify(teacherGroup));
+  teacherGroups = result.data;
+  activeTeacherGroupId = teacherGroups[0].id;
+  sessionStorage.setItem(TEACHER_SESSION_KEY, JSON.stringify({ groups: teacherGroups, activeGroupId: activeTeacherGroupId }));
   showTeacherMain();
 }
 
 function handleTeacherLogout() {
   sessionStorage.removeItem(TEACHER_SESSION_KEY);
-  teacherGroup = null;
+  teacherGroups = [];
+  activeTeacherGroupId = null;
   document.getElementById("teacherMain").style.display = "none";
   document.getElementById("teacherLogoutBtn").style.display = "none";
   document.getElementById("teacherGroupNameLabel").textContent = "Đăng nhập để xem kết quả nhóm của bạn";
@@ -385,6 +405,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
   document.getElementById("teacherLogoutBtn").addEventListener("click", handleTeacherLogout);
+  document.getElementById("teacherGroupSelect").addEventListener("change", function (e) {
+    activeTeacherGroupId = e.target.value;
+    sessionStorage.setItem(TEACHER_SESSION_KEY, JSON.stringify({ groups: teacherGroups, activeGroupId: activeTeacherGroupId }));
+    loadTeacherResults();
+  });
   document.getElementById("teacherRange7Btn").addEventListener("click", function () {
     setTeacherDateRange(7);
     loadTeacherResults();
@@ -400,8 +425,14 @@ document.addEventListener("DOMContentLoaded", async function () {
   var saved = sessionStorage.getItem(TEACHER_SESSION_KEY);
   if (saved) {
     try {
-      teacherGroup = JSON.parse(saved);
-      showTeacherMain();
+      var parsed = JSON.parse(saved);
+      teacherGroups = parsed.groups || [];
+      activeTeacherGroupId = parsed.activeGroupId || (teacherGroups[0] && teacherGroups[0].id);
+      if (teacherGroups.length) {
+        showTeacherMain();
+      } else {
+        sessionStorage.removeItem(TEACHER_SESSION_KEY);
+      }
     } catch (e) {
       sessionStorage.removeItem(TEACHER_SESSION_KEY);
     }

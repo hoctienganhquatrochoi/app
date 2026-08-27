@@ -25,6 +25,14 @@ document.addEventListener("keydown", function (e) {
 
 function buildBreadcrumbText(cls, unit, activity) {
   var parts = [cls.name];
+  // A class can hold several subjects sharing the same unit names (e.g. "New
+  // Round Up 1..6", each with its own "Unit 1"), so the subject name is needed
+  // here too - otherwise results/history can't tell which book a unit is from.
+  var subjects = DATA.subjectsByClass[cls.id] || [];
+  var subject = subjects.filter(function (s) { return s.id === unit.subject_id; })[0];
+  if (subject && subject.name && subject.name !== cls.name) {
+    parts.push(subject.name);
+  }
   if (unit.name) {
     parts.push(unit.name);
   }

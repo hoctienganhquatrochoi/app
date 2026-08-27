@@ -486,6 +486,14 @@ function normalizeTabLabelForMatch(s) {
   return (s || "").toLowerCase().trim().replace(/\s+/g, " ");
 }
 
+// Section labels are typed by hand each time content is pasted, so minor
+// punctuation drift (e.g. "Exercise 9:" vs "Exercise 9") must not be treated
+// as a different exercise - otherwise re-pasting creates orphaned duplicate
+// content instead of updating the existing section in place.
+function normalizeSectionLabelForMatch(s) {
+  return (s || "").toLowerCase().trim().replace(/[:.,]/g, "").replace(/\s+/g, " ");
+}
+
 var TAB_LABEL_TO_TYPE = (function () {
   var map = {};
   Object.keys(TEST_SECTION_LABELS).forEach(function (key) {
@@ -652,7 +660,9 @@ async function handleMegaImport() {
     }
     document.getElementById("megaImportStatus").textContent = "Đang xử lý mục " + (i + 1) + "/" + sections.length + "...";
 
-    var existingSection = currentTestSections.filter(function (s) { return s.label === sec.label; })[0];
+    var existingSection = currentTestSections.filter(function (s) {
+      return normalizeSectionLabelForMatch(s.label) === normalizeSectionLabelForMatch(sec.label);
+    })[0];
 
     var insertRes;
     if (existingSection) {

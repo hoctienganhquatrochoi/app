@@ -24,9 +24,31 @@ function splitGrammarMcqQuestionAroundBracket(question) {
   return null;
 }
 
+function groupItemsBySetName(items) {
+  // Keeps exercises in their original (book) order while still shuffling
+  // the questions within each exercise, so a merged multi-exercise activity
+  // plays through "Exercise 1", then "Exercise 2", etc. instead of a fully
+  // randomized mix that hides which book exercise each question came from.
+  var groups = [];
+  var groupIndexBySetName = {};
+  items.forEach(function (row) {
+    var key = row.set_name || "";
+    if (!(key in groupIndexBySetName)) {
+      groupIndexBySetName[key] = groups.length;
+      groups.push([]);
+    }
+    groups[groupIndexBySetName[key]].push(row);
+  });
+  var ordered = [];
+  groups.forEach(function (group) {
+    ordered = ordered.concat(shuffleArray(group));
+  });
+  return ordered;
+}
+
 function buildGrammarMcqQuestions(items) {
   var hasPassage = items.some(function (row) { return row.passage; });
-  var ordered = hasPassage ? items.slice() : shuffleArray(items);
+  var ordered = hasPassage ? items.slice() : groupItemsBySetName(items);
   return ordered.map(function (row) {
     var wrongOptions = (row.wrong_answers || []).map(function (text) {
       return { text: text, isCorrect: false };
@@ -39,6 +61,7 @@ function buildGrammarMcqQuestions(items) {
       passage: row.passage,
       imageUrl: row.image_url,
       explanation: row.explanation,
+      setName: row.set_name,
       options: options,
       answered: false,
       selectedIndex: null
@@ -112,8 +135,9 @@ function renderGrammarMcq(container, breadcrumbText, items, unitId, setName, onT
     var wrap = document.createElement("div");
     wrap.className = "quiz-wrap";
     wrap.appendChild(buildActivityHeader(startedAt, (scoreOffset || 0) + score));
-    if (!onTestComplete && setName) {
-      wrap.appendChild(buildSetNameBanner(setName));
+    var currentSetName = q.setName || setName;
+    if (!onTestComplete && currentSetName) {
+      wrap.appendChild(buildSetNameBanner(currentSetName));
     }
 
     var body = document.createElement("div");
