@@ -196,6 +196,7 @@ function buildGroupEditRow(group) {
   teacherUsernameInput.type = "text";
   teacherUsernameInput.className = "admin-inline-input";
   teacherUsernameInput.placeholder = "Tài khoản GV";
+  teacherUsernameInput.autocomplete = "off";
   teacherUsernameInput.value = group.teacher_username || "";
   teacherRow.appendChild(teacherUsernameInput);
 
@@ -203,6 +204,7 @@ function buildGroupEditRow(group) {
   teacherPasswordInput.type = "text";
   teacherPasswordInput.className = "admin-inline-input";
   teacherPasswordInput.placeholder = "Mật khẩu GV";
+  teacherPasswordInput.autocomplete = "off";
   teacherPasswordInput.value = group.teacher_password || "";
   teacherRow.appendChild(teacherPasswordInput);
 
