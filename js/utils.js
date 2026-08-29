@@ -51,18 +51,18 @@ function playAudioUrlOrSpeak(url, text, lang) {
       new Audio(audioBlobUrlCache[url]).play();
       return;
     }
+    // Play straight from the network URL first, synchronously with the user's tap —
+    // iOS Safari silently blocks playback if .play() only happens after an awaited
+    // fetch/blob step, since that runs outside the original gesture.
+    new Audio(url).play().catch(function () {});
     fetch(url).then(function (res) {
       if (!res.ok) {
         throw new Error("fetch audio failed");
       }
       return res.blob();
     }).then(function (blob) {
-      var blobUrl = URL.createObjectURL(blob);
-      audioBlobUrlCache[url] = blobUrl;
-      new Audio(blobUrl).play();
-    }).catch(function () {
-      new Audio(url).play();
-    });
+      audioBlobUrlCache[url] = URL.createObjectURL(blob);
+    }).catch(function () {});
     return;
   }
   speak(text, lang);
