@@ -2,6 +2,84 @@ function stripParenthetical(text) {
   return (text || "").replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
 }
 
+/* ---------- Xuất PDF dùng chung cho các dạng bài (chiếu bảng dạy trực tiếp) ---------- */
+
+function escapeHtmlForPrint(text) {
+  var div = document.createElement("div");
+  div.textContent = text == null ? "" : String(text);
+  return div.innerHTML;
+}
+
+function shuffleForPrint(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+  }
+  return a;
+}
+
+var PRINT_OPTION_LETTERS = ["A", "B", "C", "D", "E", "F"];
+
+function buildPrintBreadcrumbTitle(unitId, extra) {
+  var unit = findUnitById(unitId);
+  var subject = unit ? findSubjectById(unit.subject_id) : null;
+  var cls = subject ? findClassById(subject.class_id) : null;
+  var parts = [];
+  if (cls) {
+    parts.push(cls.name);
+  }
+  if (subject && subject.name) {
+    parts.push(subject.name);
+  }
+  if (unit) {
+    parts.push(unitDisplayName(unit));
+  }
+  if (extra) {
+    parts.push(extra);
+  }
+  return parts.join(" › ");
+}
+
+var ADMIN_PRINT_BASE_CSS =
+  "body{font-family:'Segoe UI',Arial,sans-serif;padding:24px;color:#1a1a1a;}" +
+  "h1{font-size:20px;margin-bottom:20px;}" +
+  ".pdf-passage{background:#F4F1E6;border:1px solid #ddd;border-radius:8px;padding:12px 14px;margin:14px 0 10px;font-size:14px;line-height:1.6;}" +
+  ".pdf-question{font-size:15px;font-weight:600;margin-top:16px;}" +
+  ".pdf-qnum{color:#1B4332;}" +
+  ".pdf-image img{max-width:220px;max-height:220px;margin:6px 0;border-radius:8px;}" +
+  ".pdf-options{display:flex;flex-wrap:wrap;gap:6px 24px;margin:6px 0 0 20px;font-size:14px;}" +
+  ".pdf-option{min-width:120px;}" +
+  ".pdf-wordbank{background:#F1F5F2;border:1px dashed #9AA89E;border-radius:8px;padding:10px 14px;margin:6px 0 18px;font-size:14px;}" +
+  ".pdf-blank{display:inline-block;min-width:70px;border-bottom:1.5px solid #1a1a1a;}" +
+  ".pdf-two-col{display:flex;gap:40px;margin-top:12px;}" +
+  ".pdf-col{flex:1;font-size:14px;line-height:2.1;}" +
+  ".pdf-answer-key{margin-top:36px;padding-top:16px;border-top:2px solid #1B4332;}" +
+  ".pdf-answer-key h2{font-size:16px;margin-bottom:10px;}" +
+  ".pdf-answer-key-body{font-size:14px;line-height:2;}" +
+  "@media print{ .pdf-answer-key{page-break-before:always;} }";
+
+function openAdminPrintWindow(title, bodyHtml, extraCss) {
+  var html = "<!DOCTYPE html><html lang=\"vi\"><head><meta charset=\"UTF-8\"><title>" + escapeHtmlForPrint(title) + "</title><style>" +
+    ADMIN_PRINT_BASE_CSS + (extraCss || "") +
+    "</style></head><body><h1>" + escapeHtmlForPrint(title) + "</h1>" + bodyHtml + "</body></html>";
+
+  var printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    window.alert("Trình duyệt chặn cửa sổ mới. Cho phép popup rồi thử lại.");
+    return;
+  }
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.onload = function () {
+    printWindow.print();
+  };
+}
+
 var VOCAB_AUDIO_BUCKET = "vocab-audio";
 var VOCAB_AUDIO_PUBLIC_PREFIX = "/storage/v1/object/public/" + VOCAB_AUDIO_BUCKET + "/";
 
@@ -1170,4 +1248,25 @@ async function handleExportVocabList() {
     textarea.focus();
     textarea.select();
   }
+}
+
+async function handleExportVocabPdf() {
+  var unitId = document.getElementById("unitSelect").value;
+  if (!unitId || !currentVocabRows.length) {
+    window.alert("Unit này chưa có từ vựng nào để xuất.");
+    return;
+  }
+
+  var title = buildPrintBreadcrumbTitle(unitId, null);
+
+  var itemsHtml = currentVocabRows.map(function (row) {
+    var phoneticPart = row.phonetic ? ' <span style="color:#556355;">' + escapeHtmlForPrint(row.phonetic) + "</span>" : "";
+    var imageHtml = row.image_url ? '<img src="' + row.image_url + '" style="width:40px;height:40px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px;">' : "";
+    return '<div style="break-inside:avoid;padding:6px 0;">' + imageHtml +
+      "<b>" + escapeHtmlForPrint(row.word_en) + "</b>" + phoneticPart +
+      ' — ' + escapeHtmlForPrint(row.meaning_vi) + "</div>";
+  }).join("");
+
+  var body = '<div style="column-count:2;column-gap:32px;font-size:15px;">' + itemsHtml + "</div>";
+  openAdminPrintWindow(title, body);
 }

@@ -464,6 +464,7 @@ school bag /ˈskuːl bæɡ/ cặp đi học"></textarea>
 
               <div class="admin-field">
                 <button type="button" class="admin-btn-secondary" id="exportVocabListBtn">📋 Xuất danh sách gửi phụ huynh</button>
+                <button type="button" class="admin-btn-secondary" id="exportVocabPdfBtn">📄 Xuất PDF (danh sách từ để chiếu bảng)</button>
                 <div class="admin-status" id="exportVocabStatus"></div>
                 <textarea class="admin-textarea" id="exportVocabTextarea" rows="8" style="display:none" readonly></textarea>
               </div>
@@ -486,6 +487,7 @@ What time is it?"></textarea>
                 <div class="admin-status" id="bulkSentenceStatus"></div>
               </form>
 
+              <button type="button" class="admin-btn-secondary" id="exportSentencesPdfBtn">📄 Xuất PDF (danh sách câu để chiếu bảng)</button>
               <div id="sentenceTableWrap"></div>
             </div>
 
@@ -637,6 +639,7 @@ Choose the word that has the underlined letters pronounced differently.
 
               <label class="admin-label" for="grammarTypingSetSelect">Đang soạn câu cho bài</label>
               <select class="admin-select" id="grammarTypingSetSelect"></select>
+              <button type="button" class="admin-btn-secondary" id="exportGrammarTypingPdfBtn" style="margin:-16px 0 24px 10px;">📄 Xuất PDF (nội dung + đáp án)</button>
 
               <form class="admin-form" id="bulkAddGrammarTypingForm">
                 <h3>Nhập hàng loạt</h3>
@@ -673,6 +676,7 @@ Tôi có hai anh em trai. | I have two brothers."></textarea>
 
               <label class="admin-label" for="grammarMatchingSetSelect">Đang soạn cặp cho bài</label>
               <select class="admin-select" id="grammarMatchingSetSelect"></select>
+              <button type="button" class="admin-btn-secondary" id="exportGrammarMatchingPdfBtn" style="margin:-16px 0 24px 10px;">📄 Xuất PDF (nội dung + đáp án)</button>
 
               <form class="admin-form" id="bulkAddGrammarMatchingForm">
                 <h3>Nhập hàng loạt</h3>
@@ -712,6 +716,7 @@ I'm | eight."></textarea>
 
               <label class="admin-label" for="grammarDragfillSetSelect">Đang soạn câu cho bài</label>
               <select class="admin-select" id="grammarDragfillSetSelect"></select>
+              <button type="button" class="admin-btn-secondary" id="exportGrammarDragfillPdfBtn" style="margin:-16px 0 24px 10px;">📄 Xuất PDF (nội dung + đáp án)</button>
 
               <form class="admin-form" id="bulkAddGrammarDragfillForm">
                 <h3>Nhập hàng loạt</h3>
@@ -751,6 +756,7 @@ Những cây đèn để bàn ở đâu?
 
               <label class="admin-label" for="textDragfillSetSelect">Đang soạn bài cho</label>
               <select class="admin-select" id="textDragfillSetSelect"></select>
+              <button type="button" class="admin-btn-secondary" id="exportTextDragfillPdfBtn" style="margin:-16px 0 24px 10px;">📄 Xuất PDF (nội dung + đáp án)</button>
 
               <form class="admin-form" id="bulkAddTextDragfillForm">
                 <h3>Nhập hàng loạt</h3>
@@ -795,6 +801,7 @@ James: I love Vietnam.
 
               <label class="admin-label" for="photoQuizSetSelect">Đang soạn cho bài</label>
               <select class="admin-select" id="photoQuizSetSelect"></select>
+              <button type="button" class="admin-btn-secondary" id="exportPhotoQuizPdfBtn" style="margin:-16px 0 24px 10px;">📄 Xuất PDF (nội dung + đáp án)</button>
 
               <div class="admin-form" id="photoQuizImageBox">
                 <h3>Ảnh đề bài</h3>
@@ -842,6 +849,7 @@ What is Alex's family name?
 
               <label class="admin-label" for="mathDragfillSetSelect">Đang soạn câu cho bài</label>
               <select class="admin-select" id="mathDragfillSetSelect"></select>
+              <button type="button" class="admin-btn-secondary" id="exportMathDragfillPdfBtn" style="margin:-16px 0 24px 10px;">📄 Xuất PDF (nội dung + đáp án)</button>
 
               <form class="admin-form" id="bulkAddMathDragfillForm">
                 <h3>Nhập hàng loạt</h3>
@@ -1085,13 +1093,13 @@ What is Alex's family name?
 <script src="js/admin-auth.js?v=20260804b"></script>
 <script src="../js/utils.js?v=20260811a"></script>
 <script src="../js/curriculum-data.js?v=20260821a"></script>
-<script src="js/content-admin.js?v=20260808c"></script>
-<script src="js/sentences-admin.js?v=20260729u"></script>
+<script src="js/content-admin.js?v=20260829a"></script>
+<script src="js/sentences-admin.js?v=20260829a"></script>
 <script src="js/grammar-admin.js?v=20260829a"></script>
-<script src="js/math-admin.js?v=20260729u"></script>
-<script src="js/text-dragfill-admin.js?v=20260729u"></script>
+<script src="js/math-admin.js?v=20260829a"></script>
+<script src="js/text-dragfill-admin.js?v=20260829a"></script>
 <script src="js/test-sections-admin.js?v=20260821a"></script>
-<script src="js/photo-quiz-admin.js?v=20260729u"></script>
+<script src="js/photo-quiz-admin.js?v=20260829a"></script>
 <script src="js/speaking-admin.js?v=20260729u"></script>
 <script src="js/wordwall-admin.js?v=20260729u"></script>
 <script src="js/wordwall-templates-admin.js?v=20260729u"></script>

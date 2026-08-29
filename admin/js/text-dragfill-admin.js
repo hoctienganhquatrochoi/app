@@ -277,3 +277,48 @@ async function handleBulkAddTextDragfill(e) {
   loadTextDragfillSetList();
   loadCurriculumData().then(loadActivityToggles);
 }
+
+/* ---------- Xuất PDF (đoạn văn có đánh số chỗ trống + từ cho sẵn + đáp án) ---------- */
+
+function handleExportTextDragfillPdf() {
+  var unitId = document.getElementById("unitSelect").value;
+  var setName = document.getElementById("textDragfillSetSelect").value;
+  if (!setName || !currentTextDragfillRows.length) {
+    window.alert("Bài này chưa có đoạn văn nào để xuất.");
+    return;
+  }
+
+  var title = buildPrintBreadcrumbTitle(unitId, setName);
+
+  var blankCounter = 0;
+  var answerKeyParts = [];
+  var wordBank = [];
+
+  var passagesHtml = currentTextDragfillRows.map(function (row) {
+    var blanked = escapeHtmlForPrint(row.passage).replace(/⟦[^⟦⟧]+⟧|\[[^\[\]]+\]/g, function () {
+      blankCounter++;
+      return '<span class="pdf-blank">(' + blankCounter + ')</span>';
+    }).replace(/\n/g, "<br>");
+
+    (row.correct_answers || []).forEach(function (ans) {
+      answerKeyParts.push(ans);
+    });
+    (row.correct_answers || []).concat(row.wrong_answers || []).forEach(function (w) {
+      if (wordBank.indexOf(w) === -1) {
+        wordBank.push(w);
+      }
+    });
+
+    return '<div class="pdf-passage">' + blanked + "</div>";
+  }).join("");
+
+  var wordBankHtml = '<div class="pdf-wordbank"><b>Từ cho sẵn:</b> ' + shuffleForPrint(wordBank).map(escapeHtmlForPrint).join(", ") + "</div>";
+  var answerKeyHtml = answerKeyParts.map(function (ans, i) {
+    return (i + 1) + ". " + escapeHtmlForPrint(ans);
+  }).join("&nbsp;&nbsp;&nbsp;");
+
+  var body = wordBankHtml + passagesHtml +
+    '<div class="pdf-answer-key"><h2>ĐÁP ÁN</h2><div class="pdf-answer-key-body">' + answerKeyHtml + "</div></div>";
+
+  openAdminPrintWindow(title, body);
+}

@@ -609,36 +609,15 @@ async function handleBulkAddGrammarMcq(e) {
 
 /* ---------- Xuất PDF (nội dung + đáp án A,B,C...) để chiếu bảng dạy trực tiếp ---------- */
 
-function shuffleForPrint(arr) {
-  var a = arr.slice();
-  for (var i = a.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var tmp = a[i];
-    a[i] = a[j];
-    a[j] = tmp;
-  }
-  return a;
-}
-
-var PRINT_OPTION_LETTERS = ["A", "B", "C", "D", "E", "F"];
-
-function escapeHtmlForPrint(text) {
-  var div = document.createElement("div");
-  div.textContent = text == null ? "" : String(text);
-  return div.innerHTML;
-}
-
 function handleExportGrammarMcqPdf() {
+  var unitId = document.getElementById("unitSelect").value;
   var setName = document.getElementById("grammarMcqSetSelect").value;
   if (!setName || !currentGrammarMcqRows.length) {
     window.alert("Bài này chưa có câu nào để xuất.");
     return;
   }
 
-  var breadcrumbEl = document.getElementById("composeBreadcrumb");
-  var breadcrumb = breadcrumbEl ? breadcrumbEl.textContent.trim() : "";
-  var title = (breadcrumb ? breadcrumb + " — " : "") + setName;
-
+  var title = buildPrintBreadcrumbTitle(unitId, setName);
   var printedQuestions = [];
   var answerKey = [];
 
@@ -672,37 +651,102 @@ function handleExportGrammarMcqPdf() {
     return (i + 1) + ". " + letter;
   }).join("&nbsp;&nbsp;&nbsp;");
 
-  var html = "<!DOCTYPE html><html lang=\"vi\"><head><meta charset=\"UTF-8\"><title>" + escapeHtmlForPrint(title) + "</title><style>" +
-    "body{font-family:'Segoe UI',Arial,sans-serif;padding:24px;color:#1a1a1a;}" +
-    "h1{font-size:20px;margin-bottom:20px;}" +
-    ".pdf-passage{background:#F4F1E6;border:1px solid #ddd;border-radius:8px;padding:12px 14px;margin:14px 0 10px;font-size:14px;line-height:1.6;}" +
-    ".pdf-question{font-size:15px;font-weight:600;margin-top:16px;}" +
-    ".pdf-qnum{color:#1B4332;}" +
-    ".pdf-image img{max-width:220px;max-height:220px;margin:6px 0;border-radius:8px;}" +
-    ".pdf-options{display:flex;flex-wrap:wrap;gap:6px 24px;margin:6px 0 0 20px;font-size:14px;}" +
-    ".pdf-option{min-width:120px;}" +
-    ".pdf-answer-key{margin-top:36px;padding-top:16px;border-top:2px solid #1B4332;}" +
-    ".pdf-answer-key h2{font-size:16px;margin-bottom:10px;}" +
-    ".pdf-answer-key-body{font-size:14px;line-height:2;}" +
-    "@media print{ .pdf-answer-key{page-break-before:always;} }" +
-    "</style></head><body>" +
-    "<h1>" + escapeHtmlForPrint(title) + "</h1>" +
-    printedQuestions.join("") +
-    '<div class="pdf-answer-key"><h2>ĐÁP ÁN</h2><div class="pdf-answer-key-body">' + answerKeyHtml + "</div></div>" +
-    "</body></html>";
+  var body = printedQuestions.join("") +
+    '<div class="pdf-answer-key"><h2>ĐÁP ÁN</h2><div class="pdf-answer-key-body">' + answerKeyHtml + "</div></div>";
 
-  var printWindow = window.open("", "_blank");
-  if (!printWindow) {
-    window.alert("Trình duyệt chặn cửa sổ mới. Cho phép popup rồi thử lại.");
+  openAdminPrintWindow(title, body);
+}
+
+function handleExportGrammarTypingPdf() {
+  var unitId = document.getElementById("unitSelect").value;
+  var setName = document.getElementById("grammarTypingSetSelect").value;
+  if (!setName || !currentGrammarTypingRows.length) {
+    window.alert("Bài này chưa có câu nào để xuất.");
     return;
   }
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  printWindow.onload = function () {
-    printWindow.print();
-  };
+
+  var title = buildPrintBreadcrumbTitle(unitId, setName);
+  var printedQuestions = currentGrammarTypingRows.map(function (row, idx) {
+    return '<div class="pdf-question"><span class="pdf-qnum">' + (idx + 1) + ".</span> " + escapeHtmlForPrint(row.prompt) +
+      '  <span class="pdf-blank">&nbsp;</span></div>';
+  }).join("");
+
+  var answerKeyHtml = currentGrammarTypingRows.map(function (row, idx) {
+    return (idx + 1) + ". " + escapeHtmlForPrint(row.answer);
+  }).join("&nbsp;&nbsp;&nbsp;");
+
+  var body = printedQuestions +
+    '<div class="pdf-answer-key"><h2>ĐÁP ÁN</h2><div class="pdf-answer-key-body">' + answerKeyHtml + "</div></div>";
+
+  openAdminPrintWindow(title, body);
+}
+
+function handleExportGrammarMatchingPdf() {
+  var unitId = document.getElementById("unitSelect").value;
+  var setName = document.getElementById("grammarMatchingSetSelect").value;
+  if (!setName || !currentGrammarMatchingRows.length) {
+    window.alert("Bài này chưa có cặp nào để xuất.");
+    return;
+  }
+
+  var title = buildPrintBreadcrumbTitle(unitId, setName);
+  var rightOrder = shuffleForPrint(currentGrammarMatchingRows.map(function (_, i) { return i; }));
+
+  var leftHtml = currentGrammarMatchingRows.map(function (row, idx) {
+    return "<div>" + (idx + 1) + ". " + escapeHtmlForPrint(row.left_text) + "</div>";
+  }).join("");
+
+  var rightHtml = rightOrder.map(function (origIdx, displayIdx) {
+    var letter = PRINT_OPTION_LETTERS[displayIdx] || "?";
+    return "<div>" + letter + ". " + escapeHtmlForPrint(currentGrammarMatchingRows[origIdx].right_text) + "</div>";
+  }).join("");
+
+  var answerKeyHtml = currentGrammarMatchingRows.map(function (row, idx) {
+    var displayIdx = rightOrder.indexOf(idx);
+    var letter = PRINT_OPTION_LETTERS[displayIdx] || "?";
+    return (idx + 1) + "-" + letter;
+  }).join("&nbsp;&nbsp;&nbsp;");
+
+  var body = '<div class="pdf-two-col"><div class="pdf-col">' + leftHtml + '</div><div class="pdf-col">' + rightHtml + "</div></div>" +
+    '<div class="pdf-answer-key"><h2>ĐÁP ÁN</h2><div class="pdf-answer-key-body">' + answerKeyHtml + "</div></div>";
+
+  openAdminPrintWindow(title, body);
+}
+
+function handleExportGrammarDragfillPdf() {
+  var unitId = document.getElementById("unitSelect").value;
+  var setName = document.getElementById("grammarDragfillSetSelect").value;
+  if (!setName || !currentGrammarDragfillRows.length) {
+    window.alert("Bài này chưa có câu nào để xuất.");
+    return;
+  }
+
+  var title = buildPrintBreadcrumbTitle(unitId, setName);
+
+  var wordBank = [];
+  currentGrammarDragfillRows.forEach(function (row) {
+    [row.correct_answer].concat(row.wrong_answers || []).forEach(function (w) {
+      if (wordBank.indexOf(w) === -1) {
+        wordBank.push(w);
+      }
+    });
+  });
+  var wordBankHtml = '<div class="pdf-wordbank"><b>Từ cho sẵn:</b> ' + shuffleForPrint(wordBank).map(escapeHtmlForPrint).join(", ") + "</div>";
+
+  var printedQuestions = currentGrammarDragfillRows.map(function (row, idx) {
+    var blanked = escapeHtmlForPrint(row.question_en).replace(/_+/, '<span class="pdf-blank">&nbsp;</span>');
+    var viHtml = row.question_vi ? '<div style="font-size:13px;color:#556355;margin-left:20px;">' + escapeHtmlForPrint(row.question_vi) + "</div>" : "";
+    return '<div class="pdf-question"><span class="pdf-qnum">' + (idx + 1) + ".</span> " + blanked + "</div>" + viHtml;
+  }).join("");
+
+  var answerKeyHtml = currentGrammarDragfillRows.map(function (row, idx) {
+    return (idx + 1) + ". " + escapeHtmlForPrint(row.correct_answer);
+  }).join("&nbsp;&nbsp;&nbsp;");
+
+  var body = wordBankHtml + printedQuestions +
+    '<div class="pdf-answer-key"><h2>ĐÁP ÁN</h2><div class="pdf-answer-key-body">' + answerKeyHtml + "</div></div>";
+
+  openAdminPrintWindow(title, body);
 }
 
 /* ---------- Viết câu trả lời (grammar typing, câu hỏi / đáp án, nhiều bài riêng theo tên) ---------- */

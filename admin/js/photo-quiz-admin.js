@@ -315,3 +315,48 @@ async function handleBulkAddPhotoQuiz(e) {
   loadPhotoQuizSetList();
   loadCurriculumData().then(loadActivityToggles);
 }
+
+/* ---------- Xuất PDF (ảnh + nội dung + đáp án A,B,C...) ---------- */
+
+async function handleExportPhotoQuizPdf() {
+  var unitId = document.getElementById("unitSelect").value;
+  var setName = document.getElementById("photoQuizSetSelect").value;
+  if (!setName || !currentPhotoQuizRows.length) {
+    window.alert("Bài này chưa có câu nào để xuất.");
+    return;
+  }
+
+  var title = buildPrintBreadcrumbTitle(unitId, setName);
+
+  var imageResult = await supabaseClient.from("game_photo_quiz_sets").select("image_url").eq("unit_id", unitId).eq("set_name", setName).maybeSingle();
+  var imageUrl = imageResult.data ? imageResult.data.image_url : null;
+  var imageHtml = imageUrl ? '<div class="pdf-image"><img src="' + imageUrl + '"></div>' : "";
+
+  var printedQuestions = [];
+  var answerKey = [];
+
+  currentPhotoQuizRows.forEach(function (row, idx) {
+    var options = shuffleForPrint([row.correct_answer].concat(row.wrong_answers || []));
+    var correctIndex = options.indexOf(row.correct_answer);
+    var letter = PRINT_OPTION_LETTERS[correctIndex] || "?";
+    answerKey.push(letter);
+
+    var optionsHtml = options.map(function (opt, i) {
+      return '<div class="pdf-option"><b>' + (PRINT_OPTION_LETTERS[i] || "?") + '.</b> ' + escapeHtmlForPrint(opt) + "</div>";
+    }).join("");
+
+    printedQuestions.push(
+      '<div class="pdf-question"><span class="pdf-qnum">' + (idx + 1) + ".</span> " + escapeHtmlForPrint(row.question) + "</div>" +
+      '<div class="pdf-options">' + optionsHtml + "</div>"
+    );
+  });
+
+  var answerKeyHtml = answerKey.map(function (letter, i) {
+    return (i + 1) + ". " + letter;
+  }).join("&nbsp;&nbsp;&nbsp;");
+
+  var body = imageHtml + printedQuestions.join("") +
+    '<div class="pdf-answer-key"><h2>ĐÁP ÁN</h2><div class="pdf-answer-key-body">' + answerKeyHtml + "</div></div>";
+
+  openAdminPrintWindow(title, body);
+}

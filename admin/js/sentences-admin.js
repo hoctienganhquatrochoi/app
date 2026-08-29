@@ -451,3 +451,21 @@ async function handleBulkAddSentences(e) {
   loadSentenceTable();
   loadCurriculumData().then(loadActivityToggles);
 }
+
+function handleExportSentencesPdf() {
+  var unitId = document.getElementById("unitSelect").value;
+  if (!unitId || !currentSentenceRows.length) {
+    window.alert("Unit này chưa có mẫu câu nào để xuất.");
+    return;
+  }
+
+  var title = buildPrintBreadcrumbTitle(unitId, null);
+
+  var itemsHtml = currentSentenceRows.map(function (row, idx) {
+    var phoneticPart = row.phonetic ? ' <span style="color:#556355;">' + escapeHtmlForPrint(row.phonetic) + "</span>" : "";
+    return '<div style="padding:8px 0;">' + (idx + 1) + ". <b>" + escapeHtmlForPrint(row.sentence_en) + "</b>" + phoneticPart +
+      '<div style="color:#556355;margin-left:20px;">' + escapeHtmlForPrint(row.meaning_vi) + "</div></div>";
+  }).join("");
+
+  openAdminPrintWindow(title, itemsHtml);
+}

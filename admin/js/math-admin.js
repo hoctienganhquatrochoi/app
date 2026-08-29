@@ -340,3 +340,41 @@ async function handleBulkAddMathDragfill(e) {
   loadMathDragfillSetList();
   loadCurriculumData().then(loadActivityToggles);
 }
+
+/* ---------- Xuất PDF (bài toán có đánh số chỗ trống + đáp án) ---------- */
+
+function handleExportMathDragfillPdf() {
+  var unitId = document.getElementById("unitSelect").value;
+  var setName = document.getElementById("mathDragfillSetSelect").value;
+  if (!setName || !currentMathDragfillRows.length) {
+    window.alert("Bài này chưa có bài toán nào để xuất.");
+    return;
+  }
+
+  var title = buildPrintBreadcrumbTitle(unitId, setName);
+
+  var blankCounter = 0;
+  var answerKeyParts = [];
+
+  var passagesHtml = currentMathDragfillRows.map(function (row) {
+    var blanked = escapeHtmlForPrint(row.passage).replace(/⟦[^⟦⟧]+⟧|\[[^\[\]]+\]/g, function () {
+      blankCounter++;
+      return '<span class="pdf-blank">(' + blankCounter + ')</span>';
+    }).replace(/\n/g, "<br>");
+
+    (row.correct_answers || []).forEach(function (ans) {
+      answerKeyParts.push(ans);
+    });
+
+    return '<div class="pdf-passage">' + blanked + "</div>";
+  }).join("");
+
+  var answerKeyHtml = answerKeyParts.map(function (ans, i) {
+    return (i + 1) + ". " + escapeHtmlForPrint(ans);
+  }).join("&nbsp;&nbsp;&nbsp;");
+
+  var body = passagesHtml +
+    '<div class="pdf-answer-key"><h2>ĐÁP ÁN</h2><div class="pdf-answer-key-body">' + answerKeyHtml + "</div></div>";
+
+  openAdminPrintWindow(title, body);
+}
