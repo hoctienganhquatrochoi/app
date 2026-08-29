@@ -97,6 +97,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("bulkAddGrammarMcqForm").addEventListener("submit", handleBulkAddGrammarMcq);
   document.getElementById("addGrammarMcqSetBtn").addEventListener("click", handleAddGrammarMcqSet);
   document.getElementById("grammarMcqSetSelect").addEventListener("change", loadGrammarMcqTable);
+  document.getElementById("exportGrammarMcqPdfBtn").addEventListener("click", handleExportGrammarMcqPdf);
   document.getElementById("bulkAddGrammarTypingForm").addEventListener("submit", handleBulkAddGrammarTyping);
   document.getElementById("addGrammarTypingSetBtn").addEventListener("click", handleAddGrammarTypingSet);
   document.getElementById("grammarTypingSetSelect").addEventListener("change", loadGrammarTypingTable);

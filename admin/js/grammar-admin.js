@@ -607,6 +607,104 @@ async function handleBulkAddGrammarMcq(e) {
   loadCurriculumData().then(loadActivityToggles);
 }
 
+/* ---------- Xuất PDF (nội dung + đáp án A,B,C...) để chiếu bảng dạy trực tiếp ---------- */
+
+function shuffleForPrint(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+  }
+  return a;
+}
+
+var PRINT_OPTION_LETTERS = ["A", "B", "C", "D", "E", "F"];
+
+function escapeHtmlForPrint(text) {
+  var div = document.createElement("div");
+  div.textContent = text == null ? "" : String(text);
+  return div.innerHTML;
+}
+
+function handleExportGrammarMcqPdf() {
+  var setName = document.getElementById("grammarMcqSetSelect").value;
+  if (!setName || !currentGrammarMcqRows.length) {
+    window.alert("Bài này chưa có câu nào để xuất.");
+    return;
+  }
+
+  var breadcrumbEl = document.getElementById("composeBreadcrumb");
+  var breadcrumb = breadcrumbEl ? breadcrumbEl.textContent.trim() : "";
+  var title = (breadcrumb ? breadcrumb + " — " : "") + setName;
+
+  var printedQuestions = [];
+  var answerKey = [];
+
+  currentGrammarMcqRows.forEach(function (row, idx) {
+    var options = shuffleForPrint([row.correct_answer].concat(row.wrong_answers || []));
+    var correctIndex = options.indexOf(row.correct_answer);
+    var letter = PRINT_OPTION_LETTERS[correctIndex] || "?";
+    answerKey.push(letter);
+
+    var optionsHtml = options.map(function (opt, i) {
+      return '<div class="pdf-option"><b>' + (PRINT_OPTION_LETTERS[i] || "?") + '.</b> ' + escapeHtmlForPrint(opt) + "</div>";
+    }).join("");
+
+    var passageHtml = "";
+    var prevPassage = idx > 0 ? currentGrammarMcqRows[idx - 1].passage : null;
+    if (row.passage && row.passage !== prevPassage) {
+      passageHtml = '<div class="pdf-passage">' + escapeHtmlForPrint(row.passage).replace(/\n/g, "<br>") + "</div>";
+    }
+
+    var imageHtml = row.image_url ? '<div class="pdf-image"><img src="' + row.image_url + '"></div>' : "";
+
+    printedQuestions.push(
+      passageHtml +
+      '<div class="pdf-question"><span class="pdf-qnum">' + (idx + 1) + ".</span> " + escapeHtmlForPrint(row.question) + "</div>" +
+      imageHtml +
+      '<div class="pdf-options">' + optionsHtml + "</div>"
+    );
+  });
+
+  var answerKeyHtml = answerKey.map(function (letter, i) {
+    return (i + 1) + ". " + letter;
+  }).join("&nbsp;&nbsp;&nbsp;");
+
+  var html = "<!DOCTYPE html><html lang=\"vi\"><head><meta charset=\"UTF-8\"><title>" + escapeHtmlForPrint(title) + "</title><style>" +
+    "body{font-family:'Segoe UI',Arial,sans-serif;padding:24px;color:#1a1a1a;}" +
+    "h1{font-size:20px;margin-bottom:20px;}" +
+    ".pdf-passage{background:#F4F1E6;border:1px solid #ddd;border-radius:8px;padding:12px 14px;margin:14px 0 10px;font-size:14px;line-height:1.6;}" +
+    ".pdf-question{font-size:15px;font-weight:600;margin-top:16px;}" +
+    ".pdf-qnum{color:#1B4332;}" +
+    ".pdf-image img{max-width:220px;max-height:220px;margin:6px 0;border-radius:8px;}" +
+    ".pdf-options{display:flex;flex-wrap:wrap;gap:6px 24px;margin:6px 0 0 20px;font-size:14px;}" +
+    ".pdf-option{min-width:120px;}" +
+    ".pdf-answer-key{margin-top:36px;padding-top:16px;border-top:2px solid #1B4332;}" +
+    ".pdf-answer-key h2{font-size:16px;margin-bottom:10px;}" +
+    ".pdf-answer-key-body{font-size:14px;line-height:2;}" +
+    "@media print{ .pdf-answer-key{page-break-before:always;} }" +
+    "</style></head><body>" +
+    "<h1>" + escapeHtmlForPrint(title) + "</h1>" +
+    printedQuestions.join("") +
+    '<div class="pdf-answer-key"><h2>ĐÁP ÁN</h2><div class="pdf-answer-key-body">' + answerKeyHtml + "</div></div>" +
+    "</body></html>";
+
+  var printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    window.alert("Trình duyệt chặn cửa sổ mới. Cho phép popup rồi thử lại.");
+    return;
+  }
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.onload = function () {
+    printWindow.print();
+  };
+}
+
 /* ---------- Viết câu trả lời (grammar typing, câu hỏi / đáp án, nhiều bài riêng theo tên) ---------- */
 
 function setBulkGrammarTypingStatus(text) {
