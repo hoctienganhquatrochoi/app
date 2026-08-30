@@ -482,6 +482,21 @@ html, body {
   margin-bottom: 10px;
 }
 
+.sidebar-login-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 10px 4px;
+}
+
+.sidebar-login-prompt p {
+  color: #F4E9CB;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
 /* ---------- Sidebar: class accordion ---------- */
 .class-list {
   display: flex;

@@ -92,7 +92,35 @@ function renderSidebar() {
       classList.appendChild(buildClassItem(DATA.classes[i]));
     }
   }
+
+  if (!classList.children.length && !studentHasRealAccess()) {
+    sidebar.appendChild(buildNoDemoLoginPrompt());
+    return;
+  }
+
   sidebar.appendChild(classList);
+}
+
+function buildNoDemoLoginPrompt() {
+  var wrap = document.createElement("div");
+  wrap.className = "sidebar-login-prompt";
+
+  var text = document.createElement("p");
+  text.textContent = currentStudent
+    ? "Tài khoản này chưa được cấp lớp học nào và cũng chưa có lớp học thử đang mở. Liên hệ giáo viên để được thêm lớp nhé!"
+    : "Chưa có lớp học thử nào đang mở. Đăng nhập bằng tài khoản học sinh để vào học nhé!";
+  wrap.appendChild(text);
+
+  if (!currentStudent) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "login-btn";
+    btn.textContent = "Đăng nhập học sinh";
+    btn.addEventListener("click", openLoginModal);
+    wrap.appendChild(btn);
+  }
+
+  return wrap;
 }
 
 function buildClassItem(cls) {
