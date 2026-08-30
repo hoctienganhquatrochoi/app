@@ -1131,6 +1131,16 @@ async function renderHomePopup() {
 document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("sidebar").innerHTML = '<div class="placeholder">Đang tải...</div>';
 
+  // On mobile the sidebar is collapsed behind the "Menu" button by default, which makes
+  // a first-time visit look empty/frozen while data loads - open it immediately, before
+  // any fetch, so the class list area is visible right away instead of only after
+  // loadCurriculumData() resolves. A URL hash means this load will jump straight into a
+  // specific unit instead (state.openUnitId, resolved later by applyUrlHash), so skip it
+  // then - window.location.hash is known synchronously even though state.openUnitId isn't yet.
+  if (!window.location.hash && window.innerWidth <= 720) {
+    document.getElementById("sidebar").classList.add("mobile-open");
+  }
+
   // Show the sidebar instantly from the last-known data (if any) while the real,
   // up-to-date fetch runs in the background - avoids a blank/frozen menu on repeat visits.
   if (loadCurriculumDataFromCache()) {
@@ -1150,13 +1160,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   renderMainContent();
   updateUrlHash();
-
-  // On mobile the sidebar is collapsed behind the "Menu" button by default, which makes
-  // a first-time visit look empty/frozen until they tap it - open it automatically once
-  // on initial load (not on every render) so the class list is visible right away.
-  if (!state.openUnitId && window.innerWidth <= 720) {
-    document.getElementById("sidebar").classList.add("mobile-open");
-  }
 
   document.getElementById("sidebarToggleBtn").addEventListener("click", function () {
     document.getElementById("sidebar").classList.toggle("mobile-open");
