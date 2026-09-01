@@ -1,5 +1,10 @@
 /* ---------- Trang "Nói điều con muốn nói" ---------- */
 
+.speak-brand-slogan {
+  font-size: 15px;
+  font-weight: 800;
+}
+
 .speak-body {
   max-width: 640px;
   margin: 0 auto;
@@ -393,12 +398,13 @@
   padding: 40px 16px;
 }
 
-/* ---- Ôn của con ---- */
+/* ---- Từ vựng: các dạng ôn tập ---- */
 
 .speak-review-menu {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
+  margin-bottom: 20px;
 }
 
 .speak-review-btn {
@@ -413,13 +419,9 @@
   text-align: left;
 }
 
-.speak-review-reveal {
-  text-align: center;
-  font-size: 17px;
-  font-weight: 700;
-  color: #1B4332;
-  margin-top: 12px;
-  min-height: 22px;
+.speak-list-grade-result {
+  text-align: left;
+  margin-top: 8px;
 }
 
 @media (max-width: 480px) {

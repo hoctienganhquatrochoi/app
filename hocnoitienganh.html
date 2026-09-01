@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Học tiếng Anh từ chính điều bạn muốn nói – English for Kids</title>
-<link rel="stylesheet" href="css/style.css?v=20260901c">
-<link rel="stylesheet" href="css/speak.css?v=20260901c">
+<link rel="stylesheet" href="css/style.css?v=20260901d">
+<link rel="stylesheet" href="css/speak.css?v=20260901d">
 </head>
 <body>
 
@@ -13,7 +13,7 @@
   <div class="banner-left">
     <div class="logo-circle">EK</div>
     <div class="brand-text">
-      <div class="brand-slogan">Học tiếng Anh từ chính điều bạn muốn nói</div>
+      <div class="brand-slogan speak-brand-slogan">Học tiếng Anh từ chính điều bạn muốn nói</div>
     </div>
   </div>
   <div class="banner-right">
@@ -63,17 +63,12 @@
     </section>
 
     <section class="speak-view" id="view-sentences" style="display:none">
-      <h2 class="speak-heading" id="sentencesHeading">Câu của bạn</h2>
+      <h2 class="speak-heading">Câu cần học</h2>
       <div class="speak-list" id="sentencesList"></div>
     </section>
 
     <section class="speak-view" id="view-words" style="display:none">
-      <h2 class="speak-heading" id="wordsHeading">Từ của bạn</h2>
-      <div class="speak-list" id="wordsList"></div>
-    </section>
-
-    <section class="speak-view" id="view-review" style="display:none">
-      <h2 class="speak-heading" id="reviewHeading">Ôn của bạn</h2>
+      <h2 class="speak-heading">Từ vựng</h2>
       <div class="speak-review-menu" id="reviewMenu">
         <button type="button" class="speak-review-btn" id="reviewWordsFlashcardBtn">⭐ Thẻ đọc</button>
         <button type="button" class="speak-review-btn" id="reviewWordsFlipCardBtn">⭐ Thẻ lật</button>
@@ -82,9 +77,9 @@
         <button type="button" class="speak-review-btn" id="reviewWordsTypingHintBtn">⭐ Đánh máy có gợi ý</button>
         <button type="button" class="speak-review-btn" id="reviewWordsTypingBlankBtn">⭐ Đánh máy không gợi ý</button>
         <button type="button" class="speak-review-btn" id="reviewWordsListenTypeBtn">⭐ Nghe - Đánh máy</button>
-        <button type="button" class="speak-review-btn" id="reviewSentencesBtn">❤️ Ôn câu – Nói lại</button>
       </div>
       <div id="reviewPlayArea"></div>
+      <div class="speak-list" id="wordsList"></div>
     </section>
 
   </div>
@@ -92,9 +87,8 @@
 
 <nav class="speak-bottom-nav" id="speakBottomNav" style="display:none">
   <button type="button" class="speak-nav-btn active" data-view="speak">💬 Nói</button>
-  <button type="button" class="speak-nav-btn" data-view="sentences">❤️ Câu của bạn</button>
-  <button type="button" class="speak-nav-btn" data-view="words">⭐ Từ của bạn</button>
-  <button type="button" class="speak-nav-btn" data-view="review">🎯 Ôn</button>
+  <button type="button" class="speak-nav-btn" data-view="sentences">❤️ Câu cần học</button>
+  <button type="button" class="speak-nav-btn" data-view="words">⭐ Từ vựng</button>
 </nav>
 
 <div class="site-popup-overlay" id="wordCardOverlay" style="display:none">
@@ -158,17 +152,17 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase-config.js?v=20260901c"></script>
-<script src="js/utils.js?v=20260901c"></script>
-<script src="js/results.js?v=20260901c"></script>
-<script src="js/flashcard.js?v=20260901c"></script>
-<script src="js/flip-card.js?v=20260901c"></script>
-<script src="js/quiz.js?v=20260901c"></script>
-<script src="js/typing.js?v=20260901c"></script>
-<script src="js/typing-free.js?v=20260901c"></script>
-<script src="js/group-ranking.js?v=20260901c"></script>
-<script src="js/today-history.js?v=20260901c"></script>
-<script src="js/auth.js?v=20260901c"></script>
-<script src="js/speak-app.js?v=20260901c"></script>
+<script src="js/supabase-config.js?v=20260901d"></script>
+<script src="js/utils.js?v=20260901d"></script>
+<script src="js/results.js?v=20260901d"></script>
+<script src="js/flashcard.js?v=20260901d"></script>
+<script src="js/flip-card.js?v=20260901d"></script>
+<script src="js/quiz.js?v=20260901d"></script>
+<script src="js/typing.js?v=20260901d"></script>
+<script src="js/typing-free.js?v=20260901d"></script>
+<script src="js/group-ranking.js?v=20260901d"></script>
+<script src="js/today-history.js?v=20260901d"></script>
+<script src="js/auth.js?v=20260901d"></script>
+<script src="js/speak-app.js?v=20260901d"></script>
 </body>
 </html>
