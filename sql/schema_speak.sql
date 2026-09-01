@@ -44,3 +44,8 @@ alter table game_speak_events disable row level security;
 
 -- Nếu 2 dòng "disable row level security" ở trên báo lỗi 42501, chạy lại riêng từng dòng đó
 -- trong 1 query mới (lỗi này hay gặp với bảng mới trong project này).
+
+-- Thêm 2026-09-01: lưu URL âm thanh (Google TTS, tạo qua Edge Function generate-audio) cho câu tự lưu,
+-- để không phải tạo lại âm thanh mỗi lần nghe. Cột này ADD MỚI so với lần chạy trước — chạy lại cả file
+-- này vẫn an toàn (mọi câu lệnh đều có "if not exists").
+alter table game_own_sentences add column if not exists audio_en_url text;

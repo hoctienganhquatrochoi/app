@@ -92,8 +92,8 @@
 }
 
 .speak-vi-text {
-  font-size: 18px;
-  color: #1B4332;
+  font-size: 15px;
+  color: #8AA093;
 }
 
 .speak-en-card {
@@ -356,8 +356,8 @@
 /* ---- Ôn của con ---- */
 
 .speak-review-menu {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
 }
 

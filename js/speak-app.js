@@ -2,10 +2,16 @@ var currentSentenceVietnamese = "";
 var currentSentenceEnglish = "";
 var currentInterestTags = [];
 var currentSavedSentenceId = null;
+var currentSentenceAudioEnUrl = null;
+var sentenceSayFailCount = 0;
 var currentWordCardData = null;
 var currentWordCardSentence = "";
+var currentWordCardAudioUrl = null;
+var wordCardSayFailCount = 0;
 var speakDebounceTimer = null;
 var wordCardAnalysisCache = {};
+
+var SAY_AGAIN_FAIL_LIMIT = 3;
 
 function speakUnitId(studentId) {
   return "stu_" + studentId;
@@ -28,7 +34,7 @@ function updateSpeakAuthUI() {
   }
 
   var name = currentStudent.full_name;
-  document.getElementById("speakHeading").textContent = name + " ơi, con muốn nói gì bằng tiếng Anh?";
+  document.getElementById("speakHeading").textContent = name + " ơi, bạn muốn nói gì bằng tiếng Anh?";
   document.getElementById("sentencesHeading").textContent = "Câu của " + name;
   document.getElementById("wordsHeading").textContent = "Từ của " + name;
   document.getElementById("reviewHeading").textContent = "Ôn của " + name;
@@ -46,6 +52,65 @@ function speakSlow(text) {
   utter.lang = "en-US";
   utter.rate = 0.6;
   window.speechSynthesis.speak(utter);
+}
+
+async function hashTextForPath(text) {
+  var enc = new TextEncoder().encode(text);
+  var digest = await crypto.subtle.digest("SHA-1", enc);
+  var bytes = new Uint8Array(digest);
+  var hex = "";
+  var i;
+  for (i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, "0");
+  }
+  return hex;
+}
+
+// Câu/từ do học sinh tự tạo là duy nhất, không dùng lại được cache theo unit như game_vocab thường —
+// path đặt theo hash nội dung để cùng 1 câu/từ (kể cả của học sinh khác) không tạo âm thanh lại nhiều lần.
+async function generateSpeakAudio(text, lang) {
+  if (!text) {
+    return null;
+  }
+  var path;
+  try {
+    path = "speak/" + (await hashTextForPath(lang + "|" + text)) + ".mp3";
+    var resp = await fetch(GENERATE_AUDIO_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ text: text, lang: lang, path: path })
+    });
+    var data = await resp.json().catch(function () { return null; });
+    if (!resp.ok || !data || !data.url) {
+      return null;
+    }
+    return data.url;
+  } catch (err) {
+    return null;
+  }
+}
+
+// iOS Safari chỉ cho play() ngay trong lúc xử lý sự kiện bấm (gesture), không cho phép sau 1 await —
+// nên bấm 🔊/🐢 chỉ dùng URL đã có sẵn (tạo ngầm từ trước), không await fetch rồi mới play().
+function playSpeakUrlNormal(url, fallbackText) {
+  if (url) {
+    playAudioUrlOrSpeak(url, fallbackText, "en-US");
+    return;
+  }
+  speak(fallbackText, "en-US");
+}
+
+function playSpeakUrlSlow(url, fallbackText) {
+  if (url) {
+    var audio = new Audio(url);
+    audio.playbackRate = 0.6;
+    audio.play().catch(function () {});
+    return;
+  }
+  speakSlow(fallbackText);
 }
 
 function logSpeakEvent(eventType, detail) {
@@ -82,7 +147,7 @@ function compareSpokenText(spoken, target) {
   if (ratio >= 0.6) {
     return "🟡 Gần đúng rồi, thử lại cho chuẩn hơn nhé!";
   }
-  return "🔁 Con thử nói lại nhé!";
+  return "🔁 Bạn thử nói lại nhé!";
 }
 
 function getSpeechRecognitionCtor() {
@@ -107,10 +172,10 @@ function wireSpeakInput() {
 
   document.getElementById("speakMicVi").addEventListener("click", startViMic);
   document.getElementById("speakListenNormal").addEventListener("click", function () {
-    speak(currentSentenceEnglish, "en-US");
+    playSpeakUrlNormal(currentSentenceAudioEnUrl, currentSentenceEnglish);
   });
   document.getElementById("speakListenSlow").addEventListener("click", function () {
-    speakSlow(currentSentenceEnglish);
+    playSpeakUrlSlow(currentSentenceAudioEnUrl, currentSentenceEnglish);
   });
   document.getElementById("speakSayAgainBtn").addEventListener("click", startSayAgainMic);
   document.getElementById("speakSaveSentenceBtn").addEventListener("click", saveSentence);
@@ -122,14 +187,14 @@ function startViMic() {
   var statusEl = document.getElementById("speakStatus");
 
   if (!Recognition) {
-    statusEl.textContent = "Trình duyệt này chưa hỗ trợ nhận diện giọng nói, con gõ chữ nhé.";
+    statusEl.textContent = "Trình duyệt này chưa hỗ trợ nhận diện giọng nói, bạn gõ chữ nhé.";
     return;
   }
 
   var recognizer = new Recognition();
   recognizer.lang = "vi-VN";
   recognizer.maxAlternatives = 1;
-  statusEl.textContent = "Đang nghe con nói...";
+  statusEl.textContent = "Đang nghe bạn nói...";
   logSpeakEvent("voice_input_started", {});
 
   recognizer.onresult = function (e) {
@@ -140,7 +205,7 @@ function startViMic() {
     runTranslate(transcript);
   };
   recognizer.onerror = function () {
-    statusEl.textContent = "Không nghe rõ, con thử lại nhé.";
+    statusEl.textContent = "Không nghe rõ, bạn thử lại nhé.";
     logSpeakEvent("voice_input_failed", {});
   };
   recognizer.start();
@@ -175,12 +240,12 @@ async function runTranslate(text) {
   }
 
   if (data.status === "blocked") {
-    statusEl.textContent = "Câu này không phù hợp để luyện tiếng Anh. Con hãy thử một câu khác nhé. 😊";
+    statusEl.textContent = "Câu này không phù hợp để luyện tiếng Anh. Bạn hãy thử một câu khác nhé. 😊";
     logSpeakEvent("content_blocked", { text: text });
     return;
   }
   if (data.status === "unclear") {
-    statusEl.textContent = "Mình chưa hiểu câu này. Con hãy nói hoặc viết lại rõ hơn nhé. 😊";
+    statusEl.textContent = "Mình chưa hiểu câu này. Bạn hãy nói hoặc viết lại rõ hơn nhé. 😊";
     return;
   }
 
@@ -189,6 +254,8 @@ async function runTranslate(text) {
   currentSentenceEnglish = data.english;
   currentInterestTags = data.interest_tags || [];
   currentSavedSentenceId = null;
+  currentSentenceAudioEnUrl = null;
+  sentenceSayFailCount = 0;
 
   document.getElementById("speakViText").textContent = text;
   renderEnglishSentenceTokens(data.english);
@@ -199,6 +266,15 @@ async function runTranslate(text) {
   saveBtn.disabled = false;
 
   resultEl.style.display = "block";
+
+  var inputEl = document.getElementById("speakInput");
+  inputEl.value = "";
+
+  generateSpeakAudio(data.english, "en").then(function (url) {
+    if (currentSentenceEnglish === data.english) {
+      currentSentenceAudioEnUrl = url;
+    }
+  });
 
   logSpeakEvent("translation_created", { vietnamese: text, english: data.english });
 }
@@ -244,11 +320,22 @@ function startSayAgainMic() {
 
   recognizer.onresult = function (e) {
     var spoken = e.results[0][0].transcript;
-    resultEl.textContent = compareSpokenText(spoken, currentSentenceEnglish) + " (\"" + spoken + "\")";
+    var verdict = compareSpokenText(spoken, currentSentenceEnglish);
+    resultEl.textContent = verdict + " (\"" + spoken + "\")";
     logSpeakEvent("speaking_completed", { target: currentSentenceEnglish, spoken: spoken });
+
+    if (verdict.indexOf("✅") === 0) {
+      sentenceSayFailCount = 0;
+      return;
+    }
+    sentenceSayFailCount++;
+    if (sentenceSayFailCount > SAY_AGAIN_FAIL_LIMIT && currentStudent) {
+      resultEl.textContent += " — Câu này bạn cần luyện thêm, mình tự lưu vào ❤️ Câu của bạn để ôn lại nhé!";
+      saveSentence();
+    }
   };
   recognizer.onerror = function () {
-    resultEl.textContent = "Không nghe rõ, con thử lại nhé.";
+    resultEl.textContent = "Không nghe rõ, bạn thử lại nhé.";
   };
   recognizer.start();
 }
@@ -268,7 +355,8 @@ async function saveSentence() {
     vietnamese: currentSentenceVietnamese,
     english: currentSentenceEnglish,
     is_saved: true,
-    interest_tags: currentInterestTags
+    interest_tags: currentInterestTags,
+    audio_en_url: currentSentenceAudioEnUrl
   }).select().single();
 
   if (insertResult.error) {
@@ -287,7 +375,7 @@ async function saveSentence() {
 function wireWordCard() {
   document.getElementById("wordCardListenBtn").addEventListener("click", function () {
     if (currentWordCardData) {
-      speak(currentWordCardData.lemma, "en-US");
+      playSpeakUrlNormal(currentWordCardAudioUrl, currentWordCardData.lemma);
     }
   });
 
@@ -306,7 +394,18 @@ function wireWordCard() {
     resultEl.textContent = "Đang nghe...";
     recognizer.onresult = function (e) {
       var spoken = e.results[0][0].transcript;
-      resultEl.textContent = compareSpokenText(spoken, currentWordCardData.lemma);
+      var verdict = compareSpokenText(spoken, currentWordCardData.lemma);
+      resultEl.textContent = verdict;
+
+      if (verdict.indexOf("✅") === 0) {
+        wordCardSayFailCount = 0;
+        return;
+      }
+      wordCardSayFailCount++;
+      if (wordCardSayFailCount > SAY_AGAIN_FAIL_LIMIT && currentStudent) {
+        resultEl.textContent += " — Từ này bạn cần luyện thêm, mình tự thêm vào ⭐ Từ của bạn để ôn lại nhé!";
+        saveWordToVocab();
+      }
     };
     recognizer.onerror = function () {
       resultEl.textContent = "Không nghe rõ, thử lại nhé.";
@@ -334,6 +433,8 @@ function openWordCard(surfaceWord, sentence) {
   document.getElementById("wordCardStatus").textContent = "";
   document.getElementById("wordCardLearnBtn").disabled = true;
   currentWordCardData = null;
+  currentWordCardAudioUrl = null;
+  wordCardSayFailCount = 0;
 
   logSpeakEvent("vocabulary_opened", { word: surfaceWord });
 
@@ -377,14 +478,21 @@ async function analyzeWord(surfaceWord, sentence) {
   if (!data.suitable_for_child) {
     document.getElementById("wordCardMeaning").textContent = "Từ này chưa phù hợp để học nhé.";
     document.getElementById("wordCardLearnBtn").disabled = true;
-  }
-}
-
-async function saveWord() {
-  if (!currentStudent || !currentWordCardData) {
     return;
   }
-  var statusEl = document.getElementById("wordCardStatus");
+
+  generateSpeakAudio(data.lemma, "en").then(function (url) {
+    if (currentWordCardData === data) {
+      currentWordCardAudioUrl = url;
+    }
+  });
+}
+
+// Trả về "saved" / "duplicate" / "error" — dùng chung cho nút bấm thủ công và cho auto-save khi nói sai quá nhiều lần.
+async function saveWordToVocab() {
+  if (!currentStudent || !currentWordCardData) {
+    return "error";
+  }
   var lemma = currentWordCardData.lemma;
 
   var existing = await supabaseClient
@@ -395,8 +503,7 @@ async function saveWord() {
     .maybeSingle();
 
   if (existing.data) {
-    statusEl.textContent = "Từ này đã có trong Từ của con rồi!";
-    return;
+    return "duplicate";
   }
 
   var countResult = await supabaseClient
@@ -413,20 +520,37 @@ async function saveWord() {
     phonetic: currentWordCardData.pronunciation || "",
     meaning_vi: currentWordCardData.meaning_vi,
     example_sentence_en: currentWordCardSentence,
-    example_sentence_vi: currentSentenceVietnamese
+    example_sentence_vi: currentSentenceVietnamese,
+    audio_en_url: currentWordCardAudioUrl
   });
 
   if (insertResult.error) {
+    return "error";
+  }
+
+  logSpeakEvent("vocabulary_saved", { lemma: lemma });
+  refreshWordsList();
+  return "saved";
+}
+
+async function saveWord() {
+  var statusEl = document.getElementById("wordCardStatus");
+  var outcome = await saveWordToVocab();
+
+  if (outcome === "duplicate") {
+    statusEl.textContent = "Từ này đã có trong Từ của bạn rồi!";
+    return;
+  }
+  if (outcome === "error") {
     statusEl.textContent = "Lưu chưa được, thử lại nhé.";
     return;
   }
 
-  statusEl.textContent = "❤️ Đã học từ này!";
-  logSpeakEvent("vocabulary_saved", { lemma: lemma });
-  refreshWordsList();
+  document.getElementById("wordCardOverlay").style.display = "none";
+  switchSpeakView("words");
 }
 
-// ---------- Câu của con / Từ của con ----------
+// ---------- Câu của bạn / Từ của bạn ----------
 
 async function refreshSentencesList() {
   if (!currentStudent) {
@@ -444,7 +568,7 @@ async function refreshSentencesList() {
 
   listEl.innerHTML = "";
   if (result.error || !result.data || !result.data.length) {
-    listEl.innerHTML = "<div class=\"speak-list-empty\">Con chưa lưu câu nào cả. Sang tab 💬 Nói để bắt đầu nhé!</div>";
+    listEl.innerHTML = "<div class=\"speak-list-empty\">Bạn chưa lưu câu nào cả. Sang tab 💬 Nói để bắt đầu nhé!</div>";
     return;
   }
 
@@ -470,10 +594,18 @@ async function refreshSentencesList() {
     listenBtn.className = "speak-icon-btn";
     listenBtn.textContent = "🔊";
     listenBtn.addEventListener("click", function () {
-      speak(row.english, "en-US");
+      playSpeakUrlNormal(row.audio_en_url, row.english);
       supabaseClient.from("game_own_sentences")
         .update({ listen_count: (row.listen_count || 0) + 1 })
         .eq("id", row.id).then(function () {});
+      if (!row.audio_en_url) {
+        generateSpeakAudio(row.english, "en").then(function (url) {
+          if (url) {
+            row.audio_en_url = url;
+            supabaseClient.from("game_own_sentences").update({ audio_en_url: url }).eq("id", row.id).then(function () {});
+          }
+        });
+      }
     });
     actions.appendChild(listenBtn);
 
@@ -512,7 +644,7 @@ async function refreshWordsList() {
 
   listEl.innerHTML = "";
   if (result.error || !result.data || !result.data.length) {
-    listEl.innerHTML = "<div class=\"speak-list-empty\">Con chưa học từ nào cả. Bấm vào từ trong câu tiếng Anh ở tab 💬 Nói để học nhé!</div>";
+    listEl.innerHTML = "<div class=\"speak-list-empty\">Bạn chưa học từ nào cả. Bấm vào từ trong câu tiếng Anh ở tab 💬 Nói để học nhé!</div>";
     return;
   }
 
@@ -545,7 +677,15 @@ async function refreshWordsList() {
     listenBtn.className = "speak-icon-btn";
     listenBtn.textContent = "🔊";
     listenBtn.addEventListener("click", function () {
-      speak(row.word_en, "en-US");
+      playSpeakUrlNormal(row.audio_en_url, row.word_en);
+      if (!row.audio_en_url) {
+        generateSpeakAudio(row.word_en, "en").then(function (url) {
+          if (url) {
+            row.audio_en_url = url;
+            supabaseClient.from("game_vocab").update({ audio_en_url: url }).eq("id", row.id).then(function () {});
+          }
+        });
+      }
     });
     actions.appendChild(listenBtn);
 
@@ -555,7 +695,7 @@ async function refreshWordsList() {
     removeBtn.title = "Xóa từ này";
     removeBtn.textContent = "🗑";
     removeBtn.addEventListener("click", function () {
-      if (!window.confirm("Xóa từ \"" + row.word_en + "\" khỏi Từ của con?")) {
+      if (!window.confirm("Xóa từ \"" + row.word_en + "\" khỏi Từ của bạn?")) {
         return;
       }
       supabaseClient.from("game_vocab").delete().eq("id", row.id).then(function () {
@@ -605,7 +745,7 @@ function switchSpeakView(view) {
   }
 }
 
-// ---------- Ôn của con ----------
+// ---------- Ôn của bạn ----------
 
 async function loadPersonalVocabItems() {
   var result = await supabaseClient
@@ -624,7 +764,7 @@ async function loadPersonalVocabItems() {
       en: row.word_en,
       phonetic: row.phonetic,
       vi: row.meaning_vi,
-      audioEnUrl: null,
+      audioEnUrl: row.audio_en_url,
       audioViUrl: null
     };
   });
@@ -679,7 +819,7 @@ function renderOwnSentenceReview(container, items) {
 
     var hint = document.createElement("div");
     hint.className = "fc-hint";
-    hint.textContent = "Con nói bằng tiếng Anh nhé!";
+    hint.textContent = "Bạn nói bằng tiếng Anh nhé!";
     card.appendChild(hint);
 
     var micBtn = document.createElement("button");
@@ -731,7 +871,7 @@ function renderOwnSentenceReview(container, items) {
         index++;
         draw();
       } else {
-        container.innerHTML = "<div class=\"speak-list-empty\">🎉 Con đã ôn xong " + items.length + " câu!</div>";
+        container.innerHTML = "<div class=\"speak-list-empty\">🎉 Bạn đã ôn xong " + items.length + " câu!</div>";
       }
     });
     nav.appendChild(nextBtn);
@@ -743,26 +883,61 @@ function renderOwnSentenceReview(container, items) {
   draw();
 }
 
+function runWordReviewActivity(minItems, drawFn) {
+  loadPersonalVocabItems().then(function (items) {
+    var area = document.getElementById("reviewPlayArea");
+    if (items.length < minItems) {
+      area.innerHTML = minItems > 1
+        ? "<div class=\"speak-list-empty\">Bạn cần học ít nhất " + minItems + " từ để chơi cái này nhé.</div>"
+        : "<div class=\"speak-list-empty\">Bạn chưa có từ nào để ôn cả.</div>";
+      return;
+    }
+    var breadcrumb = "Từ của " + currentStudent.full_name;
+    var unitId = speakUnitId(currentStudent.id);
+    drawFn(area, breadcrumb, items, unitId);
+  });
+}
+
 function wireReviewButtons() {
   document.getElementById("reviewWordsFlashcardBtn").addEventListener("click", function () {
-    loadPersonalVocabItems().then(function (items) {
-      var area = document.getElementById("reviewPlayArea");
-      if (!items.length) {
-        area.innerHTML = "<div class=\"speak-list-empty\">Con chưa có từ nào để ôn cả.</div>";
-        return;
-      }
-      renderFlashcard(area, "Từ của " + currentStudent.full_name, items, speakUnitId(currentStudent.id));
+    runWordReviewActivity(1, function (area, breadcrumb, items, unitId) {
+      renderFlashcard(area, breadcrumb, items, unitId);
     });
   });
 
-  document.getElementById("reviewWordsQuizBtn").addEventListener("click", function () {
-    loadPersonalVocabItems().then(function (items) {
-      var area = document.getElementById("reviewPlayArea");
-      if (items.length < 4) {
-        area.innerHTML = "<div class=\"speak-list-empty\">Con cần học ít nhất 4 từ để chơi Đố nghĩa nhé.</div>";
-        return;
-      }
-      renderQuiz(area, "Từ của " + currentStudent.full_name, items, speakUnitId(currentStudent.id), 10, "word-to-meaning", true);
+  document.getElementById("reviewWordsFlipCardBtn").addEventListener("click", function () {
+    runWordReviewActivity(1, function (area, breadcrumb, items, unitId) {
+      renderFlipCard(area, breadcrumb, items, unitId);
+    });
+  });
+
+  document.getElementById("reviewWordsEnToViBtn").addEventListener("click", function () {
+    runWordReviewActivity(4, function (area, breadcrumb, items, unitId) {
+      renderQuiz(area, breadcrumb, items, unitId, 10, "word-to-meaning", true);
+    });
+  });
+
+  document.getElementById("reviewWordsViToEnBtn").addEventListener("click", function () {
+    runWordReviewActivity(4, function (area, breadcrumb, items, unitId) {
+      renderQuiz(area, breadcrumb, items, unitId, 10, "text-to-word", true);
+    });
+  });
+
+  document.getElementById("reviewWordsTypingHintBtn").addEventListener("click", function () {
+    runWordReviewActivity(1, function (area, breadcrumb, items, unitId) {
+      renderTyping(area, breadcrumb, items, unitId, 10, "hint");
+    });
+  });
+
+  document.getElementById("reviewWordsTypingBlankBtn").addEventListener("click", function () {
+    runWordReviewActivity(1, function (area, breadcrumb, items, unitId) {
+      renderTyping(area, breadcrumb, items, unitId, 10, "blank");
+    });
+  });
+
+  document.getElementById("reviewWordsListenTypeBtn").addEventListener("click", function () {
+    runWordReviewActivity(1, function (area, breadcrumb, items, unitId) {
+      renderFreeTyping(area, breadcrumb, items, unitId, 10, "audio");
     });
   });
 
@@ -770,7 +945,7 @@ function wireReviewButtons() {
     loadOwnSentenceItems().then(function (items) {
       var area = document.getElementById("reviewPlayArea");
       if (!items.length) {
-        area.innerHTML = "<div class=\"speak-list-empty\">Con chưa lưu câu nào để ôn cả.</div>";
+        area.innerHTML = "<div class=\"speak-list-empty\">Bạn chưa lưu câu nào để ôn cả.</div>";
         return;
       }
       renderOwnSentenceReview(area, items);

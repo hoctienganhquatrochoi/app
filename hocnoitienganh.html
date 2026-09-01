@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nói điều con muốn nói – English for Kids</title>
-<link rel="stylesheet" href="css/style.css?v=20260901a">
-<link rel="stylesheet" href="css/speak.css?v=20260901a">
+<title>Học tiếng Anh từ chính điều bạn muốn nói – English for Kids</title>
+<link rel="stylesheet" href="css/style.css?v=20260901b">
+<link rel="stylesheet" href="css/speak.css?v=20260901b">
 </head>
 <body>
 
@@ -13,8 +13,7 @@
   <div class="banner-left">
     <div class="logo-circle">EK</div>
     <div class="brand-text">
-      <div class="brand-name">Nói điều con muốn nói</div>
-      <div class="brand-slogan">Học tiếng Anh từ chính điều con muốn nói</div>
+      <div class="brand-slogan">Học tiếng Anh từ chính điều bạn muốn nói</div>
     </div>
   </div>
   <div class="banner-right">
@@ -25,13 +24,13 @@
 
 <div class="speak-body" id="speakBody">
   <div class="speak-login-hint" id="speakLoginHint">
-    Con cần đăng nhập để bắt đầu nói điều con muốn nói nhé. Bấm "Đăng nhập học sinh" ở góc trên nhé.
+    Bạn cần đăng nhập để bắt đầu nói điều bạn muốn nói nhé. Bấm "Đăng nhập học sinh" ở góc trên nhé.
   </div>
 
   <div class="speak-views" id="speakViews" style="display:none">
 
     <section class="speak-view" id="view-speak">
-      <h2 class="speak-heading" id="speakHeading">Con muốn nói gì bằng tiếng Anh?</h2>
+      <h2 class="speak-heading" id="speakHeading">Bạn muốn nói gì bằng tiếng Anh?</h2>
 
       <div class="speak-input-row">
         <textarea id="speakInput" class="speak-input" rows="2" placeholder="Nhập hoặc bấm 🎤 để nói bằng tiếng Việt..."></textarea>
@@ -41,10 +40,7 @@
       <div class="speak-status" id="speakStatus"></div>
 
       <div class="speak-result" id="speakResult" style="display:none">
-        <div class="speak-result-label">🇻🇳 Con đã nói</div>
-        <div class="speak-vi-text" id="speakViText"></div>
-
-        <div class="speak-result-label">🇬🇧 Tiếng Anh của con</div>
+        <div class="speak-result-label">🇬🇧 Dịch sang tiếng Anh</div>
         <div class="speak-en-card">
           <div class="speak-en-text" id="speakEnText"></div>
           <div class="speak-en-actions">
@@ -53,9 +49,12 @@
           </div>
         </div>
 
-        <div class="speak-hint">Chạm vào từ con muốn học nhé.</div>
+        <div class="speak-result-label">🇻🇳 Bạn đã nói</div>
+        <div class="speak-vi-text" id="speakViText"></div>
 
-        <button type="button" class="speak-say-again-btn" id="speakSayAgainBtn">🎤 Con nói lại</button>
+        <div class="speak-hint">Chạm vào từ bạn muốn học nhé.</div>
+
+        <button type="button" class="speak-say-again-btn" id="speakSayAgainBtn">🎤 Bạn nói lại</button>
         <div class="speak-say-again-result" id="speakSayAgainResult"></div>
 
         <button type="button" class="speak-save-sentence-btn" id="speakSaveSentenceBtn">❤️ Lưu câu</button>
@@ -63,20 +62,25 @@
     </section>
 
     <section class="speak-view" id="view-sentences" style="display:none">
-      <h2 class="speak-heading" id="sentencesHeading">Câu của con</h2>
+      <h2 class="speak-heading" id="sentencesHeading">Câu của bạn</h2>
       <div class="speak-list" id="sentencesList"></div>
     </section>
 
     <section class="speak-view" id="view-words" style="display:none">
-      <h2 class="speak-heading" id="wordsHeading">Từ của con</h2>
+      <h2 class="speak-heading" id="wordsHeading">Từ của bạn</h2>
       <div class="speak-list" id="wordsList"></div>
     </section>
 
     <section class="speak-view" id="view-review" style="display:none">
-      <h2 class="speak-heading" id="reviewHeading">Ôn của con</h2>
+      <h2 class="speak-heading" id="reviewHeading">Ôn của bạn</h2>
       <div class="speak-review-menu" id="reviewMenu">
-        <button type="button" class="speak-review-btn" id="reviewWordsFlashcardBtn">⭐ Ôn từ – Thẻ đọc</button>
-        <button type="button" class="speak-review-btn" id="reviewWordsQuizBtn">⭐ Ôn từ – Đố nghĩa</button>
+        <button type="button" class="speak-review-btn" id="reviewWordsFlashcardBtn">⭐ Thẻ đọc</button>
+        <button type="button" class="speak-review-btn" id="reviewWordsFlipCardBtn">⭐ Thẻ lật</button>
+        <button type="button" class="speak-review-btn" id="reviewWordsEnToViBtn">⭐ Dịch Anh - Việt</button>
+        <button type="button" class="speak-review-btn" id="reviewWordsViToEnBtn">⭐ Dịch Việt - Anh</button>
+        <button type="button" class="speak-review-btn" id="reviewWordsTypingHintBtn">⭐ Đánh máy có gợi ý</button>
+        <button type="button" class="speak-review-btn" id="reviewWordsTypingBlankBtn">⭐ Đánh máy không gợi ý</button>
+        <button type="button" class="speak-review-btn" id="reviewWordsListenTypeBtn">⭐ Nghe - Đánh máy</button>
         <button type="button" class="speak-review-btn" id="reviewSentencesBtn">❤️ Ôn câu – Nói lại</button>
       </div>
       <div id="reviewPlayArea"></div>
@@ -87,8 +91,8 @@
 
 <nav class="speak-bottom-nav" id="speakBottomNav" style="display:none">
   <button type="button" class="speak-nav-btn active" data-view="speak">💬 Nói</button>
-  <button type="button" class="speak-nav-btn" data-view="sentences">❤️ Câu của con</button>
-  <button type="button" class="speak-nav-btn" data-view="words">⭐ Từ của con</button>
+  <button type="button" class="speak-nav-btn" data-view="sentences">❤️ Câu của bạn</button>
+  <button type="button" class="speak-nav-btn" data-view="words">⭐ Từ của bạn</button>
   <button type="button" class="speak-nav-btn" data-view="review">🎯 Ôn</button>
 </nav>
 
@@ -153,14 +157,17 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase-config.js?v=20260901a"></script>
-<script src="js/utils.js?v=20260901a"></script>
-<script src="js/results.js?v=20260901a"></script>
-<script src="js/flashcard.js?v=20260901a"></script>
-<script src="js/quiz.js?v=20260901a"></script>
-<script src="js/group-ranking.js?v=20260901a"></script>
-<script src="js/today-history.js?v=20260901a"></script>
-<script src="js/auth.js?v=20260901a"></script>
-<script src="js/speak-app.js?v=20260901a"></script>
+<script src="js/supabase-config.js?v=20260901b"></script>
+<script src="js/utils.js?v=20260901b"></script>
+<script src="js/results.js?v=20260901b"></script>
+<script src="js/flashcard.js?v=20260901b"></script>
+<script src="js/flip-card.js?v=20260901b"></script>
+<script src="js/quiz.js?v=20260901b"></script>
+<script src="js/typing.js?v=20260901b"></script>
+<script src="js/typing-free.js?v=20260901b"></script>
+<script src="js/group-ranking.js?v=20260901b"></script>
+<script src="js/today-history.js?v=20260901b"></script>
+<script src="js/auth.js?v=20260901b"></script>
+<script src="js/speak-app.js?v=20260901b"></script>
 </body>
 </html>
