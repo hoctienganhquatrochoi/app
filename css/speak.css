@@ -1,8 +1,9 @@
 /* ---------- Trang "Nói điều con muốn nói" ---------- */
 
 .speak-brand-slogan {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 800;
+  color: #FFFFFF;
 }
 
 .speak-body {
@@ -250,9 +251,9 @@
   flex: 1;
   background: none;
   border: none;
-  color: rgba(244, 233, 203, 0.7);
-  font-size: 12px;
-  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 15px;
+  font-weight: 700;
   padding: 8px 4px;
   border-radius: 12px;
   cursor: pointer;
