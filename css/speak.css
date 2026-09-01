@@ -8,7 +8,7 @@
 .speak-body {
   max-width: 640px;
   margin: 0 auto;
-  padding: 20px 16px 90px;
+  padding: 20px 16px 40px;
 }
 
 .speak-login-hint {
@@ -193,7 +193,9 @@
   opacity: 0.6;
 }
 
-.speak-say-again-btn.recording {
+.speak-say-again-btn.recording,
+.speak-icon-btn.recording,
+.speak-mic-btn.recording {
   background: #E63946;
   color: #FFFFFF;
   animation: speakRecordPulse 1.2s ease-in-out infinite;
@@ -233,19 +235,15 @@
   margin-top: 10px;
 }
 
-/* ---- Điều hướng dưới cùng ---- */
+/* ---- Điều hướng trên cùng ---- */
 
-.speak-bottom-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+.speak-top-nav {
   background: #1B4332;
   display: flex;
-  justify-content: space-around;
-  padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
-  z-index: 40;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .speak-nav-btn {

@@ -1,4 +1,5 @@
 var SPEAK_ADMIN_ALL_STUDENTS = [];
+var SPEAK_ADMIN_GROUPS = [];
 
 var SPEAK_EVENT_LABELS = {
   translation_created: "Dịch câu mới",
@@ -6,7 +7,9 @@ var SPEAK_EVENT_LABELS = {
   voice_input_completed: "Nói xong (mic tiếng Việt)",
   voice_input_failed: "Nói lỗi (mic tiếng Việt)",
   speaking_started: "Bắt đầu luyện nói",
-  speaking_completed: "Luyện nói xong",
+  speaking_completed: "Luyện nói xong (chấm điểm)",
+  sentence_review_started: "Bắt đầu ôn câu đã lưu",
+  sentence_review_completed: "Ôn câu đã lưu xong (chấm điểm)",
   sentence_saved: "Lưu câu",
   vocabulary_opened: "Xem 1 từ",
   vocabulary_saved: "Học 1 từ",
@@ -21,8 +24,9 @@ function formatSpeakEventDetail(type, detail) {
   if (type === "voice_input_completed") {
     return detail.transcript || "";
   }
-  if (type === "speaking_completed") {
-    return "Mục tiêu: " + (detail.target || "") + " | Học sinh nói: " + (detail.spoken || "");
+  if (type === "speaking_completed" || type === "sentence_review_completed") {
+    var scoreText = typeof detail.score === "number" ? detail.score.toFixed(1) + "/10" : "?";
+    return "Mục tiêu: " + (detail.target || "") + " | Điểm: " + scoreText + " (" + (detail.verdict || "") + ")";
   }
   if (type === "vocabulary_saved" || type === "vocabulary_opened") {
     return detail.word || detail.lemma || "";
@@ -33,16 +37,48 @@ function formatSpeakEventDetail(type, detail) {
   return "";
 }
 
+async function loadSpeakAdminGroups() {
+  var result = await supabaseClient
+    .from("game_teaching_groups")
+    .select("id, name")
+    .order("created_at", { ascending: true });
+  SPEAK_ADMIN_GROUPS = result.data || [];
+  populateSpeakAdminGroupSelect();
+}
+
+function populateSpeakAdminGroupSelect() {
+  var select = document.getElementById("speakAdminGroupSelect");
+  var previous = select.value;
+  select.innerHTML = "";
+
+  var placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.text = "-- Chọn Nhóm --";
+  select.appendChild(placeholder);
+
+  SPEAK_ADMIN_GROUPS.forEach(function (g) {
+    var opt = document.createElement("option");
+    opt.value = g.id;
+    opt.text = g.name;
+    select.appendChild(opt);
+  });
+
+  if (previous) {
+    select.value = previous;
+  }
+}
+
 async function loadSpeakAdminStudents() {
   var result = await supabaseClient
     .from("game_students")
-    .select("id, full_name, username")
+    .select("id, full_name, username, group_id")
     .order("full_name", { ascending: true });
   SPEAK_ADMIN_ALL_STUDENTS = result.data || [];
   populateSpeakAdminStudentSelect();
 }
 
 function populateSpeakAdminStudentSelect() {
+  var groupId = document.getElementById("speakAdminGroupSelect").value;
   var select = document.getElementById("speakAdminStudentSelect");
   var previous = select.value;
   select.innerHTML = "";
@@ -52,14 +88,18 @@ function populateSpeakAdminStudentSelect() {
   placeholder.text = "-- Chọn học sinh --";
   select.appendChild(placeholder);
 
-  SPEAK_ADMIN_ALL_STUDENTS.forEach(function (s) {
+  var scoped = groupId
+    ? SPEAK_ADMIN_ALL_STUDENTS.filter(function (s) { return s.group_id === groupId; })
+    : SPEAK_ADMIN_ALL_STUDENTS;
+
+  scoped.forEach(function (s) {
     var opt = document.createElement("option");
     opt.value = s.id;
     opt.text = s.full_name + " (" + s.username + ")";
     select.appendChild(opt);
   });
 
-  if (previous) {
+  if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
     select.value = previous;
   }
 }
@@ -116,7 +156,7 @@ async function loadSpeakAdminDetail() {
   var stats = [
     ["Câu mới hôm nay", countByType("translation_created")],
     ["Từ mới tự chọn hôm nay", countByType("vocabulary_saved")],
-    ["Luyện nói hôm nay", countByType("speaking_completed")],
+    ["Luyện nói hôm nay", countByType("speaking_completed") + countByType("sentence_review_completed")],
     ["Tổng câu đã lưu", sentenceCount],
     ["Tổng từ đã học", vocabCount]
   ];
@@ -180,6 +220,12 @@ async function loadSpeakAdminDetail() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+  loadSpeakAdminGroups();
   loadSpeakAdminStudents();
+  document.getElementById("speakAdminGroupSelect").addEventListener("change", function () {
+    populateSpeakAdminStudentSelect();
+    document.getElementById("speakAdminSummary").innerHTML = "";
+    document.getElementById("speakAdminHistory").innerHTML = "";
+  });
   document.getElementById("speakAdminStudentSelect").addEventListener("change", loadSpeakAdminDetail);
 });

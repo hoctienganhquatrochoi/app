@@ -126,32 +126,6 @@ function normalizeForCompare(text) {
   return (text || "").toLowerCase().replace(/[^a-z0-9' ]/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function compareSpokenText(spoken, target) {
-  if (normalizeForCompare(spoken) === normalizeForCompare(target)) {
-    return "✅ Đúng rồi, giỏi quá!";
-  }
-  var a = normalizeForCompare(spoken).split(" ");
-  var b = normalizeForCompare(target).split(" ");
-  var bCopy = b.slice();
-  var matchCount = 0;
-  a.forEach(function (word) {
-    var idx = bCopy.indexOf(word);
-    if (idx !== -1) {
-      matchCount++;
-      bCopy.splice(idx, 1);
-    }
-  });
-  var ratio = b.length ? matchCount / b.length : 0;
-  if (ratio >= 0.6) {
-    return "🟡 Gần đúng rồi, thử lại cho chuẩn hơn nhé!";
-  }
-  return "🔁 Bạn thử nói lại nhé!";
-}
-
-function getSpeechRecognitionCtor() {
-  return window.SpeechRecognition || window.webkitSpeechRecognition;
-}
-
 // ---------- Ghi âm + chấm bài nói bằng AI (câu, không dùng cho từ vựng) ----------
 
 function getSupportedAudioMimeType() {
@@ -218,6 +192,8 @@ function renderGradeFeedback(resultEl, graded) {
   if (graded.praise) {
     appendGradeLine(resultEl, "speak-grade-line", "🌟 " + graded.praise);
   }
+  // Kết quả có thể dài hơn màn hình điện thoại — cuộn tới để chắc chắn học sinh thấy ngay, không bị hụt mất.
+  resultEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 // Gắn ghi âm + chấm điểm AI vào 1 nút bấm cụ thể — dùng chung cho nút "Bạn nói lại" ở tab Nói
@@ -352,7 +328,7 @@ function wireSpeakInput() {
     }, 900);
   });
 
-  document.getElementById("speakMicVi").addEventListener("click", startViMic);
+  document.getElementById("speakMicVi").addEventListener("click", toggleViRecording);
   document.getElementById("speakListenNormal").addEventListener("click", function () {
     playSpeakUrlNormal(currentSentenceAudioEnUrl, currentSentenceEnglish);
   });
@@ -397,34 +373,95 @@ async function handleMainSentenceGraded(graded, targetText) {
   }
 }
 
-function startViMic() {
-  var Recognition = getSpeechRecognitionCtor();
-  var input = document.getElementById("speakInput");
+// Ghi âm tiếng Việt rồi gửi cho backend (speak-stt) nhận diện, thay vì SpeechRecognition trình duyệt —
+// SpeechRecognition không ổn định trên Safari/iPhone (đã xác nhận qua test thật), nên đổi sang cùng
+// kiểu ghi âm + gửi backend như phần chấm điểm, có nút bấm rõ ràng để báo "nói xong" thay vì tự đoán.
+var viRecorder = null;
+var viAudioChunks = [];
+
+function toggleViRecording() {
+  if (viRecorder && viRecorder.state === "recording") {
+    viRecorder.stop();
+    return;
+  }
+  startViRecording();
+}
+
+async function startViRecording() {
+  var btn = document.getElementById("speakMicVi");
   var statusEl = document.getElementById("speakStatus");
 
-  if (!Recognition) {
-    statusEl.textContent = "Trình duyệt này chưa hỗ trợ nhận diện giọng nói, bạn gõ chữ nhé.";
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+    statusEl.textContent = "Trình duyệt này chưa hỗ trợ ghi âm, bạn gõ chữ nhé.";
     return;
   }
 
-  var recognizer = new Recognition();
-  recognizer.lang = "vi-VN";
-  recognizer.maxAlternatives = 1;
-  statusEl.textContent = "Đang nghe bạn nói...";
-  logSpeakEvent("voice_input_started", {});
+  var mimeType = getSupportedAudioMimeType();
+  var stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    statusEl.textContent = "Cần cho phép dùng micro để nói nhé.";
+    return;
+  }
 
-  recognizer.onresult = function (e) {
-    var transcript = e.results[0][0].transcript;
-    input.value = transcript;
-    statusEl.textContent = "";
-    logSpeakEvent("voice_input_completed", { transcript: transcript });
-    runTranslate(transcript);
+  viAudioChunks = [];
+  viRecorder = mimeType ? new MediaRecorder(stream, { mimeType: mimeType }) : new MediaRecorder(stream);
+  var usedMimeType = viRecorder.mimeType || mimeType || "audio/webm";
+
+  viRecorder.ondataavailable = function (e) {
+    if (e.data && e.data.size > 0) {
+      viAudioChunks.push(e.data);
+    }
   };
-  recognizer.onerror = function () {
+  viRecorder.onstop = function () {
+    stream.getTracks().forEach(function (t) { t.stop(); });
+    btn.textContent = "🎤";
+    btn.classList.remove("recording");
+    var blob = new Blob(viAudioChunks, { type: usedMimeType });
+    handleViRecordingDone(blob, usedMimeType);
+  };
+
+  viRecorder.start();
+  btn.textContent = "⏹";
+  btn.classList.add("recording");
+  statusEl.textContent = "Đang nghe... bấm ⏹ khi bạn nói xong nhé.";
+  logSpeakEvent("voice_input_started", {});
+}
+
+async function handleViRecordingDone(blob, mimeType) {
+  var input = document.getElementById("speakInput");
+  var statusEl = document.getElementById("speakStatus");
+  statusEl.textContent = "Đang nhận diện...";
+
+  var audioBase64 = await blobToBase64(blob);
+  var resp;
+  try {
+    resp = await fetch(SPEAK_STT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ audioBase64: audioBase64, mimeType: mimeType })
+    });
+  } catch (err) {
+    statusEl.textContent = "Không kết nối được, bạn thử lại nhé.";
+    logSpeakEvent("voice_input_failed", {});
+    return;
+  }
+
+  var data = await resp.json().catch(function () { return null; });
+  if (!resp.ok || !data || data.error || !data.transcript) {
     statusEl.textContent = "Không nghe rõ, bạn thử lại nhé.";
     logSpeakEvent("voice_input_failed", {});
-  };
-  recognizer.start();
+    return;
+  }
+
+  input.value = data.transcript;
+  statusEl.textContent = "";
+  logSpeakEvent("voice_input_completed", { transcript: data.transcript });
+  runTranslate(data.transcript);
 }
 
 async function runTranslate(text) {
@@ -555,39 +592,18 @@ function wireWordCard() {
     }
   });
 
-  document.getElementById("wordCardSayBtn").addEventListener("click", function () {
-    if (!currentWordCardData) {
-      return;
+  createRecordGradeController(
+    document.getElementById("wordCardSayBtn"),
+    document.getElementById("wordCardSayResult"),
+    "word",
+    {
+      idleLabel: "🎤",
+      getTargetText: function () { return currentWordCardData ? currentWordCardData.lemma : ""; },
+      startedEvent: "speaking_started",
+      completedEvent: "speaking_completed",
+      onGraded: handleWordCardGraded
     }
-    var Recognition = getSpeechRecognitionCtor();
-    var resultEl = document.getElementById("wordCardSayResult");
-    if (!Recognition) {
-      resultEl.textContent = "Trình duyệt chưa hỗ trợ.";
-      return;
-    }
-    var recognizer = new Recognition();
-    recognizer.lang = "en-US";
-    resultEl.textContent = "Đang nghe...";
-    recognizer.onresult = function (e) {
-      var spoken = e.results[0][0].transcript;
-      var verdict = compareSpokenText(spoken, currentWordCardData.lemma);
-      resultEl.textContent = verdict;
-
-      if (verdict.indexOf("✅") === 0) {
-        wordCardSayFailCount = 0;
-        return;
-      }
-      wordCardSayFailCount++;
-      if (wordCardSayFailCount > SAY_AGAIN_FAIL_LIMIT && currentStudent) {
-        resultEl.textContent += " — Từ này bạn cần luyện thêm, mình tự thêm vào ⭐ Từ vựng để ôn lại nhé!";
-        saveWordToVocab();
-      }
-    };
-    recognizer.onerror = function () {
-      resultEl.textContent = "Không nghe rõ, thử lại nhé.";
-    };
-    recognizer.start();
-  });
+  );
 
   document.getElementById("wordCardLearnBtn").addEventListener("click", saveWord);
   document.getElementById("wordCardCloseBtn").addEventListener("click", function () {
@@ -598,6 +614,22 @@ function wireWordCard() {
       this.style.display = "none";
     }
   });
+}
+
+function handleWordCardGraded(graded) {
+  var resultEl = document.getElementById("wordCardSayResult");
+  renderGradeFeedback(resultEl, graded);
+
+  if (graded.verdict === "pass") {
+    wordCardSayFailCount = 0;
+    return;
+  }
+
+  wordCardSayFailCount++;
+  if (wordCardSayFailCount > SAY_AGAIN_FAIL_LIMIT && currentStudent) {
+    appendGradeLine(resultEl, "speak-grade-line", "— Từ này bạn cần luyện thêm, mình tự thêm vào ⭐ Từ vựng để ôn lại nhé!");
+    saveWordToVocab();
+  }
 }
 
 function openWordCard(surfaceWord, sentence) {
