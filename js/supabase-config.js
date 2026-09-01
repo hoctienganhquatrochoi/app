@@ -15,4 +15,7 @@ var SPEAK_TRANSLATE_URL = SUPABASE_URL + "/functions/v1/speak-translate";
 // URL của Edge Function "speak-vocab-analyze" sau khi deploy (trang hocnoitienganh.html)
 var SPEAK_VOCAB_ANALYZE_URL = SUPABASE_URL + "/functions/v1/speak-vocab-analyze";
 
+// URL của Edge Function "speak-grade" sau khi deploy (trang hocnoitienganh.html)
+var SPEAK_GRADE_URL = SUPABASE_URL + "/functions/v1/speak-grade";
+
 var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

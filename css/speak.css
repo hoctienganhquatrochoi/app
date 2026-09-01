@@ -188,6 +188,46 @@
   opacity: 0.6;
 }
 
+.speak-say-again-btn.recording {
+  background: #E63946;
+  color: #FFFFFF;
+  animation: speakRecordPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes speakRecordPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.speak-daily-progress {
+  text-align: center;
+  color: #8AA093;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.speak-grade-score {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1B4332;
+  margin-top: 4px;
+}
+
+.speak-grade-line {
+  font-size: 14px;
+  color: #1B4332;
+  margin-top: 6px;
+  text-align: left;
+}
+
+.speak-grade-progress {
+  font-size: 14px;
+  font-weight: 700;
+  color: #E63946;
+  margin-top: 10px;
+}
+
 /* ---- Điều hướng dưới cùng ---- */
 
 .speak-bottom-nav {

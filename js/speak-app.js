@@ -41,6 +41,7 @@ function updateSpeakAuthUI() {
 
   refreshSentencesList();
   refreshWordsList();
+  refreshDailyProgress();
 }
 
 function speakSlow(text) {
@@ -154,6 +155,208 @@ function getSpeechRecognitionCtor() {
   return window.SpeechRecognition || window.webkitSpeechRecognition;
 }
 
+// ---------- Ghi âm + chấm bài nói bằng AI (chỉ dùng cho "🎤 Bạn nói lại" ở tab Nói) ----------
+
+var sentenceRecorder = null;
+var sentenceAudioChunks = [];
+
+function getSupportedAudioMimeType() {
+  var candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac", "audio/ogg"];
+  var i;
+  for (i = 0; i < candidates.length; i++) {
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(candidates[i])) {
+      return candidates[i];
+    }
+  }
+  return "";
+}
+
+function blobToBase64(blob) {
+  return new Promise(function (resolve, reject) {
+    var reader = new FileReader();
+    reader.onloadend = function () {
+      resolve(reader.result.split(",")[1]);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function gradeSpeakingAudio(targetText, kind, audioBlob, mimeType) {
+  var audioBase64 = await blobToBase64(audioBlob);
+  var resp;
+  try {
+    resp = await fetch(SPEAK_GRADE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ targetText: targetText, kind: kind, audioBase64: audioBase64, mimeType: mimeType })
+    });
+  } catch (err) {
+    return null;
+  }
+  var data = await resp.json().catch(function () { return null; });
+  if (!resp.ok || !data || data.error) {
+    return null;
+  }
+  return data;
+}
+
+function toggleSentenceRecording() {
+  if (sentenceRecorder && sentenceRecorder.state === "recording") {
+    sentenceRecorder.stop();
+    return;
+  }
+  startSentenceRecording();
+}
+
+async function startSentenceRecording() {
+  var btn = document.getElementById("speakSayAgainBtn");
+  var resultEl = document.getElementById("speakSayAgainResult");
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+    resultEl.textContent = "Trình duyệt này chưa hỗ trợ ghi âm.";
+    return;
+  }
+  if (!currentSentenceEnglish) {
+    return;
+  }
+
+  var mimeType = getSupportedAudioMimeType();
+  var stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    resultEl.textContent = "Cần cho phép dùng micro để luyện nói nhé.";
+    return;
+  }
+
+  sentenceAudioChunks = [];
+  sentenceRecorder = mimeType ? new MediaRecorder(stream, { mimeType: mimeType }) : new MediaRecorder(stream);
+  var usedMimeType = sentenceRecorder.mimeType || mimeType || "audio/webm";
+
+  sentenceRecorder.ondataavailable = function (e) {
+    if (e.data && e.data.size > 0) {
+      sentenceAudioChunks.push(e.data);
+    }
+  };
+  sentenceRecorder.onstop = function () {
+    stream.getTracks().forEach(function (t) { t.stop(); });
+    btn.textContent = "🎤 Bạn nói lại";
+    btn.classList.remove("recording");
+    var blob = new Blob(sentenceAudioChunks, { type: usedMimeType });
+    handleSentenceRecordingDone(blob, usedMimeType);
+  };
+
+  sentenceRecorder.start();
+  btn.textContent = "⏹ Dừng lại";
+  btn.classList.add("recording");
+  resultEl.innerHTML = "";
+  resultEl.textContent = "Đang ghi âm... bấm lại để dừng.";
+}
+
+async function handleSentenceRecordingDone(blob, mimeType) {
+  var resultEl = document.getElementById("speakSayAgainResult");
+  resultEl.textContent = "Đang chấm...";
+  logSpeakEvent("speaking_started", { target: currentSentenceEnglish });
+
+  var graded = await gradeSpeakingAudio(currentSentenceEnglish, "sentence", blob, mimeType);
+  if (!graded) {
+    resultEl.textContent = "Chưa chấm được, thử lại nhé.";
+    return;
+  }
+
+  renderSentenceGradeResult(resultEl, graded);
+}
+
+function appendGradeLine(resultEl, className, text) {
+  var line = document.createElement("div");
+  line.className = className;
+  line.textContent = text;
+  resultEl.appendChild(line);
+  return line;
+}
+
+async function renderSentenceGradeResult(resultEl, graded) {
+  resultEl.innerHTML = "";
+
+  appendGradeLine(resultEl, "speak-grade-score", "📊 " + (typeof graded.score === "number" ? graded.score.toFixed(1) : "?") + "/10");
+  if (graded.pronunciation_feedback) {
+    appendGradeLine(resultEl, "speak-grade-line", "🗣️ " + graded.pronunciation_feedback);
+  }
+  if (graded.fluency_feedback) {
+    appendGradeLine(resultEl, "speak-grade-line", "🌊 " + graded.fluency_feedback);
+  }
+  if (graded.praise) {
+    appendGradeLine(resultEl, "speak-grade-line", "🌟 " + graded.praise);
+  }
+
+  logSpeakEvent("speaking_completed", { target: currentSentenceEnglish, verdict: graded.verdict, score: graded.score });
+
+  if (graded.verdict === "pass") {
+    sentenceSayFailCount = 0;
+    var dailyInfo = await checkAndCountDailySentence(currentSentenceEnglish);
+    if (dailyInfo.thisSentenceCount > 1) {
+      appendGradeLine(resultEl, "speak-grade-progress", "🔁 Bạn hãy học câu mới vì câu \"" + currentSentenceEnglish + "\" bạn nói tốt rồi!");
+    } else {
+      appendGradeLine(resultEl, "speak-grade-progress", "🎯 Hôm nay: " + dailyInfo.distinctCount + "/10 câu");
+    }
+    refreshDailyProgress(dailyInfo.distinctCount);
+    return;
+  }
+
+  sentenceSayFailCount++;
+  if (sentenceSayFailCount > SAY_AGAIN_FAIL_LIMIT && currentStudent) {
+    appendGradeLine(resultEl, "speak-grade-line", "— Câu này bạn cần luyện thêm, mình tự lưu vào ❤️ Câu của bạn để ôn lại nhé!");
+    saveSentence();
+  }
+}
+
+// Đếm số câu KHÁC NHAU đã nói đạt (verdict "pass") hôm nay, dựa vào log game_speak_events —
+// không cần thêm bảng/cột riêng cho quota "10 câu/ngày".
+async function checkAndCountDailySentence(englishText) {
+  var todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  var fromIso = todayStart.toISOString();
+
+  var result = await supabaseClient
+    .from("game_speak_events")
+    .select("detail")
+    .eq("student_id", currentStudent.id)
+    .eq("event_type", "speaking_completed")
+    .gte("created_at", fromIso);
+
+  var counts = {};
+  (result.data || []).forEach(function (row) {
+    var d = row.detail || {};
+    if (d.verdict === "pass" && d.target) {
+      var key = normalizeForCompare(d.target);
+      counts[key] = (counts[key] || 0) + 1;
+    }
+  });
+
+  var normalized = normalizeForCompare(englishText);
+  return {
+    distinctCount: Object.keys(counts).length,
+    thisSentenceCount: counts[normalized] || 0
+  };
+}
+
+async function refreshDailyProgress(knownDistinctCount) {
+  var el = document.getElementById("speakDailyProgress");
+  if (!el || !currentStudent) {
+    return;
+  }
+  if (typeof knownDistinctCount === "number") {
+    el.textContent = "🎯 Hôm nay: " + knownDistinctCount + "/10 câu tiếng Anh";
+    return;
+  }
+  var info = await checkAndCountDailySentence("");
+  el.textContent = "🎯 Hôm nay: " + info.distinctCount + "/10 câu tiếng Anh";
+}
+
 // ---------- Khu vực "Nói" ----------
 
 function wireSpeakInput() {
@@ -177,7 +380,7 @@ function wireSpeakInput() {
   document.getElementById("speakListenSlow").addEventListener("click", function () {
     playSpeakUrlSlow(currentSentenceAudioEnUrl, currentSentenceEnglish);
   });
-  document.getElementById("speakSayAgainBtn").addEventListener("click", startSayAgainMic);
+  document.getElementById("speakSayAgainBtn").addEventListener("click", toggleSentenceRecording);
   document.getElementById("speakSaveSentenceBtn").addEventListener("click", saveSentence);
 }
 
@@ -298,46 +501,6 @@ function renderEnglishSentenceTokens(text) {
       container.appendChild(document.createTextNode(piece));
     }
   }
-}
-
-function startSayAgainMic() {
-  var Recognition = getSpeechRecognitionCtor();
-  var resultEl = document.getElementById("speakSayAgainResult");
-
-  if (!Recognition) {
-    resultEl.textContent = "Trình duyệt này chưa hỗ trợ nhận diện giọng nói.";
-    return;
-  }
-  if (!currentSentenceEnglish) {
-    return;
-  }
-
-  var recognizer = new Recognition();
-  recognizer.lang = "en-US";
-  recognizer.maxAlternatives = 1;
-  resultEl.textContent = "Đang nghe...";
-  logSpeakEvent("speaking_started", { target: currentSentenceEnglish });
-
-  recognizer.onresult = function (e) {
-    var spoken = e.results[0][0].transcript;
-    var verdict = compareSpokenText(spoken, currentSentenceEnglish);
-    resultEl.textContent = verdict + " (\"" + spoken + "\")";
-    logSpeakEvent("speaking_completed", { target: currentSentenceEnglish, spoken: spoken });
-
-    if (verdict.indexOf("✅") === 0) {
-      sentenceSayFailCount = 0;
-      return;
-    }
-    sentenceSayFailCount++;
-    if (sentenceSayFailCount > SAY_AGAIN_FAIL_LIMIT && currentStudent) {
-      resultEl.textContent += " — Câu này bạn cần luyện thêm, mình tự lưu vào ❤️ Câu của bạn để ôn lại nhé!";
-      saveSentence();
-    }
-  };
-  recognizer.onerror = function () {
-    resultEl.textContent = "Không nghe rõ, bạn thử lại nhé.";
-  };
-  recognizer.start();
 }
 
 async function saveSentence() {
