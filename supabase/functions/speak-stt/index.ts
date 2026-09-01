@@ -14,7 +14,8 @@ const CORS_HEADERS = {
 const SYSTEM_INSTRUCTION =
   "Bạn là bộ máy chuyển giọng nói tiếng Việt thành chữ (speech-to-text) cho ứng dụng học tiếng Anh của học sinh " +
   "tiểu học Việt Nam. Nghe đoạn audio và trả về CHÍNH XÁC nội dung nghe được, viết bằng chữ tiếng Việt có dấu đầy đủ, " +
-  "không thêm bớt, không diễn giải, không dịch sang ngôn ngữ khác, không thêm dấu câu nếu học sinh không nói ngắt câu rõ. " +
+  "không thêm bớt, không diễn giải, không dịch sang ngôn ngữ khác. Luôn thêm dấu câu phù hợp cho dễ đọc — quan trọng nhất " +
+  "là LUÔN kết thúc câu bằng dấu chấm câu (., ?, hoặc !) phù hợp với nội dung, kể cả khi học sinh nói không ngắt nghỉ rõ. " +
   "Nếu audio im lặng, quá nhiễu để nghe rõ, hoặc không phải tiếng Việt thì trả về chuỗi rỗng cho transcript.";
 
 const RESPONSE_SCHEMA = {

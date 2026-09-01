@@ -139,6 +139,19 @@ function getSupportedAudioMimeType() {
   return "";
 }
 
+// Xin quyền micro 1 lần rồi dùng lại cho mọi lượt ghi âm sau (4 nút mic khác nhau trên trang này) —
+// tránh trình duyệt/Safari hỏi lại "cho phép dùng micro" mỗi lần bấm, vì trước đó mỗi lượt ghi âm
+// đều gọi getUserMedia rồi stop() hẳn track, khiến quyền không được giữ liên tục.
+var sharedMicStream = null;
+
+async function getSharedMicStream() {
+  if (sharedMicStream && sharedMicStream.getTracks().some(function (t) { return t.readyState === "live"; })) {
+    return sharedMicStream;
+  }
+  sharedMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  return sharedMicStream;
+}
+
 function blobToBase64(blob) {
   return new Promise(function (resolve, reject) {
     var reader = new FileReader();
@@ -224,7 +237,7 @@ function createRecordGradeController(btn, resultEl, kind, options) {
     var mimeType = getSupportedAudioMimeType();
     var stream;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream = await getSharedMicStream();
     } catch (err) {
       resultEl.textContent = "Cần cho phép dùng micro để luyện nói nhé.";
       return;
@@ -240,7 +253,6 @@ function createRecordGradeController(btn, resultEl, kind, options) {
       }
     };
     recorder.onstop = function () {
-      stream.getTracks().forEach(function (t) { t.stop(); });
       btn.textContent = idleLabel;
       btn.classList.remove("recording");
       var blob = new Blob(chunks, { type: usedMimeType });
@@ -399,7 +411,7 @@ async function startViRecording() {
   var mimeType = getSupportedAudioMimeType();
   var stream;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream = await getSharedMicStream();
   } catch (err) {
     statusEl.textContent = "Cần cho phép dùng micro để nói nhé.";
     return;
@@ -415,7 +427,6 @@ async function startViRecording() {
     }
   };
   viRecorder.onstop = function () {
-    stream.getTracks().forEach(function (t) { t.stop(); });
     btn.textContent = "🎤";
     btn.classList.remove("recording");
     var blob = new Blob(viAudioChunks, { type: usedMimeType });
@@ -574,6 +585,7 @@ async function saveSentence() {
 
   if (insertResult.error) {
     btn.disabled = false;
+    btn.textContent = "❤️ Lưu chưa được, thử lại nhé";
     return;
   }
 
