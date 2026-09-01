@@ -877,6 +877,8 @@ async function refreshWordsList() {
     return;
   }
   var listEl = document.getElementById("wordsList");
+  listEl.style.display = "block";
+  document.getElementById("reviewPlayArea").innerHTML = "";
   listEl.innerHTML = "<div class=\"speak-list-loading\">Đang tải...</div>";
 
   var result = await supabaseClient
@@ -1023,6 +1025,7 @@ function updateSentenceReviewStats(row, correct) {
 function runWordReviewActivity(minItems, drawFn) {
   loadPersonalVocabItems().then(function (items) {
     var area = document.getElementById("reviewPlayArea");
+    document.getElementById("wordsList").style.display = "none";
     if (items.length < minItems) {
       area.innerHTML = minItems > 1
         ? "<div class=\"speak-list-empty\">Bạn cần học ít nhất " + minItems + " từ để chơi cái này nhé.</div>"
