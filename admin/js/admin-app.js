@@ -12,6 +12,7 @@ function switchTab(target) {
   document.getElementById("contentPanel").style.display = target === "content" ? "block" : "none";
   document.getElementById("studentsPanel").style.display = target === "students" ? "block" : "none";
   document.getElementById("resultsPanel").style.display = target === "results" ? "block" : "none";
+  document.getElementById("speakPanel").style.display = target === "speak" ? "block" : "none";
 
   if (target === "results") {
     loadResults();

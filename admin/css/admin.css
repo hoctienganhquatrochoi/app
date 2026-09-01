@@ -544,3 +544,29 @@ tr.editing-row {
   font-size: 13px;
 }
 
+.speak-admin-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.speak-admin-stat-box {
+  background: #F4F8F5;
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+
+.speak-admin-stat-num {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1B4332;
+}
+
+.speak-admin-stat-label {
+  font-size: 12px;
+  color: #6B7A70;
+  margin-top: 4px;
+}
+

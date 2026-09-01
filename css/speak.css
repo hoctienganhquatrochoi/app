@@ -1,0 +1,392 @@
+/* ---------- Trang "Nói điều con muốn nói" ---------- */
+
+.speak-body {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px 90px;
+}
+
+.speak-login-hint {
+  text-align: center;
+  color: #556355;
+  font-size: 16px;
+  padding: 60px 16px;
+  line-height: 1.6;
+}
+
+.speak-view {
+  animation: speakFadeIn 0.15s ease;
+}
+
+@keyframes speakFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.speak-heading {
+  color: #1B4332;
+  font-size: 22px;
+  margin: 4px 0 18px;
+  text-align: center;
+}
+
+/* ---- Khu vực Nói ---- */
+
+.speak-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 2px solid #DCEAE2;
+  border-radius: 18px;
+  padding: 10px;
+}
+
+.speak-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: 17px;
+  font-family: inherit;
+  color: #1B4332;
+  background: transparent;
+  padding: 6px;
+}
+
+.speak-mic-btn {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: #1B4332;
+  color: #F4E9CB;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.speak-mic-btn:active {
+  transform: scale(0.95);
+}
+
+.speak-status {
+  text-align: center;
+  color: #556355;
+  font-size: 15px;
+  margin-top: 14px;
+  min-height: 20px;
+}
+
+.speak-result {
+  margin-top: 18px;
+}
+
+.speak-result-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #8AA093;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 16px 0 6px;
+}
+
+.speak-vi-text {
+  font-size: 18px;
+  color: #1B4332;
+}
+
+.speak-en-card {
+  background: #DCEAE2;
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.speak-en-text {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1B4332;
+  line-height: 1.5;
+}
+
+.speak-word-token {
+  cursor: pointer;
+  border-bottom: 2px dashed #1B4332;
+  border-radius: 4px;
+  padding: 0 1px;
+}
+
+.speak-word-token:hover,
+.speak-word-token:active {
+  background: #F4E9CB;
+}
+
+.speak-en-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.speak-icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: #FFFFFF;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(27, 67, 50, 0.15);
+}
+
+.speak-hint {
+  text-align: center;
+  color: #8AA093;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.speak-say-again-btn {
+  display: block;
+  margin: 18px auto 0;
+  background: #F4E9CB;
+  color: #1B4332;
+  border: none;
+  border-radius: 22px;
+  padding: 12px 26px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.speak-say-again-result {
+  text-align: center;
+  font-size: 15px;
+  color: #1B4332;
+  margin-top: 10px;
+  min-height: 20px;
+}
+
+.speak-save-sentence-btn {
+  display: block;
+  margin: 18px auto 0;
+  background: none;
+  border: 2px solid #E63946;
+  color: #E63946;
+  border-radius: 22px;
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.speak-save-sentence-btn:disabled {
+  opacity: 0.6;
+}
+
+/* ---- Điều hướng dưới cùng ---- */
+
+.speak-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #1B4332;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 40;
+}
+
+.speak-nav-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: rgba(244, 233, 203, 0.7);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 4px;
+  border-radius: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.speak-nav-btn.active {
+  color: #1B4332;
+  background: #F4E9CB;
+}
+
+/* ---- Thẻ từ (popup khi bấm 1 từ) ---- */
+
+.speak-word-card {
+  max-width: 320px;
+  flex-direction: column;
+  padding: 34px 24px 24px;
+}
+
+.speak-word-card-body {
+  width: 100%;
+}
+
+.speak-word-lemma {
+  font-size: 26px;
+  font-weight: 800;
+  color: #1B4332;
+}
+
+.speak-word-pronunciation {
+  color: #8AA093;
+  font-size: 15px;
+  margin-top: 2px;
+  min-height: 18px;
+}
+
+.speak-word-meaning {
+  font-size: 18px;
+  color: #1B4332;
+  margin-top: 10px;
+}
+
+.speak-word-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.speak-word-say-result {
+  font-size: 14px;
+  color: #1B4332;
+  margin-top: 8px;
+  min-height: 18px;
+}
+
+.speak-learn-word-btn {
+  display: block;
+  margin: 18px auto 0;
+  background: #E63946;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 22px;
+  padding: 12px 26px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.speak-learn-word-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.speak-word-status {
+  text-align: center;
+  font-size: 13px;
+  color: #556355;
+  margin-top: 10px;
+  min-height: 16px;
+}
+
+/* ---- Câu của con / Từ của con ---- */
+
+.speak-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.speak-list-card {
+  background: #FFFFFF;
+  border: 1px solid #DCEAE2;
+  border-radius: 16px;
+  padding: 14px 16px;
+  position: relative;
+}
+
+.speak-list-vi {
+  color: #8AA093;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.speak-list-en {
+  color: #1B4332;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.speak-list-word {
+  color: #1B4332;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.speak-list-example {
+  color: #8AA093;
+  font-size: 13px;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.speak-list-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.speak-list-actions .speak-icon-btn {
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+}
+
+.speak-list-empty,
+.speak-list-loading {
+  text-align: center;
+  color: #8AA093;
+  font-size: 15px;
+  padding: 40px 16px;
+}
+
+/* ---- Ôn của con ---- */
+
+.speak-review-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.speak-review-btn {
+  background: #DCEAE2;
+  color: #1B4332;
+  border: none;
+  border-radius: 16px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+
+.speak-review-reveal {
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1B4332;
+  margin-top: 12px;
+  min-height: 22px;
+}
+
+@media (max-width: 480px) {
+  .speak-en-card {
+    flex-direction: column;
+  }
+  .speak-en-actions {
+    flex-direction: row;
+  }
+}

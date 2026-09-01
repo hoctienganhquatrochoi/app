@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị – English for Kids</title>
-<link rel="stylesheet" href="../css/style.css?v=20260813d">
-<link rel="stylesheet" href="css/admin.css?v=20260729u">
+<link rel="stylesheet" href="../css/style.css?v=20260901a">
+<link rel="stylesheet" href="css/admin.css?v=20260901a">
 </head>
 <body>
 
@@ -129,6 +129,7 @@
     <button class="admin-tab active" type="button" data-tab="content">Nội dung bài học</button>
     <button class="admin-tab" type="button" data-tab="students">Học sinh</button>
     <button class="admin-tab" type="button" data-tab="results">Kết quả</button>
+    <button class="admin-tab" type="button" data-tab="speak">Nói điều con muốn nói</button>
   </nav>
 
   <section class="admin-panel" id="contentPanel">
@@ -1083,32 +1084,48 @@ What is Alex's family name?
     <h3 style="margin-top: 28px;">Theo câu hỏi</h3>
     <div id="resultsByQuestionWrap"></div>
   </section>
+
+  <section class="admin-panel" id="speakPanel" style="display:none">
+    <h2>Nói điều con muốn nói</h2>
+    <p class="admin-hint">Xem câu và từ vựng học sinh tự tạo ra ở trang <a href="../hocnoitienganh.html" target="_blank" rel="noopener">hocnoitienganh.html</a>.</p>
+
+    <div class="admin-form-row">
+      <div class="admin-field">
+        <label>Chọn học sinh</label>
+        <select class="admin-select" id="speakAdminStudentSelect"></select>
+      </div>
+    </div>
+
+    <div id="speakAdminSummary"></div>
+    <div id="speakAdminHistory"></div>
+  </section>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="../js/data.js?v=20260729u"></script>
-<script src="../js/supabase-config.js?v=20260729u"></script>
-<script src="js/admin-auth.js?v=20260804b"></script>
-<script src="../js/utils.js?v=20260829a"></script>
-<script src="../js/curriculum-data.js?v=20260821a"></script>
-<script src="js/content-admin.js?v=20260829a"></script>
-<script src="js/sentences-admin.js?v=20260829a"></script>
-<script src="js/grammar-admin.js?v=20260829a"></script>
-<script src="js/math-admin.js?v=20260829a"></script>
-<script src="js/text-dragfill-admin.js?v=20260829a"></script>
-<script src="js/test-sections-admin.js?v=20260821a"></script>
-<script src="js/photo-quiz-admin.js?v=20260829a"></script>
-<script src="js/speaking-admin.js?v=20260729u"></script>
-<script src="js/wordwall-admin.js?v=20260729u"></script>
-<script src="js/wordwall-templates-admin.js?v=20260729u"></script>
-<script src="js/groups-admin.js?v=20260821b"></script>
-<script src="js/students-admin.js?v=20260729u"></script>
-<script src="js/assignments-admin.js?v=20260729u"></script>
-<script src="js/results-admin.js?v=20260729zk"></script>
-<script src="js/activity-toggles-admin.js?v=20260729u"></script>
-<script src="js/curriculum-admin.js?v=20260819a"></script>
-<script src="js/admin-app.js?v=20260829a"></script>
+<script src="../js/data.js?v=20260901a"></script>
+<script src="../js/supabase-config.js?v=20260901a"></script>
+<script src="js/admin-auth.js?v=20260901a"></script>
+<script src="../js/utils.js?v=20260901a"></script>
+<script src="../js/curriculum-data.js?v=20260901a"></script>
+<script src="js/content-admin.js?v=20260901a"></script>
+<script src="js/sentences-admin.js?v=20260901a"></script>
+<script src="js/grammar-admin.js?v=20260901a"></script>
+<script src="js/math-admin.js?v=20260901a"></script>
+<script src="js/text-dragfill-admin.js?v=20260901a"></script>
+<script src="js/test-sections-admin.js?v=20260901a"></script>
+<script src="js/photo-quiz-admin.js?v=20260901a"></script>
+<script src="js/speaking-admin.js?v=20260901a"></script>
+<script src="js/wordwall-admin.js?v=20260901a"></script>
+<script src="js/wordwall-templates-admin.js?v=20260901a"></script>
+<script src="js/groups-admin.js?v=20260901a"></script>
+<script src="js/students-admin.js?v=20260901a"></script>
+<script src="js/assignments-admin.js?v=20260901a"></script>
+<script src="js/results-admin.js?v=20260901a"></script>
+<script src="js/activity-toggles-admin.js?v=20260901a"></script>
+<script src="js/curriculum-admin.js?v=20260901a"></script>
+<script src="js/speak-admin.js?v=20260901a"></script>
+<script src="js/admin-app.js?v=20260901a"></script>
 </body>
 </html>

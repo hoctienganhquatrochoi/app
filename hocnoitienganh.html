@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nói điều con muốn nói – English for Kids</title>
+<link rel="stylesheet" href="css/style.css?v=20260901a">
+<link rel="stylesheet" href="css/speak.css?v=20260901a">
+</head>
+<body>
+
+<header class="banner">
+  <div class="banner-left">
+    <div class="logo-circle">EK</div>
+    <div class="brand-text">
+      <div class="brand-name">Nói điều con muốn nói</div>
+      <div class="brand-slogan">Học tiếng Anh từ chính điều con muốn nói</div>
+    </div>
+  </div>
+  <div class="banner-right">
+    <a class="social-icon" href="index.html" title="Về trang học chính" aria-label="Về trang học chính">🏠</a>
+    <div id="authArea"></div>
+  </div>
+</header>
+
+<div class="speak-body" id="speakBody">
+  <div class="speak-login-hint" id="speakLoginHint">
+    Con cần đăng nhập để bắt đầu nói điều con muốn nói nhé. Bấm "Đăng nhập học sinh" ở góc trên nhé.
+  </div>
+
+  <div class="speak-views" id="speakViews" style="display:none">
+
+    <section class="speak-view" id="view-speak">
+      <h2 class="speak-heading" id="speakHeading">Con muốn nói gì bằng tiếng Anh?</h2>
+
+      <div class="speak-input-row">
+        <textarea id="speakInput" class="speak-input" rows="2" placeholder="Nhập hoặc bấm 🎤 để nói bằng tiếng Việt..."></textarea>
+        <button type="button" class="speak-mic-btn" id="speakMicVi" title="Nói bằng tiếng Việt">🎤</button>
+      </div>
+
+      <div class="speak-status" id="speakStatus"></div>
+
+      <div class="speak-result" id="speakResult" style="display:none">
+        <div class="speak-result-label">🇻🇳 Con đã nói</div>
+        <div class="speak-vi-text" id="speakViText"></div>
+
+        <div class="speak-result-label">🇬🇧 Tiếng Anh của con</div>
+        <div class="speak-en-card">
+          <div class="speak-en-text" id="speakEnText"></div>
+          <div class="speak-en-actions">
+            <button type="button" class="speak-icon-btn" id="speakListenNormal" title="Nghe">🔊</button>
+            <button type="button" class="speak-icon-btn" id="speakListenSlow" title="Nghe chậm">🐢</button>
+          </div>
+        </div>
+
+        <div class="speak-hint">Chạm vào từ con muốn học nhé.</div>
+
+        <button type="button" class="speak-say-again-btn" id="speakSayAgainBtn">🎤 Con nói lại</button>
+        <div class="speak-say-again-result" id="speakSayAgainResult"></div>
+
+        <button type="button" class="speak-save-sentence-btn" id="speakSaveSentenceBtn">❤️ Lưu câu</button>
+      </div>
+    </section>
+
+    <section class="speak-view" id="view-sentences" style="display:none">
+      <h2 class="speak-heading" id="sentencesHeading">Câu của con</h2>
+      <div class="speak-list" id="sentencesList"></div>
+    </section>
+
+    <section class="speak-view" id="view-words" style="display:none">
+      <h2 class="speak-heading" id="wordsHeading">Từ của con</h2>
+      <div class="speak-list" id="wordsList"></div>
+    </section>
+
+    <section class="speak-view" id="view-review" style="display:none">
+      <h2 class="speak-heading" id="reviewHeading">Ôn của con</h2>
+      <div class="speak-review-menu" id="reviewMenu">
+        <button type="button" class="speak-review-btn" id="reviewWordsFlashcardBtn">⭐ Ôn từ – Thẻ đọc</button>
+        <button type="button" class="speak-review-btn" id="reviewWordsQuizBtn">⭐ Ôn từ – Đố nghĩa</button>
+        <button type="button" class="speak-review-btn" id="reviewSentencesBtn">❤️ Ôn câu – Nói lại</button>
+      </div>
+      <div id="reviewPlayArea"></div>
+    </section>
+
+  </div>
+</div>
+
+<nav class="speak-bottom-nav" id="speakBottomNav" style="display:none">
+  <button type="button" class="speak-nav-btn active" data-view="speak">💬 Nói</button>
+  <button type="button" class="speak-nav-btn" data-view="sentences">❤️ Câu của con</button>
+  <button type="button" class="speak-nav-btn" data-view="words">⭐ Từ của con</button>
+  <button type="button" class="speak-nav-btn" data-view="review">🎯 Ôn</button>
+</nav>
+
+<div class="site-popup-overlay" id="wordCardOverlay" style="display:none">
+  <div class="site-popup-card speak-word-card">
+    <button type="button" class="site-popup-close" id="wordCardCloseBtn">✕</button>
+    <div class="speak-word-card-body">
+      <div class="speak-word-lemma" id="wordCardLemma"></div>
+      <div class="speak-word-pronunciation" id="wordCardPronunciation"></div>
+      <div class="speak-word-meaning" id="wordCardMeaning"></div>
+      <div class="speak-word-actions">
+        <button type="button" class="speak-icon-btn" id="wordCardListenBtn" title="Nghe từ">🔊</button>
+        <button type="button" class="speak-icon-btn" id="wordCardSayBtn" title="Nói lại">🎤</button>
+      </div>
+      <div class="speak-word-say-result" id="wordCardSayResult"></div>
+      <button type="button" class="speak-learn-word-btn" id="wordCardLearnBtn">❤️ Học từ này</button>
+      <div class="speak-word-status" id="wordCardStatus"></div>
+    </div>
+  </div>
+</div>
+
+<div class="login-modal-overlay" id="loginModalOverlay" style="display:none">
+  <div class="login-modal">
+    <h3>Đăng nhập học sinh</h3>
+    <div class="admin-field">
+      <label>Tài khoản</label>
+      <input type="text" id="loginUsername">
+    </div>
+    <div class="admin-field">
+      <label>Mã PIN</label>
+      <div class="password-input-wrap">
+        <input type="password" id="loginPin">
+        <button type="button" class="password-toggle-btn" data-target="loginPin">👁️</button>
+      </div>
+    </div>
+    <div class="login-modal-status" id="loginStatus"></div>
+    <div class="login-modal-actions">
+      <button class="login-modal-btn login-modal-btn-cancel" id="loginCancelBtn" type="button">Hủy</button>
+      <button class="login-modal-btn login-modal-btn-submit" id="loginSubmitBtn" type="button">Đăng nhập</button>
+    </div>
+  </div>
+</div>
+
+<div class="login-modal-overlay" id="rankingModalOverlay" style="display:none">
+  <div class="ranking-modal">
+    <div class="ranking-modal-header">
+      <h3>🏅 Xếp hạng chuyên cần nhóm mình</h3>
+      <button type="button" class="ranking-modal-close" id="closeRankingModalBtn">✕</button>
+    </div>
+    <div id="rankingModalBody"></div>
+  </div>
+</div>
+
+<div class="login-modal-overlay" id="todayModalOverlay" style="display:none">
+  <div class="ranking-modal">
+    <div class="ranking-modal-header">
+      <h3>📋 Hôm nay em đã học gì</h3>
+      <button type="button" class="ranking-modal-close" id="closeTodayModalBtn">✕</button>
+    </div>
+    <div id="todayModalBody"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js?v=20260901a"></script>
+<script src="js/utils.js?v=20260901a"></script>
+<script src="js/results.js?v=20260901a"></script>
+<script src="js/flashcard.js?v=20260901a"></script>
+<script src="js/quiz.js?v=20260901a"></script>
+<script src="js/group-ranking.js?v=20260901a"></script>
+<script src="js/today-history.js?v=20260901a"></script>
+<script src="js/auth.js?v=20260901a"></script>
+<script src="js/speak-app.js?v=20260901a"></script>
+</body>
+</html>

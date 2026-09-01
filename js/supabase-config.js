@@ -9,4 +9,10 @@ var GENERATE_AUDIO_URL = SUPABASE_URL + "/functions/v1/generate-audio";
 // URL của Edge Function "translate-text" sau khi deploy
 var TRANSLATE_TEXT_URL = SUPABASE_URL + "/functions/v1/translate-text";
 
+// URL của Edge Function "speak-translate" sau khi deploy (trang hocnoitienganh.html)
+var SPEAK_TRANSLATE_URL = SUPABASE_URL + "/functions/v1/speak-translate";
+
+// URL của Edge Function "speak-vocab-analyze" sau khi deploy (trang hocnoitienganh.html)
+var SPEAK_VOCAB_ANALYZE_URL = SUPABASE_URL + "/functions/v1/speak-vocab-analyze";
+
 var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
