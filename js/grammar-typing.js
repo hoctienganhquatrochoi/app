@@ -6,7 +6,7 @@ function normalizeGrammarTypingAnswer(str) {
 }
 
 function buildGrammarTypingPool(items) {
-  return shuffleArray(items).map(function (item) {
+  return groupItemsBySetName(items).map(function (item) {
     return { item: item, answered: false, lastCorrect: false, lastAnswerValue: "" };
   });
 }

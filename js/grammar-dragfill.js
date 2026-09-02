@@ -12,7 +12,7 @@ function splitQuestionAroundBlank(questionEn) {
 }
 
 function buildGrammarDragfillQuestions(items) {
-  return shuffleArray(items).map(function (row) {
+  return groupItemsBySetName(items).map(function (row) {
     var wrongOptions = (row.wrong_answers || []).map(function (text) {
       return { text: text, isCorrect: false, used: false };
     });
